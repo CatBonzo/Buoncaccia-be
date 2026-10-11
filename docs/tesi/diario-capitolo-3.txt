@@ -259,6 +259,31 @@ Spunto: il controllo "ci siamo?" chiesto dalla persona e' stato
   (il backlog), non a memoria: e' il vantaggio della tracciabilita'
   descritto nel par. 2.4.
 
+--------------------------------------------------------------------------
+11/10/2026 - Fase 1: la specifica della feature 001 (speckit-specify)
+--------------------------------------------------------------------------
+Cosa: primo uso reale del ciclo Spec-Kit. L'agente ha creato il branch
+  001-identita-ruoli e, seguendo la skill speckit-specify, ha scritto
+  specs/001-identita-ruoli/spec.md: quattro user story con priorita'
+  (token di prova, profilo personale, controllo degli entitlement, forma
+  unica delle risposte), casi limite, 17 requisiti funzionali, criteri di
+  successo misurabili e assunzioni. Ha poi validato la specifica con la
+  checklist di qualita' generata dallo stesso comando.
+Chi: contenuti ricavati dalla specifica di progetto v2.0 e dalle scelte
+  gia' prese dall'autrice; stesura e validazione dell'agente.
+Paradigma: Spec-Driven Development (par. 2.4, Figura 16): intento ->
+  specifica, prima di piano e codice. Il comando limita a tre i punti da
+  chiarire e obbliga a scrivere i default negli "Assumptions".
+Artefatti: specs/001-identita-ruoli/spec.md,
+  specs/001-identita-ruoli/checklists/requirements.md.
+Problemi: due decisioni non si possono inferire e restano marcate
+  [NEEDS CLARIFICATION]: lo status HTTP degli errori (Q14) e i valori
+  definitivi di ruoli ed entitlement (Q15). Il codice non parte finche'
+  l'autrice non risponde.
+Spunto: e' il punto in cui il metodo ferma l'agente e restituisce la
+  decisione alla persona, invece di lasciarla all'interpretazione del
+  modello (par. 2.4, esempio della funzione di autenticazione).
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
