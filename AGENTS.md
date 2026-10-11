@@ -61,6 +61,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 
   Le dipendenze vanno in una sola direzione: `api` → `service` → `repository.nosql` → `model`. I servizi non leggono il database di un altro servizio: si parlano con eventi su Kafka.
 - **Questo file.** A ogni passo si aggiornano lo stato (sezione 1) e il registro delle scelte (sezione 4).
+- **Diario della tesi.** A ogni passo si aggiunge una voce in `docs/tesi/diario-capitolo-3.txt` (testo semplice): che cosa si è fatto, chi ha deciso e chi ha eseguito, quale paradigma del capitolo 2 si vede, artefatti, problemi incontrati. Serve a documentare il capitolo 3.
 
 ## 4. Scelte prese e perché
 
@@ -84,6 +85,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-11 | Struttura a package `api`, `config`, `job`, `mapper`, `mockmigration`, `model`, `repository.nosql`, `service`, `utils` in ogni servizio | Scelta di Mahima, dalla struttura che conosce; tenuti i cinque servizi |
 | 2026-10-11 | Classe principale `*Application` (es. `IdentityServiceApplication`) invece di `App` | Con cinque servizi nello stesso progetto, in IntelliJ si distinguono le configurazioni di avvio |
 | 2026-10-11 | Cartella `.idea` fuori dal repository | IntelliJ la ricrea importando Gradle; evita conflitti tra macchine |
+| 2026-10-11 | Diario `docs/tesi/diario-capitolo-3.txt` aggiornato a ogni passo | Materiale per il capitolo 3 della tesi: collega ogni passo ai paradigmi del capitolo 2 |
 
 ## 5. Domande aperte
 

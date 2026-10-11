@@ -1,0 +1,211 @@
+DIARIO DI PROGETTO - BUONA CACCIA BACKEND
+Materiale per il Capitolo 3 della tesi
+"L'evoluzione dell'Intelligenza Artificiale e l'impatto significativo nel
+mondo della programmazione" - Mahima Pichini, A.A. 2025/2026
+
+Scopo del capitolo 3: illustrare come i paradigmi descritti nel capitolo 2
+(AI-Assisted Programming, Vibe Coding, Spec-Driven Development, Loop
+Engineering, Code Harness) trovano applicazione concreta in un progetto
+full-stack, con un caso d'uso scelto dall'autrice: il backend di
+Buona Caccia, la piattaforma AGESCI per le iscrizioni agli eventi scout.
+
+Il diario si aggiorna a ogni passo del progetto, nello stesso commit del
+lavoro che descrive. Le voci sono in ordine cronologico, la piu' recente
+in fondo.
+
+
+==========================================================================
+0. QUADRO GENERALE
+==========================================================================
+
+Caso d'uso
+  Backend a microservizi per il ciclo di vita delle iscrizioni agli eventi
+  AGESCI (catalogo, iscrizioni, lista d'attesa, pagamenti, notifiche), come
+  evoluzione della piattaforma esistente https://buonacaccia.agesci.it/
+  (oggi un'applicazione monolitica ASP.NET Web Forms).
+
+Strumenti usati
+  - Claude (modello) dentro un progetto Claude: una sessione "coordinatrice"
+    riceve le richieste e apre per ciascun compito una sessione dedicata
+    (thread) che lavora con Claude Code come harness: legge e scrive file,
+    esegue comandi, compila, lancia i test, fa commit e push su GitHub.
+  - GitHub Spec Kit: metodo e comandi dello Spec-Driven Development.
+  - GitHub (repository CatBonzo/Buoncaccia-be), IntelliJ IDEA, JDK 21,
+    Gradle, Spring Boot, Docker Compose.
+
+Dove si vede ciascun paradigma (mappa da completare durante il lavoro)
+  - Paradigma tradizionale (2.1): le scelte di architettura e la revisione
+    restano umane; la consultazione di documentazione e versioni (es.
+    compatibilita' tra Spring Boot e Spring Cloud) resta necessaria.
+  - AI-Assisted Programming (2.2): l'autrice lavora in IntelliJ sul codice
+    prodotto e lo rivede; l'AI propone, la persona valida.
+  - Vibe Coding (2.3): usato come termine di confronto. Il progetto lo
+    evita di proposito: ogni richiesta passa dalla specifica e ogni scelta
+    e' scritta in un file versionato (AGENTS.md), non solo nella chat.
+  - Spec-Driven Development (2.4): la specifica "Note Tecniche Backend"
+    (v1.1 -> v2.0) e' la fonte di verita'; poi constitution, specify,
+    clarify, plan, tasks, implement di Spec Kit per ogni feature.
+  - Loop Engineering (2.5): build e test come condizione di arresto;
+    ciclo di ritentativi automatici sui download; coordinatore che
+    delega i compiti a sessioni separate; checkpoint umani sulle decisioni.
+  - Code Harness (2.6): AGENTS.md come file di contesto dell'agente
+    (guida), test automatici e build come sensori deterministici,
+    memoria persistente del progetto tra una sessione e l'altra.
+
+
+==========================================================================
+1. VOCI DEL DIARIO
+==========================================================================
+
+Formato di ogni voce
+  Data | Cosa si e' fatto | Chi ha deciso / chi ha eseguito |
+  Paradigma | Artefatti | Problemi e come sono stati risolti |
+  Spunto per la tesi
+
+--------------------------------------------------------------------------
+06/10/2026 - Analisi della piattaforma esistente e prima specifica
+--------------------------------------------------------------------------
+Cosa: analisi delle pagine pubbliche di buonacaccia.agesci.it (eventi,
+  iscrizione, istruzioni, aiuto) e stesura della prima versione delle
+  "Note Tecniche Backend": attori, modello di dominio, stati, regole (BR),
+  user story, requisiti funzionali (FR) e non funzionali (NFR).
+Chi: l'autrice ha scelto il caso d'uso e l'approccio; l'agente ha
+  analizzato le pagine e prodotto la bozza.
+Paradigma: Spec-Driven Development - si scrive il "cosa" e il "perche'"
+  prima di qualsiasi codice.
+Artefatti: spec v1.1 (.md e .docx).
+Spunto: la specifica nasce dall'osservazione di un sistema reale; le
+  regole di dominio sono tracciate alla loro fonte (colonna "Fonte").
+
+--------------------------------------------------------------------------
+07/10/2026 - Revisione umana della specifica (v1.2)
+--------------------------------------------------------------------------
+Cosa: l'autrice ha rivisto il documento e preso decisioni che l'agente
+  non poteva inferire: iscrizioni a eventi di qualsiasi regione (BR-15),
+  utente unico con il codice socio, database NoSQL (MongoDB), niente
+  audit, niente "perimetro" territoriale, Apache Kafka per le notifiche.
+Chi: decisioni dell'autrice; l'agente le ha riportate in tutta la spec.
+Paradigma: SDD, fase "clarify" - le ambiguita' si risolvono per iscritto.
+Artefatti: spec v1.2.
+Spunto: e' il caso descritto nel par. 2.4: una buona specifica rende
+  esplicite le decisioni che il modello non deve inferire da solo.
+
+--------------------------------------------------------------------------
+09/10/2026 - Autenticazione e permessi (v1.3), primo planner
+--------------------------------------------------------------------------
+Cosa: definita l'autenticazione in due fasi (token mock generati dal
+  backend, poi Keycloak) e l'envelope di risposta unico (errorCode,
+  errorMessage, errorDomain, payload). Correzione importante dell'autrice
+  nella stessa giornata: il ruolo dice che cosa la persona vede, gli
+  entitlement del token SONO i permessi e stanno nell'Identity Provider;
+  l'agente aveva proposto un catalogo di permessi interno al backend, che
+  e' stato tolto. Primo planner a fasi, pensato per un Raspberry Pi 4.
+Chi: decisioni dell'autrice; stesura e planner dell'agente.
+Paradigma: SDD (spec-anchored: la specifica si corregge prima del codice).
+Artefatti: spec v1.3; planner "Buona Caccia BE - Planner e scaletta".
+Problemi: la proposta dell'agente sui permessi era coerente ma non
+  corrispondeva al modello voluto: corretta sulla specifica, a costo zero,
+  perche' non esisteva ancora codice.
+Spunto: errore intercettato nella fase di specifica invece che nel codice
+  (par. 2.4: "quando una decisione errata e' ancora semplice da correggere").
+
+--------------------------------------------------------------------------
+10/10/2026 - Ripartenza della specifica (v2.0) e cambio di ambiente
+--------------------------------------------------------------------------
+Cosa: l'autrice ha ridotto la specifica all'essenziale con una propria
+  revisione del .docx; le parti tolte sono diventate una checklist "cosa
+  manca da fare". L'ambiente passa dal Raspberry Pi a Docker Compose sul
+  PC: cadono i vincoli di memoria e di architettura arm64 e si possono
+  usare le immagini ufficiali (MongoDB, Kafka, Keycloak).
+  Nuovo planner (v2) con tre ruoli (amministrazione, segreteria, user),
+  fasi 0-6 e una tabella di copertura delle aree SWEBOK v4 della IEEE
+  Computer Society.
+Chi: scelte di perimetro e di ambiente dell'autrice; planner e mappatura
+  SWEBOK proposti dall'agente, con i default dichiarati come "da
+  confermare".
+Paradigma: SDD (la specifica si adatta al contesto: spec-anchored) e
+  ingegneria del software tradizionale (SWEBOK come riferimento).
+Artefatti: spec v2.0; Planner v2 (PC e Docker).
+Spunto: un cambio di vincoli (hardware) si propaga prima nei documenti e
+  poi nel codice; la specifica evita lo "spec-code drift".
+
+--------------------------------------------------------------------------
+11/10/2026 - Repository, IntelliJ e scheletro Spring Boot/Gradle
+--------------------------------------------------------------------------
+Cosa: l'autrice ha creato il repository GitHub, il branch di lavoro
+  "feature" e l'ha collegato a IntelliJ con il JDK 21. L'agente ha
+  clonato il repository e creato lo scheletro: Gradle 9.8.1 (wrapper),
+  catalogo delle versioni, plugin di convenzione in buildSrc e cinque
+  servizi Spring Boot (api-gateway, identity, event, enrollment,
+  notification), ciascuno con un test che verifica /actuator/health.
+Chi: repository e branch dell'autrice; codice, build, test e push
+  dell'agente.
+Paradigma: Code Harness (l'agente compila ed esegue i test in un ambiente
+  isolato prima di pubblicare); Loop Engineering (vedi problemi).
+Artefatti: commit 2f8d726 sul branch feature.
+Problemi:
+  1. Durante la prima build Maven Central ha risposto "429 Too Many
+     Requests". L'agente ha impostato un ciclo: build con un solo download
+     alla volta, attesa di 20 secondi, nuovo tentativo, con un massimo di
+     tentativi e uscita immediata per qualsiasi errore diverso dal 429.
+     La build e' passata al terzo tentativo.
+  2. La specifica indicava Spring Boot 3.x, ma a ottobre 2026 la versione
+     stabile e' la 4.0. L'agente ha scelto la 4.0.8 con Spring Cloud
+     2025.1.3 (l'ultima coppia compatibile; la 4.1 non ha ancora uno
+     Spring Cloud stabile), lo ha dichiarato come scelta da confermare e
+     ha proposto di aggiornare la specifica.
+  3. L'agente ha notato che i commit erano firmati con l'e-mail di lavoro;
+     l'autrice ha impostato l'identita' Git personale solo per questo
+     repository, per tenere la tesi separata dal lavoro.
+Spunto: il problema 1 e' un piccolo loop con trigger (fallimento), azione,
+  verifica (build e test) e condizione di arresto (successo o limite di
+  tentativi), come in Figura 17. Il problema 2 e' un caso concreto di
+  scostamento tra specifica e codice, segnalato invece di essere nascosto.
+
+--------------------------------------------------------------------------
+11/10/2026 - Struttura dei servizi e AGENTS.md
+--------------------------------------------------------------------------
+Cosa: l'autrice ha chiesto la struttura a package che usa nei progetti
+  Spring Boot che conosce (api, config, job, mapper, mockmigration, model,
+  repository.nosql, service, utils) e i file di build in Groovy. L'agente
+  ha chiesto con una scheda di decisione se volesse un'applicazione unica
+  o cinque servizi con quella struttura; l'autrice ha scelto i cinque
+  servizi. Creato AGENTS.md con contesto, coordinamento con il frontend,
+  regole di lavoro e registro delle scelte con data e motivazione.
+Chi: struttura e scelta dell'autrice; esecuzione dell'agente.
+Paradigma: Code Harness - AGENTS.md e' il file di contesto che guida ogni
+  sessione successiva dell'agente (una "guida" nel senso di Boeckeler,
+  par. 2.6); checkpoint umano su una scelta architetturale.
+Artefatti: commit 56e393b; AGENTS.md.
+Spunto: la conoscenza implicita dell'autrice (come e' fatto un progetto
+  Spring Boot "buono") diventa esplicita per l'agente in un file
+  versionato. Il registro delle scelte contrasta il limite del Vibe
+  Coding descritto nel par. 2.3: le decisioni non restano nei prompt.
+
+--------------------------------------------------------------------------
+11/10/2026 - Nasce questo diario
+--------------------------------------------------------------------------
+Cosa: l'autrice ha chiesto di tenere traccia di ogni passo per il
+  capitolo 3. L'agente ha letto il capitolo 2 per collegare ogni voce ai
+  paradigmi descritti e ha ricostruito i passi precedenti dalla memoria
+  del progetto e dalla cronologia Git.
+Chi: richiesta dell'autrice; stesura dell'agente.
+Paradigma: Code Harness / Loop Engineering - stato persistente del lavoro
+  in un file versionato (par. 2.5.1: "decisioni, errori, tentativi gia'
+  effettuati e attivita' completate vengono registrati in file
+  versionati").
+Artefatti: docs/tesi/diario-capitolo-3.txt.
+
+
+==========================================================================
+2. NOTE APERTE PER IL CAPITOLO 3
+==========================================================================
+
+- Full-stack: il capitolo parla di un progetto full-stack; finora la
+  specifica esclude il frontend. Quando partira' il frontend, il diario
+  seguira' anche quello (contratto OpenAPI condiviso, AGENTS.md sez. 2).
+- Da raccogliere durante le feature: tempi indicativi per fase, numero di
+  iterazioni del ciclo implementazione-test, errori dell'agente
+  intercettati dai test o dalla revisione, decisioni rimandate all'autrice.
+- Figure possibili: architettura dei servizi (gia' nel Planner v2), flusso
+  Spec Kit applicato a una feature, esempio di loop sulla build.
