@@ -8,6 +8,12 @@
 
 **Input**: User description: "Fase 1 del planner: identità e auth mock. Utenti di prova in `mocked-identity.yml`, token generati dal backend all'avvio e visibili solo nell'elenco degli utenti di prova, controllo degli entitlement del token, envelope di risposta unico, profilo personale. Tre ruoli: amministrazione, segreteria, user. Fonte: Note Tecniche Backend v2.0, par. 2.2, 2.6.1, 2.6.3, FR-001…FR-006, AUTH-1…AUTH-5."
 
+## Clarifications
+
+### Session 2026-10-11
+
+- Q15: Quali valori hanno ruoli ed entitlement dell'MVP? → A: quelli proposti nel planner, confermati da Mahima (vedi FR-016).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Ottenere un token di prova (Priority: P1)
@@ -103,7 +109,7 @@ Ogni risposta del backend, di successo o di errore, ha la stessa forma: codice d
 - **FR-013**: Ogni risposta, di successo o di errore, MUST avere i campi `errorCode` (0 = successo), `errorMessage`, `errorDomain` e `payload`; gli errori MUST NOT mostrare dettagli interni.
 - **FR-014**: Gli errori di questa feature MUST avere un codice proprio per: non autenticato, permesso mancante, risorsa inesistente, richiesta non valida, errore interno.
 - **FR-015**: Lo status HTTP delle risposte di errore MUST essere [NEEDS CLARIFICATION: Q14 – significativo (401, 403, 404, 422, 500) oppure sempre 200 con l'esito solo in `errorCode`?].
-- **FR-016**: I valori di ruolo ed entitlement dei tre ruoli dell'MVP MUST essere [NEEDS CLARIFICATION: Q15 – si confermano `agesci:sistema:amministratore`, `agesci:regione:segreteria`, `agesci:socio:user` e gli entitlement `agesci:entitlement:evento:gestione`, `iscrizione:gestione`, `pagamento:registrazione`, `iscrizione:self`, `tipoevento:gestione`? E l'esempio della spec `agesci:entitlement:agesci:censito:sede:segreteria` che cosa abilita?].
+- **FR-016**: I tre ruoli dell'MVP MUST avere i valori `agesci:sistema:amministratore`, `agesci:regione:segreteria`, `agesci:socio:user`. Gli entitlement (prefisso `agesci:entitlement:`) sono: `evento:gestione`, `iscrizione:gestione`, `pagamento:registrazione` (segreteria); `iscrizione:self` (user); `tipoevento:gestione` (solo amministrazione, che ha anche tutti gli altri). L'esempio `agesci:entitlement:agesci:censito:sede:segreteria` resta fuori finché non se ne conosce il significato.
 - **FR-017**: Il passaggio dal token mock a Keycloak MUST richiedere solo un cambio di configurazione: nessuna regola di autorizzazione o di profilo può dipendere dal fatto che il token sia mock.
 
 ### Key Entities *(include if feature involves data)*
