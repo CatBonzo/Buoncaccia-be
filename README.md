@@ -4,31 +4,38 @@ Backend per la gestione delle iscrizioni agli eventi AGESCI, sviluppato in modal
 
 ## Stack
 
-- Java 21, Spring Boot 4.0, Spring Cloud 2025.1
-- Gradle 9 (wrapper incluso, file `build.gradle` in Groovy), versioni centralizzate in `gradle/libs.versions.toml`
-- Convenzioni comuni dei servizi in `buildSrc` (plugin `buonacaccia.spring-service`)
+- Java 21, Spring Boot 4.0
+- Gradle 9 (wrapper incluso, `build.gradle` in Groovy), versioni in `gradle/libs.versions.toml`
 
 Contesto, regole di lavoro e scelte prese sono in [AGENTS.md](AGENTS.md).
 
-## Moduli
+## Struttura
 
-| Modulo | Porta | Responsabilità |
-| --- | --- | --- |
-| `api-gateway` | 8080 | Instradamento delle richieste `/api/v1/**` verso i servizi |
-| `identity-service` | 8081 | Utenti, `/users/me`, auth mock |
-| `event-service` | 8082 | Tipi evento, eventi, catalogo |
-| `enrollment-service` | 8083 | Iscrizioni, posti, lista d'attesa |
-| `notification-service` | 8084 | Notifiche e-mail dagli eventi Kafka |
+```
+src/main/java/it/buonacaccia/
+├── BuonaCacciaApplication.java   classe principale
+├── api/                          controller REST e DTO
+├── config/                       configurazione Spring
+├── job/                          attività pianificate
+├── mapper/                       conversioni dominio <-> DTO
+├── mockmigration/                dati di prova all'avvio
+├── model/                        modello di dominio (documenti MongoDB)
+├── repository/nosql/             repository Spring Data MongoDB
+├── service/                      logica di business
+└── utils/                        utilità
+src/main/resources/application.yml
+src/test/java/                    test
+```
 
 ## Comandi
 
 ```bash
-./gradlew build                          # compila e lancia i test di tutti i moduli
-./gradlew :identity-service:bootRun      # avvia un singolo servizio
+./gradlew build      # compila e lancia i test
+./gradlew bootRun    # avvia l'applicazione su http://localhost:8080
 ```
 
-Ogni servizio espone `GET /actuator/health`.
+`GET /actuator/health` risponde con lo stato dell'applicazione.
 
 ## IntelliJ IDEA
 
-Aprire la cartella del progetto: IntelliJ riconosce Gradle e importa i moduli. In *Settings > Build Tools > Gradle* usare come Gradle JVM il JDK 21.
+Aprire la cartella del progetto: IntelliJ riconosce Gradle. In *Settings > Build Tools > Gradle* usare come Gradle JVM il JDK 21.

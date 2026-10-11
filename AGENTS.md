@@ -9,23 +9,14 @@ Guida per chi lavora su questo repository, persone o agenti IA. Va aggiornata a 
 - **Piano di lavoro.** Planner v2 (PC e Docker), fasi 0–6 dell'MVP: 0 fondamenta, 1 identità e auth mock, 2 catalogo eventi, 3 iscrizioni e lista d'attesa, 4 eventi di dominio e notifiche, 5 bonifico registrato dalla segreteria, 6 passaggio a Keycloak.
 - **Perimetro dell'MVP.** Tre ruoli: amministrazione, segreteria, user. Il resto della spec (capo presentatore, staff, pagamenti elettronici, documenti, candidature) arriva dopo.
 - **Ambiente.** Solo uso locale, nessuna pubblicazione. Tutto gira con Docker Compose sul PC di sviluppo, in un progetto Compose separato (`buonacaccia`) per tenere la tesi distinta dal lavoro.
-- **Stato attuale.** Fase 0: scheletro Gradle con cinque servizi Spring Boot che si avviano e rispondono su `/actuator/health`. Mancano Docker Compose, Spec-Kit e CI.
-
-### Servizi
-
-| Modulo | Porta | Responsabilità |
-| --- | --- | --- |
-| `api-gateway` | 8080 | Unico punto d'ingresso, instrada `/api/v1/**` ai servizi |
-| `identity-service` | 8081 | Utenti, `/users/me`, auth mock (`mock-identity.yml`) |
-| `event-service` | 8082 | Tipi evento, eventi, catalogo pubblico, scheduler degli stati |
-| `enrollment-service` | 8083 | Iscrizioni, posti, lista d'attesa, adempimenti, bonifico |
-| `notification-service` | 8084 | Consumer Kafka, e-mail |
+- **Stato attuale.** Fase 0: un'unica applicazione Spring Boot (Gradle) che si avvia sulla porta 8080 e risponde su `/actuator/health`. Mancano Docker Compose, Spec-Kit e CI.
+- **Architettura.** Un solo progetto Spring Boot, non più cinque microservizi: le aree funzionali (identità, eventi, iscrizioni, notifiche) convivono nella stessa applicazione e si distinguono nei package `service`, `api` e `model`.
 
 ## 2. Coordinamento con il frontend
 
 Il frontend è un progetto separato che consuma le API; questo repository non contiene interfacce grafiche. Regole del contratto:
 
-- **Un solo indirizzo.** Il frontend chiama sempre il gateway: `http://localhost:8080/api/v1/...`. Non chiama mai i servizi sulle loro porte.
+- **Un solo indirizzo.** Il frontend chiama `http://localhost:8080/api/v1/...`.
 - **Contratto prima del codice.** Ogni API è descritta in OpenAPI 3.1 nella cartella della feature (`specs/NNN-*/contracts/`) prima di essere implementata. Il frontend lavora su quel file, anche prima che l'endpoint esista.
 - **Envelope unico.** Ogni risposta, di successo o di errore, ha la forma `{ "errorCode", "errorMessage", "errorDomain", "payload" }`; `errorCode` = 0 significa successo e i dati sono in `payload`.
 - **Status HTTP.** Default: significativo (401, 403, 404, 409, 422). Decisione aperta (Q14).
@@ -43,9 +34,9 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Commit.** Formato `verbo: sintesi` (`add`, `fix`, `refactor`, `docs`, `test`, `chore`), con il riferimento al requisito quando c'è (es. `add: lista d'attesa (FR-036)`). Identità Git personale, mai quella di lavoro.
 - **Lingua.** Specifiche, documentazione e commenti in italiano; nomi nel codice (classi, metodi, campi, endpoint) in inglese, come nel glossario della spec.
 - **Test.** I test definiscono il "fatto": scritti prima, devono fallire e poi passare. `./gradlew build` deve passare prima di ogni push.
-- **Versioni.** Tutte in `gradle/libs.versions.toml`; le impostazioni comuni dei servizi in `buildSrc/src/main/groovy/buonacaccia.spring-service.gradle`. Immagini Docker con tag fissato, mai `latest`.
+- **Versioni.** Tutte in `gradle/libs.versions.toml`; dipendenze e plugin in `build.gradle` alla radice. Immagini Docker con tag fissato, mai `latest`.
 - **Segreti.** Mai nel repository: `.env` è ignorato, nel repo va solo `.env.example`.
-- **Struttura di un servizio.** Package radice `it.buonacaccia.<servizio>` con la classe `*Application` e questi package (ogni servizio ha solo quelli che gli servono):
+- **Struttura del progetto.** Standard Spring Boot: codice in `src/main/java`, risorse in `src/main/resources`, test in `src/test/java`. Package radice `it.buonacaccia` con la classe `BuonaCacciaApplication` e questi package:
 
   | Package | Contenuto |
   | --- | --- |
@@ -57,9 +48,9 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
   | `model` | Documenti MongoDB, value object, stati |
   | `repository.nosql` | Repository Spring Data MongoDB |
   | `service` | Logica di business e regole BR della spec |
-  | `utils` | Utilità interne al servizio |
+  | `utils` | Utilità condivise |
 
-  Le dipendenze vanno in una sola direzione: `api` → `service` → `repository.nosql` → `model`. I servizi non leggono il database di un altro servizio: si parlano con eventi su Kafka.
+  Le dipendenze vanno in una sola direzione: `api` → `service` → `repository.nosql` → `model`.
 - **Questo file.** A ogni passo si aggiornano lo stato (sezione 1) e il registro delle scelte (sezione 4).
 - **Diario della tesi.** A ogni passo si aggiunge una voce in `docs/tesi/diario-capitolo-3.txt` (testo semplice): che cosa si è fatto, chi ha deciso e chi ha eseguito, quale paradigma del capitolo 2 si vede, artefatti, problemi incontrati. Serve a documentare il capitolo 3.
 
@@ -76,16 +67,17 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-10 | Docker Compose sul PC, non più Raspberry | Nessun limite di memoria o di architettura; immagini ufficiali; tesi isolata dal lavoro |
 | 2026-10-10 | MVP con tre ruoli (amministrazione, segreteria, user) | Solo l'essenziale; gli altri ruoli dopo l'MVP |
 | 2026-10-10 | Valori dei ruoli `agesci:sistema:amministratore`, `agesci:regione:segreteria`, `agesci:socio:user` (da confermare, Q15) | Seguono lo schema `agesci:<livello>:<funzione>` della spec |
-| 2026-10-10 | Cinque microservizi per l'MVP | La tesi è a microservizi; si parte dal numero minimo (costituzione, principio IV) |
+| 2026-10-10 | Cinque microservizi per l'MVP (superata l'11/10) | La tesi è a microservizi; si parte dal numero minimo (costituzione, principio IV) |
 | 2026-10-11 | Branch `feature` come principale, merge su `main` più avanti | Scelta di Mahima |
-| 2026-10-11 | Un solo repository Gradle multi-modulo | Un solo progetto da aprire in IntelliJ, una sola build e CI |
-| 2026-10-11 | Spring Boot 4.0.8 e Spring Cloud 2025.1.3 (la spec dice 3.x: da confermare) | Ultima coppia stabile e compatibile; Boot 4.1 non ha ancora uno Spring Cloud stabile |
-| 2026-10-11 | Gradle 9.8.1 con wrapper, catalogo delle versioni, plugin di convenzione in `buildSrc` | Versioni in un solo punto; i servizi dichiarano solo le loro dipendenze |
+| 2026-10-11 | Un solo repository Gradle multi-modulo (superata in giornata) | Un solo progetto da aprire in IntelliJ, una sola build e CI |
+| 2026-10-11 | Spring Boot 4.0.8 (la spec dice 3.x: da confermare) | Ultima versione stabile della 4.0; Spring Cloud non serve più senza gateway |
+| 2026-10-11 | Gradle 9.8.1 con wrapper e catalogo delle versioni | Versioni in un solo punto; build ripetibile senza Gradle installato |
 | 2026-10-11 | File di build in Groovy (`build.gradle`) | Lo stesso formato dei progetti Spring Boot che Mahima usa già |
-| 2026-10-11 | Struttura a package `api`, `config`, `job`, `mapper`, `mockmigration`, `model`, `repository.nosql`, `service`, `utils` in ogni servizio | Scelta di Mahima, dalla struttura che conosce; tenuti i cinque servizi |
-| 2026-10-11 | Classe principale `*Application` (es. `IdentityServiceApplication`) invece di `App` | Con cinque servizi nello stesso progetto, in IntelliJ si distinguono le configurazioni di avvio |
+| 2026-10-11 | Struttura a package `api`, `config`, `job`, `mapper`, `mockmigration`, `model`, `repository.nosql`, `service`, `utils` | Scelta di Mahima, dalla struttura dei progetti Spring Boot che conosce |
+| 2026-10-11 | Classe principale `BuonaCacciaApplication` | Convenzione Spring Boot `NomeAppApplication` |
 | 2026-10-11 | Cartella `.idea` fuori dal repository | IntelliJ la ricrea importando Gradle; evita conflitti tra macchine |
 | 2026-10-11 | Diario `docs/tesi/diario-capitolo-3.txt` aggiornato a ogni passo | Materiale per il capitolo 3 della tesi: collega ogni passo ai paradigmi del capitolo 2 |
+| 2026-10-11 | Un'unica applicazione Spring Boot in `src/main/java`, senza moduli né gateway | Scelta di Mahima: la struttura standard di Spring Boot; più semplice da capire, avviare e documentare |
 
 ## 5. Domande aperte
 
@@ -94,3 +86,5 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - Q14: status HTTP significativo o sempre 200? (default: significativo)
 - Q15: valori di `role` ed entitlement definitivi.
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
+- Spec e planner descrivono ancora i microservizi (par. 2.8, Appendice B, Planner v2): vanno allineati all'applicazione unica.
+- Kafka per le notifiche (ADR-003): resta utile dentro un'applicazione unica o si passa a eventi interni di Spring?

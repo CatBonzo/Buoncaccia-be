@@ -197,6 +197,33 @@ Paradigma: Code Harness / Loop Engineering - stato persistente del lavoro
 Artefatti: docs/tesi/diario-capitolo-3.txt.
 
 
+--------------------------------------------------------------------------
+11/10/2026 - Da cinque moduli a un'unica applicazione Spring Boot
+--------------------------------------------------------------------------
+Cosa: l'autrice ha confrontato l'albero prodotto con la struttura standard
+  di un progetto Spring Boot (src/main/java con controller, model,
+  repository, service e la classe *Application) e ha chiesto di togliere i
+  cinque moduli: tutto il codice va in un'unica applicazione, con i
+  package della struttura scelta prima, restando su Gradle. L'agente ha
+  rimosso moduli, gateway e buildSrc, creato BuonaCacciaApplication con i
+  package api, config, job, mapper, mockmigration, model,
+  repository.nosql, service, utils, e aggiornato README e AGENTS.md
+  (le scelte superate restano nel registro, marcate come superate).
+Chi: decisione dell'autrice; esecuzione dell'agente.
+Paradigma: AI-Assisted Programming / revisione umana (par. 2.2): la
+  persona confronta il risultato con un riferimento noto e corregge la
+  direzione. SDD: la scelta si discosta dalla specifica (par. 2.8,
+  microservizi), quindi la specifica e il planner vanno riallineati.
+Artefatti: commit di questa voce.
+Problemi: poco prima l'autrice aveva scelto "cinque servizi" su una
+  scheda di decisione; vedendo l'albero nell'IDE ha cambiato idea. La
+  modifica e' costata poco perche' esisteva solo lo scheletro.
+Spunto: una scelta architetturale proposta dall'agente (microservizi) e'
+  stata ribaltata dalla persona appena l'ha vista concretamente; il
+  controllo umano funziona meglio su un artefatto visibile che su una
+  domanda astratta. Il registro delle scelte conserva entrambe le
+  decisioni, cosi' il cambiamento resta tracciabile.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
