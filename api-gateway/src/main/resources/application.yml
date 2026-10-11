@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: identity
+              uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/v1/mock/**,/api/v1/users/**
+            - id: enrollment
+              uri: ${ENROLLMENT_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/events/*/enrollments/**,/api/v1/enrollments/**,/api/v1/enrollment-validations/**,/api/v1/me/**
+            - id: event
+              uri: ${EVENT_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/v1/event-types/**,/api/v1/events/**,/api/v1/org-units/**
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

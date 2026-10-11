@@ -1,0 +1,14 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA (il progetto si importa da Gradle)
+.idea/
+*.iml
+out/
+
+# Ambiente locale
+.env
+*.log
+.DS_Store
