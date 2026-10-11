@@ -27,6 +27,16 @@ src/main/resources/application.yml
 src/test/java/                    test
 ```
 
+## Ambiente locale
+
+```bash
+docker compose up -d     # MongoDB (27017), Kafka (9092), Mailpit (1025, web su http://localhost:8025)
+docker compose down      # ferma i container (i dati restano)
+docker compose down -v   # ferma e cancella i dati
+```
+
+Per avviare l'applicazione contro questi container, caricare in IntelliJ le variabili di `test-src/env/mocked.env`.
+
 ## Comandi
 
 ```bash

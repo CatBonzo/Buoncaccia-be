@@ -224,6 +224,41 @@ Spunto: una scelta architetturale proposta dall'agente (microservizi) e'
   domanda astratta. Il registro delle scelte conserva entrambe le
   decisioni, cosi' il cambiamento resta tracciabile.
 
+--------------------------------------------------------------------------
+11/10/2026 - Chiusura della fase 0: Docker, Spec-Kit e CI
+--------------------------------------------------------------------------
+Cosa: l'autrice ha aggiunto i file che servono per Docker e per la
+  modalita' mock (mocked-identity.yml, mocked.env, test.env,
+  develop.json, ancora vuoti) e ha chiesto un controllo prima di passare
+  alla fase 1, pensando che la fase 0 fosse solo configurazione.
+  L'agente ha confrontato lo stato con il backlog della fase 0 del
+  planner e ha trovato mancanti Docker Compose, Spec-Kit, costituzione e
+  CI. Ha quindi scritto compose.yaml (MongoDB 8.0 come replica set,
+  Kafka 4.3 in modalita' KRaft, Mailpit) e lo ha avviato davvero nel suo
+  ambiente isolato: tre container "healthy", replica set PRIMARY, topic
+  Kafka creato, interfaccia Mailpit raggiungibile. Ha riempito mocked.env
+  e test.env, inizializzato Spec-Kit con l'integrazione Claude Code
+  (comandi come skill in .claude/skills) e scritto la costituzione 1.0.0
+  dai quattro principi della specifica. Ha aggiunto la CI su GitHub
+  Actions.
+Chi: file e nomi dell'autrice; verifica, configurazione ed esecuzione
+  dell'agente.
+Paradigma: SDD (la costituzione diventa un artefatto che ogni piano deve
+  rispettare: "Constitution Check"); Code Harness (le skill di Spec-Kit
+  estendono l'harness dell'agente; CI e test sono sensori deterministici,
+  par. 2.6); Loop Engineering (la CI e' il trigger naturale di un loop di
+  correzione, come nella Figura 18).
+Artefatti: compose.yaml, test-src/env/*.env, .specify/, .claude/skills/,
+  .github/workflows/build.yml.
+Problemi: l'agente ha dovuto avviare il demone Docker nel proprio
+  ambiente prima di poter provare compose.yaml. Lo scopo di develop.json
+  non era chiaro: lasciato vuoto e chiesto all'autrice invece di
+  inventarlo.
+Spunto: il controllo "ci siamo?" chiesto dalla persona e' stato
+  risolto confrontando lo stato reale con un artefatto di pianificazione
+  (il backlog), non a memoria: e' il vantaggio della tracciabilita'
+  descritto nel par. 2.4.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================

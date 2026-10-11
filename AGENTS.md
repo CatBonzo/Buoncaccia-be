@@ -9,7 +9,7 @@ Guida per chi lavora su questo repository, persone o agenti IA. Va aggiornata a 
 - **Piano di lavoro.** Planner v2 (PC e Docker), fasi 0–6 dell'MVP: 0 fondamenta, 1 identità e auth mock, 2 catalogo eventi, 3 iscrizioni e lista d'attesa, 4 eventi di dominio e notifiche, 5 bonifico registrato dalla segreteria, 6 passaggio a Keycloak.
 - **Perimetro dell'MVP.** Tre ruoli: amministrazione, segreteria, user. Il resto della spec (capo presentatore, staff, pagamenti elettronici, documenti, candidature) arriva dopo.
 - **Ambiente.** Solo uso locale, nessuna pubblicazione. Tutto gira con Docker Compose sul PC di sviluppo, in un progetto Compose separato (`buonacaccia`) per tenere la tesi distinta dal lavoro.
-- **Stato attuale.** Fase 0: un'unica applicazione Spring Boot (Gradle) che si avvia sulla porta 8080 e risponde su `/actuator/health`. Mancano Docker Compose, Spec-Kit e CI.
+- **Stato attuale.** Fase 0 chiusa: applicazione Spring Boot (Gradle) sulla porta 8080 con `/actuator/health`; `compose.yaml` con MongoDB, Kafka e Mailpit; file di ambiente in `test-src/env/`; Spec-Kit inizializzato con la costituzione; CI su GitHub Actions. Prossima: fase 1, identità e auth mock.
 - **Architettura.** Un solo progetto Spring Boot, non più cinque microservizi: le aree funzionali (identità, eventi, iscrizioni, notifiche) convivono nella stessa applicazione e si distinguono nei package `service`, `api` e `model`.
 
 ## 2. Coordinamento con il frontend
@@ -20,7 +20,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Contratto prima del codice.** Ogni API è descritta in OpenAPI 3.1 nella cartella della feature (`specs/NNN-*/contracts/`) prima di essere implementata. Il frontend lavora su quel file, anche prima che l'endpoint esista.
 - **Envelope unico.** Ogni risposta, di successo o di errore, ha la forma `{ "errorCode", "errorMessage", "errorDomain", "payload" }`; `errorCode` = 0 significa successo e i dati sono in `payload`.
 - **Status HTTP.** Default: significativo (401, 403, 404, 409, 422). Decisione aperta (Q14).
-- **Autenticazione, fase 1.** `GET /api/v1/mock/auth/findAll` restituisce gli utenti di prova con il loro `accessToken`; il frontend lo manda come `Authorization: Bearer <token>`. I token cambiano a ogni riavvio del backend.
+- **Autenticazione, fase 1.** Profilo Spring `mocked`, utenti di prova in `src/main/resources/mocked-identity.yml`. `GET /api/v1/mock/auth/findAll` restituisce gli utenti di prova con il loro `accessToken`; il frontend lo manda come `Authorization: Bearer <token>`. I token cambiano a ogni riavvio del backend.
 - **Autenticazione, fase 2.** Keycloak con OIDC (authorization code + PKCE), realm `buonacaccia`. I claim del token restano gli stessi, quindi il frontend non cambia logica.
 - **Ruoli ed entitlement.** Il claim `role` dice che cosa mostrare (menu, aree); il claim `entitlement` dice quali azioni abilitare. Il frontend può nascondere un pulsante, ma il backend controlla sempre l'entitlement.
 - **Convenzioni.** Paginazione `page`/`size`, ordinamento `sort=campo,asc|desc`, date ISO 8601 in UTC (le regole di dominio usano Europe/Rome), risorse al plurale in inglese.
@@ -35,7 +35,9 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Lingua.** Specifiche, documentazione e commenti in italiano; nomi nel codice (classi, metodi, campi, endpoint) in inglese, come nel glossario della spec.
 - **Test.** I test definiscono il "fatto": scritti prima, devono fallire e poi passare. `./gradlew build` deve passare prima di ogni push.
 - **Versioni.** Tutte in `gradle/libs.versions.toml`; dipendenze e plugin in `build.gradle` alla radice. Immagini Docker con tag fissato, mai `latest`.
-- **Segreti.** Mai nel repository: `.env` è ignorato, nel repo va solo `.env.example`.
+- **Segreti.** Mai nel repository: `.env` è ignorato. I file in `test-src/env/` contengono solo valori locali di sviluppo, nessuna password reale.
+- **Ambiente locale.** `docker compose up -d` avvia MongoDB (replica set `rs0`, porta 27017), Kafka (KRaft, porta 9092) e Mailpit (SMTP 1025, web 8025), tutti su `127.0.0.1`. L'applicazione si avvia da IntelliJ caricando `test-src/env/mocked.env`.
+- **Spec-Kit.** Comandi come skill di Claude Code in `.claude/skills/speckit-*`; costituzione in `.specify/memory/constitution.md`; le feature vanno in `specs/NNN-titolo-breve/`.
 - **Struttura del progetto.** Standard Spring Boot: codice in `src/main/java`, risorse in `src/main/resources`, test in `src/test/java`. Package radice `it.buonacaccia` con la classe `BuonaCacciaApplication` e questi package:
 
   | Package | Contenuto |
@@ -78,6 +80,11 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-11 | Cartella `.idea` fuori dal repository | IntelliJ la ricrea importando Gradle; evita conflitti tra macchine |
 | 2026-10-11 | Diario `docs/tesi/diario-capitolo-3.txt` aggiornato a ogni passo | Materiale per il capitolo 3 della tesi: collega ogni passo ai paradigmi del capitolo 2 |
 | 2026-10-11 | Un'unica applicazione Spring Boot in `src/main/java`, senza moduli né gateway | Scelta di Mahima: la struttura standard di Spring Boot; più semplice da capire, avviare e documentare |
+| 2026-10-11 | File degli utenti di prova `mocked-identity.yml`, profilo `mocked`, variabili in `test-src/env/mocked.env` e `test.env` | Nomi scelti da Mahima (la spec dice `mock-identity.yml` e profilo `mock-auth`: da allineare) |
+| 2026-10-11 | `compose.yaml` con `mongo:8.0.32`, `apache/kafka:4.3.1`, `axllent/mailpit:v1.31.5`, tag fissati nel file | Versioni stabili più recenti; tag nel file versionato così l'ambiente è uguale per tutti |
+| 2026-10-11 | MongoDB come replica set a un nodo | Le transazioni (outbox, posti) richiedono un replica set |
+| 2026-10-11 | Spec-Kit con integrazione Claude Code (skill in `.claude/skills`), costituzione 1.0.0 dai 4 principi della spec | È il metodo della tesi; i comandi sono disponibili all'agente che sviluppa |
+| 2026-10-11 | CI su GitHub Actions: `./gradlew build` a ogni push e PR su `feature` e `main` | Verifica automatica e ripetibile (sensore deterministico) |
 
 ## 5. Domande aperte
 
@@ -87,4 +94,5 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - Q15: valori di `role` ed entitlement definitivi.
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
 - Spec e planner descrivono ancora i microservizi (par. 2.8, Appendice B, Planner v2): vanno allineati all'applicazione unica.
-- Kafka per le notifiche (ADR-003): resta utile dentro un'applicazione unica o si passa a eventi interni di Spring?
+- Kafka per le notifiche (ADR-003): resta utile dentro un'applicazione unica o si passa a eventi interni di Spring? (per ora resta in compose)
+- A cosa serve `test-src/config/develop.json`? (per ora vuoto)
