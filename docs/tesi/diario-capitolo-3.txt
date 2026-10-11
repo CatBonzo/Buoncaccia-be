@@ -214,7 +214,7 @@ Paradigma: AI-Assisted Programming / revisione umana (par. 2.2): la
   persona confronta il risultato con un riferimento noto e corregge la
   direzione. SDD: la scelta si discosta dalla specifica (par. 2.8,
   microservizi), quindi la specifica e il planner vanno riallineati.
-Artefatti: commit di questa voce.
+Artefatti: commit 7e229ee.
 Problemi: poco prima l'autrice aveva scelto "cinque servizi" su una
   scheda di decisione; vedendo l'albero nell'IDE ha cambiato idea. La
   modifica e' costata poco perche' esisteva solo lo scheletro.
