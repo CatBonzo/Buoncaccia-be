@@ -182,7 +182,7 @@ components:
         - $ref: '#/components/schemas/Envelope'
         - type: object
           properties:
-            errorCode: { type: integer, enum: [40100, 40300, 40400, 40900, 42200, 50000] }
+            errorCode: { type: integer, enum: [40100, 40300, 40400, 40500, 40900, 42200, 50000] }
             errorMessage: { type: string }
             errorDomain: { type: string }
             payload: { type: 'null' }

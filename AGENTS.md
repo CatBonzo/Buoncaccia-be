@@ -9,7 +9,7 @@ Guida per chi lavora su questo repository, persone o agenti IA. Va aggiornata a 
 - **Piano di lavoro.** Planner v2 (PC e Docker), fasi 0–6 dell'MVP: 0 fondamenta, 1 identità e auth mock, 2 catalogo eventi, 3 iscrizioni e lista d'attesa, 4 eventi di dominio e notifiche, 5 bonifico registrato dalla segreteria, 6 passaggio a Keycloak.
 - **Perimetro dell'MVP.** Tre ruoli: amministrazione, segreteria, user. Il resto della spec (capo presentatore, staff, pagamenti elettronici, documenti, candidature) arriva dopo.
 - **Ambiente.** Solo uso locale, nessuna pubblicazione. Tutto gira con Docker Compose sul PC di sviluppo, in un progetto Compose separato (`buonacaccia`) per tenere la tesi distinta dal lavoro.
-- **Stato attuale.** Fase 0 chiusa: applicazione Spring Boot (Gradle) sulla porta 8080 con `/actuator/health`; `compose.yaml` con MongoDB, Kafka e Mailpit; file di ambiente in `test-src/env/`; Spec-Kit inizializzato con la costituzione; CI su GitHub Actions. Fase 1 (identità e auth mock) in corso sul branch `001-identita-ruoli`: spec scritta in `specs/001-identita-ruoli/spec.md`, Q14 e Q15 chiuse; plan scritto (`plan.md`, `research.md`, `data-model.md`, `quickstart.md`, contratto `contracts/identity.openapi.yaml`); prossimo passo `tasks`.
+- **Stato attuale.** Fase 0 chiusa: applicazione Spring Boot (Gradle) sulla porta 8080 con `/actuator/health`; `compose.yaml` con MongoDB, Kafka e Mailpit; file di ambiente in `test-src/env/`; Spec-Kit inizializzato con la costituzione; CI su GitHub Actions. Fase 1 (identità e auth mock) in corso sul branch `001-identita-ruoli`: spec scritta in `specs/001-identita-ruoli/spec.md`, Q14 e Q15 chiuse; plan, tasks e implementazione fatti: token mock, guardia `@SecurityAccess`, envelope con status significativo, `/users/me`, Swagger UI; 31 test verdi. Prossimo passo: revisione e pull request verso `feature`.
 - **Architettura.** Un solo progetto Spring Boot, non più cinque microservizi: le aree funzionali (identità, eventi, iscrizioni, notifiche) convivono nella stessa applicazione e si distinguono nei package `service`, `api` e `model`.
 
 ## 2. Coordinamento con il frontend
@@ -20,6 +20,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Contratto prima del codice.** Ogni API è descritta in OpenAPI 3.1 nella cartella della feature (`specs/NNN-*/contracts/`) prima di essere implementata. Il frontend lavora su quel file, anche prima che l'endpoint esista.
 - **Envelope unico.** Ogni risposta, di successo o di errore, ha la forma `{ "errorCode", "errorMessage", "errorDomain", "payload" }`; `errorCode` = 0 significa successo e i dati sono in `payload`.
 - **Status HTTP.** Significativo (401, 403, 404, 409, 422, 500) e coerente con `errorCode`; il corpo è sempre l'envelope (Q14, 12/10).
+- **Documentazione viva.** Swagger UI su `http://localhost:8080/swagger-ui.html` (JSON su `/v3/api-docs`): "Authorize" accetta un `accessToken` preso da `findAll`.
 - **Autenticazione, fase 1.** Profilo Spring `mocked`, utenti di prova in `src/main/resources/mocked-identity.yml`. `GET /api/v1/mock/auth/findAll` restituisce gli utenti di prova con il loro `accessToken`; il frontend lo manda come `Authorization: Bearer <token>`. I token cambiano a ogni riavvio del backend.
 - **Autenticazione, fase 2.** Keycloak con OIDC (authorization code + PKCE), realm `buonacaccia`. I claim del token restano gli stessi, quindi il frontend non cambia logica.
 - **Ruoli ed entitlement.** Il claim `role` dice che cosa mostrare (menu, aree); il claim `entitlement` dice quali azioni abilitare. Il frontend può nascondere un pulsante, ma il backend controlla sempre l'entitlement.
@@ -87,13 +88,18 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-11 | CI su GitHub Actions: `./gradlew build` a ogni push e PR su `feature` e `main` | Verifica automatica e ripetibile (sensore deterministico) |
 | 2026-10-12 | Status HTTP significativo (401, 403, 404, 409, 422, 500) con l'envelope nel corpo (Q14, scelta di Mahima) | Usa la semantica standard di HTTP: client, proxy e strumenti capiscono l'esito senza leggere il corpo; `errorCode` resta per il dettaglio applicativo |
 | 2026-10-12 | Resource server di Spring Security; nel profilo `mocked` il decoder usa la chiave RSA in memoria, fuori dal mock `issuer-uri`/`jwk-set-uri` di Keycloak | Meccanismo standard, passaggio a Keycloak solo di configurazione; evita che l'app chiami sé stessa via HTTP (research R1) |
-| 2026-10-12 | Entitlement del token come authority, controllo con `@PreAuthorize("hasAuthority(...)")` e costanti in `Entitlements` | AUTH-1 in una riga per endpoint, nessun catalogo di permessi (R4) |
+| 2026-10-12 | Entitlement del token come authority con `@PreAuthorize` (superata in giornata dalla guardia `@SecurityAccess`) | AUTH-1 in una riga per endpoint (R4) |
 | 2026-10-12 | Codici di errore `SSSNN` (status HTTP + dettaglio): 40100, 40300, 40400, 40900, 42200, 50000; domini `AUTH`, `IDENTITY`, `SYSTEM` | Leggibili ed estendibili senza tabelle di conversione; chiude il "catalogo da definire" della spec (R5) |
 | 2026-10-12 | Radice del file utenti di prova `mocked-identity.users`, import non opzionale nel profilo `mocked` | Allineata al nome del file scelto da Mahima; file mancante o malformato ferma l'avvio (R6) |
 | 2026-10-12 | Claim `role` come lista e claim OIDC standard (`preferred_username`, `email`, `given_name`, `family_name`) nel token mock | Stessa forma di Keycloak; servono a creare l'utente al primo accesso (R3) |
 | 2026-10-12 | Ruoli ed entitlement copiati sull'utente alla chiamata di `/users/me` | È la prima chiamata del frontend dopo il login; niente scritture a ogni richiesta (R7) |
 | 2026-10-12 | Campi in inglese nel codice e nel JSON (`memberCode`, `branch`, `memberType`…) | Regola della lingua nel codice; la spec usa nomi italiani da allineare (R10) |
 | 2026-10-12 | Test di integrazione con Testcontainers (MongoDB) | Test su un database vero senza dipendere dal compose acceso; funziona anche in CI (R9) |
+| 2026-10-12 | Guardia `@SecurityAccess(role = …, entitlement = …)` controllata da un `HandlerInterceptor` (package `config.guard`) | Richiesta di Mahima, sul modello di ScoutShopper-be; legge i claim del token già validato, niente AOP (R4) |
+| 2026-10-12 | Swagger UI con springdoc 3.0.3, configurato in `application.yml` (`/v3/api-docs`, `/swagger-ui.html`, pubblici) e schema `bearerAuth` | Richiesta di Mahima, come in ScoutShopper-be; il contratto in `contracts/` resta la fonte di verità (R11) |
+| 2026-10-12 | `test.env` con profili `mocked,test` e database `buonacaccia-test` | Con il solo profilo `test` l'app non avrebbe un emittente di token (R12) |
+| 2026-10-12 | `mocked-identity.yml` sul modello di `identity.yaml` di ScoutShopper-be, con i campi della spec (claim, censimento) | Richiesta di Mahima; la spec chiede `agesciUUID`, entitlement e censimento oltre ai ruoli (R6) |
+| 2026-10-12 | Codice di errore `40500` (metodo non supportato) | Senza, un metodo HTTP sbagliato diventava 500 |
 
 ## 5. Domande aperte
 

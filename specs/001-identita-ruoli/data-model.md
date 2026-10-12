@@ -75,6 +75,7 @@ JWT RS256. Claim: `iss` (`mock-auth`), `sub` (= `buonaCacciaUUID`), `iat`, `exp`
 | 40100 | 401 | `AUTH` | Token assente, malformato, firma o emittente non validi, scaduto |
 | 40300 | 403 | `AUTH` | Entitlement richiesto assente dal token |
 | 40400 | 404 | `SYSTEM` | Risorsa o percorso inesistente (anche `/api/v1/mock/**` fuori dal profilo `mocked`) |
+| 40500 | 405 | `SYSTEM` | Metodo HTTP non supportato dalla risorsa |
 | 40900 | 409 | dominio della risorsa | Conflitto di stato (non usato in questa feature, riservato) |
 | 42200 | 422 | `SYSTEM` | Input non valido |
 | 50000 | 500 | `SYSTEM` | Errore imprevisto; messaggio generico, nessun dettaglio interno |

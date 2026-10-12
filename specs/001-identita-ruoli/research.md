@@ -22,11 +22,23 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 - **Motivazione**: FR-006 chiede "almeno" i claim della spec; quelli OIDC li emette Keycloak per default e servono a creare l'utente al primo accesso (FR-011) senza un'altra fonte di dati. `role` è una lista anche se oggi ogni utente ne ha uno, per essere uguale a Keycloak (multivalore).
 - **Alternative**: `role` come stringa singola (come nell'esempio YAML della spec): rischia di rompere i client quando arriveranno più ruoli.
 
-## R4. Entitlement come authority e controllo per operazione
+## R4. Guardia `@SecurityAccess` su ruoli ed entitlement (rivista il 12/10)
 
-- **Decisione**: un `JwtAuthenticationConverter` trasforma ogni valore del claim `entitlement` in una `GrantedAuthority` con lo stesso nome, senza prefisso. Ogni operazione protetta dichiara l'entitlement con `@PreAuthorize("hasAuthority(...)")` usando le costanti della classe `Entitlements`. I ruoli non diventano authority: servono solo al frontend (visibilità).
-- **Motivazione**: AUTH-1 e FR-008/FR-009 in una riga per endpoint, leggibile e verificabile nei test; nessun catalogo di permessi nel backend.
-- **Alternative**: annotazione personalizzata `@RequiresEntitlement` (più codice per lo stesso effetto, da rivalutare se le regole relazionali di AUTH-2 la renderanno utile); controllo nel service a mano (sparso e facile da dimenticare).
+- **Decisione**: annotazione `@SecurityAccess` sui metodi dei controller, sul modello della guardia del progetto ScoutShopper-be di Mahima, adattata ai claim di Buona Caccia: `@SecurityAccess(entitlement = Entitlements.EVENTO_GESTIONE)` richiede che il token contenga almeno uno degli entitlement indicati, `@SecurityAccess(role = Roles.AMMINISTRATORE)` almeno uno dei ruoli; senza attributi basta un token valido. La controlla un `HandlerInterceptor` (`SecurityGuardInterceptor`, package `config.guard`) prima di eseguire il metodo; se manca il permesso lancia `AccessDeniedException`, che diventa 403 con l'envelope. Le costanti stanno in `Roles` ed `Entitlements`. Regola d'uso: le operazioni si proteggono con l'entitlement (AUTH-1); il ruolo si usa solo per aree visibili a un ruolo.
+- **Motivazione**: richiesta di Mahima del 12/10 ("la gestione delle guardie con i ruoli", come in ScoutShopper-be); un'annotazione dichiarativa per endpoint è leggibile come `@PreAuthorize` ma usa i nomi del dominio. L'interceptor non richiede AOP e legge i claim direttamente dal token già validato da Spring Security, quindi non ripete la validazione come faceva l'aspetto di ScoutShopper.
+- **Alternative**: `@PreAuthorize("hasAuthority(...)")` (scelta del plan dell'12/10 mattina, sostituita); aspetto AOP come in ScoutShopper (serve `spring-boot-starter-aspectj` e un proxy per ogni controller, nessun vantaggio rispetto all'interceptor); livelli fissi `ADMIN/USER` (non bastano per gli entitlement).
+
+## R11. Documentazione OpenAPI generata con springdoc e Swagger UI
+
+- **Decisione**: `springdoc-openapi-starter-webmvc-ui` 3.0.3 (linea per Spring Boot 4.0), configurato in `application.yml` come in ScoutShopper-be: `/v3/api-docs` e `/swagger-ui.html`, entrambi pubblici. Uno schema di sicurezza `bearerAuth` permette di provare gli endpoint con il token preso da `findAll` (pulsante "Authorize").
+- **Motivazione**: richiesta di Mahima; il frontend e chi sviluppa vedono e provano le API dal browser. Il contratto scritto a mano in `contracts/` resta la fonte di verità (costituzione, principio III); la documentazione generata serve a confrontarlo con il codice.
+- **Alternative**: springdoc 3.1.x (compilato per Spring Boot 4.1); solo il file `contracts/` servito come statico (non mostra lo stato reale del codice).
+
+## R12. File `test.env`
+
+- **Decisione**: `test.env` attiva i profili `mocked,test`: utenti e token di prova come in `mocked.env`, ma database separato `buonacaccia-test` e log più dettagliati (`application-test.yml`).
+- **Motivazione**: con il solo profilo `test` l'applicazione non avrebbe un emittente di token (Keycloak arriva in fase 6) e non partirebbe; così il file serve davvero a provare a mano senza toccare i dati di sviluppo.
+- **Alternative**: lasciare `test` da solo (non avviabile); duplicare la configurazione mock nel profilo `test`.
 
 ## R5. Envelope e catalogo degli errori
 

@@ -1,0 +1,6 @@
+# Profilo test (con test.env, insieme a mocked): log dettagliati per le prove a mano.
+logging:
+  level:
+    it.buonacaccia: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG

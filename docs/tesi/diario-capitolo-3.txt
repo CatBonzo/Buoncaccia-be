@@ -331,6 +331,41 @@ Spunto: il piano rende esplicite scelte che con il vibe coding
   resterebbero implicite nel codice (es. il formato dei codici di errore),
   e quindi discutibili prima di costare.
 
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: implementazione, con il progetto ScoutShopper come modello
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice l'agente ha letto il suo progetto
+  precedente ScoutShopper-be (Spring Boot, JWT, guardia @SecurityAccess,
+  identity.yaml, springdoc) e ne ha portato le idee in Buona Caccia,
+  adattandole alla spec: guardia @SecurityAccess su ruoli ed entitlement,
+  Swagger UI configurato in application.yml, test.env utilizzabile,
+  mocked-identity.yml come identity.yaml ma con claim e censimento. Ha
+  completato la feature 001: token mock RS256 in memoria, /users/me,
+  envelope con status significativo, utenti su MongoDB. 31 test di
+  integrazione (MongoDB in Testcontainers), build verde, prova a mano.
+Chi: richiesta e modello dell'autrice; lettura del vecchio progetto,
+  adattamento, test e codice dell'agente.
+Paradigma: AI-Assisted Programming (par. 2.2) dentro lo Spec-Driven
+  Development: l'agente riusa conoscenza dell'autrice (un suo progetto)
+  ma la filtra con spec e costituzione. Esempi: il vecchio aspetto
+  rivalidava il token a mano con una chiave HMAC fissa nel codice; qui
+  la validazione resta a Spring Security (chiave RSA nuova a ogni avvio)
+  e la guardia legge solo i claim. Test-first: 28 test su 31 passati al
+  primo giro, i 3 rossi erano errori dei test stessi (profilo ereditato,
+  pagina HTML letta come JSON).
+Artefatti: codice in src/main/java (api, config, config/guard, mapper,
+  mockmigration, model, repository/nosql, service, utils), 8 classi di
+  test, mocked-identity.yml, application*.yml, test.env, tasks.md,
+  research.md (R4 rivista, R11, R12).
+Problemi: la richiesta e' arrivata a plan appena scritto e ha cambiato
+  una scelta (da @PreAuthorize alla guardia): la scelta superata resta
+  nel registro di AGENTS.md. Il passo "tasks" e' stato scritto insieme
+  all'implementazione invece che prima: deviazione dal ciclo Spec-Kit,
+  dichiarata in tasks.md. springdoc 3.1 richiede Spring Boot 4.1: usata
+  la 3.0.3.
+Spunto: il progetto precedente funziona come "memoria di stile"
+  dell'autrice; il metodo decide quali parti si riusano e quali no.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================

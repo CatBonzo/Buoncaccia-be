@@ -46,6 +46,8 @@ Per avviare l'applicazione contro questi container, caricare in IntelliJ le vari
 
 `GET /actuator/health` risponde con lo stato dell'applicazione.
 
+Con il profilo `mocked` (`test-src/env/mocked.env` o `test.env`): utenti e token di prova su `GET /api/v1/mock/auth/findAll`, profilo su `GET /api/v1/users/me`, documentazione su `http://localhost:8080/swagger-ui.html`.
+
 ## IntelliJ IDEA
 
 Aprire la cartella del progetto: IntelliJ riconosce Gradle. In *Settings > Build Tools > Gradle* usare come Gradle JVM il JDK 21.

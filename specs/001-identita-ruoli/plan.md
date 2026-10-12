@@ -6,13 +6,13 @@
 
 ## Summary
 
-Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel profilo `mocked` genera all'avvio una chiave e un token per ciascun utente di `mocked-identity.yml`, li tiene in memoria e li espone su `GET /api/v1/mock/auth/findAll` (con la chiave pubblica su `/jwks`); gli utenti sono salvati in MongoDB con upsert su `agesciUUID`. `GET /api/v1/users/me` restituisce il profilo e allinea ruoli ed entitlement dal token. Gli entitlement del token diventano le authority di Spring Security e ogni operazione dichiara il suo con `@PreAuthorize`. Tutte le risposte, anche gli errori del filtro di sicurezza, usano l'envelope con status HTTP significativo. Dettagli in [research.md](research.md).
+Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel profilo `mocked` genera all'avvio una chiave e un token per ciascun utente di `mocked-identity.yml`, li tiene in memoria e li espone su `GET /api/v1/mock/auth/findAll` (con la chiave pubblica su `/jwks`); gli utenti sono salvati in MongoDB con upsert su `agesciUUID`. `GET /api/v1/users/me` restituisce il profilo e allinea ruoli ed entitlement dal token. Ogni operazione protetta dichiara con la guardia `@SecurityAccess` l'entitlement (o il ruolo) che serve, letto dai claim del token. Swagger UI (springdoc) documenta e fa provare le API. Tutte le risposte, anche gli errori del filtro di sicurezza, usano l'envelope con status HTTP significativo. Dettagli in [research.md](research.md).
 
 ## Technical Context
 
 **Language/Version**: Java 21
 
-**Primary Dependencies**: Spring Boot 4.0.8 (webmvc, actuator, security, oauth2-resource-server, data-mongodb, validation); Nimbus JOSE+JWT (tramite il resource server) per chiave e token mock
+**Primary Dependencies**: Spring Boot 4.0.8 (webmvc, actuator, security, oauth2-resource-server, data-mongodb, validation); springdoc-openapi 3.0.3; Nimbus JOSE+JWT (tramite il resource server) per chiave e token mock
 
 **Storage**: MongoDB 8.0 (replica set `rs0` in compose), collezione `users`
 
@@ -37,7 +37,7 @@ Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel pr
 | I. Qualità del codice | Controller in `api` senza logica; regole in `service`; repository in `repository.nosql`; DTO ↔ dominio in `mapper`; dati di prova in `mockmigration` | ✅ |
 | II. Test-first | Test di integrazione per ogni user story e caso limite, scritti prima del codice; `./gradlew build` in CI con Testcontainers | ✅ |
 | III. Coerenza con i client | Contratto OpenAPI 3.1 in `contracts/` prima del codice; envelope unico anche per 401/403/404; status significativo (Q14); nessuna modifica incompatibile | ✅ |
-| IV. Semplicità | Meccanismi standard di Spring Security (resource server, authority, `@PreAuthorize`); nessun catalogo di permessi; nessuna nuova infrastruttura oltre MongoDB già in compose | ✅ |
+| IV. Semplicità | Meccanismi standard di Spring Security (resource server) più una guardia dichiarativa di poche righe (`@SecurityAccess`); nessun catalogo di permessi; nessuna nuova infrastruttura oltre MongoDB già in compose | ✅ |
 | Vincoli tecnologici | Java 21, Boot 4.0, Gradle Groovy, versioni nel catalogo; profilo `mocked`; Kafka e Mailpit non servono a questa feature | ✅ |
 
 Ricontrollo dopo la Fase 1 (design): ✅ nessuna violazione. Unica deviazione dalla spec di progetto, documentata in R1: nel profilo `mocked` il decoder usa la chiave in memoria invece del `jwk-set-uri` HTTP; l'endpoint `/jwks` resta disponibile e il contratto non cambia.
@@ -73,7 +73,11 @@ src/main/java/it/buonacaccia/
 │       ├── MockUserResponse.java
 │       └── UserProfileResponse.java
 ├── config/
-│   ├── SecurityConfig.java              # filter chain, converter entitlement → authority, entry point e access denied con envelope
+│   ├── SecurityConfig.java              # filter chain, entry point e access denied con envelope
+│   ├── OpenApiConfig.java               # schema bearerAuth per Swagger UI
+│   ├── WebConfig.java                   # registra la guardia
+│   ├── guard/SecurityAccess.java        # annotazione: role / entitlement richiesti
+│   ├── guard/SecurityGuardInterceptor.java
 │   ├── MockAuthConfig.java              # @Profile("mocked"): chiave RSA, JwtEncoder, JwtDecoder
 │   └── MockedIdentityProperties.java    # @ConfigurationProperties("mocked-identity")
 ├── mapper/
@@ -96,6 +100,7 @@ src/main/java/it/buonacaccia/
 src/main/resources/
 ├── application.yml                      # comune; resource server Keycloak per i profili non mock
 ├── application-mocked.yml               # import di mocked-identity.yml, validità token
+├── application-test.yml                 # log dettagliati (con test.env)
 └── mocked-identity.yml                  # 4 utenti di prova
 
 src/test/java/it/buonacaccia/
@@ -103,7 +108,8 @@ src/test/java/it/buonacaccia/
 ├── TestcontainersConfiguration.java     # MongoDB con @ServiceConnection
 ├── api/MockAuthControllerTest.java      # US1
 ├── api/UserControllerTest.java          # US2
-├── api/EntitlementPolicyTest.java       # US3, con controller di prova solo nei test
+├── api/SecurityGuardTest.java           # US3, con controller di prova solo nei test
+├── api/OpenApiDocsTest.java             # /v3/api-docs pubblico
 ├── api/EnvelopeTest.java                # US4
 ├── api/MockProfileDisabledTest.java     # US1 scenario 4
 └── mockmigration/MockedUsersLoaderTest.java  # casi limite del file

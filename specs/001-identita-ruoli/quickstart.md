@@ -17,7 +17,7 @@ Atteso: build verde. I test di integrazione avviano da soli un MongoDB con Testc
 
 ## 2. Avvio in modalità mock
 
-Da IntelliJ con le variabili di `test-src/env/mocked.env`, oppure:
+Da IntelliJ con le variabili di `test-src/env/mocked.env` (o `test.env`: database separato e log dettagliati), oppure:
 
 ```bash
 set -a; . test-src/env/mocked.env; set +a
@@ -35,7 +35,8 @@ set -a; . test-src/env/mocked.env; set +a
 | 5 | `curl -s localhost:8080/api/v1/users/me` (senza token) | 401, `errorCode` 40100, `errorDomain` `AUTH` |
 | 6 | Come il 3 con un carattere del token cambiato | 401, `errorCode` 40100 |
 | 7 | Riavviare il backend e ripetere il 3 con il vecchio token | 401; `findAll` restituisce token nuovi |
-| 8 | `curl -s localhost:8080/api/v1/nonesiste` | 404, `errorCode` 40400, stesso envelope |
+| 8 | `curl -s -H "Authorization: Bearer $TOKEN_SOCIO" localhost:8080/api/v1/nonesiste` (senza token è 401) | 404, `errorCode` 40400, stesso envelope |
+| 10 | Aprire `http://localhost:8080/swagger-ui.html`, "Authorize" con un token | Swagger UI con gli endpoint e le prove dal browser |
 | 9 | Avviare senza il profilo `mocked` e chiamare `findAll` | 404 |
 
 Per prendere un token da riga di comando:
@@ -44,4 +45,4 @@ Per prendere un token da riga di comando:
 TOKEN_SOCIO=$(curl -s localhost:8080/api/v1/mock/auth/findAll | jq -r '.payload[] | select(.username=="socio") | .accessToken')
 ```
 
-Il controllo degli entitlement (US3) non ha ancora un endpoint reale: lo verifica il test di integrazione con un'operazione di prova; i primi endpoint veri arrivano con il catalogo eventi (fase 2).
+La guardia `@SecurityAccess` (US3) non protegge ancora un endpoint reale con entitlement: la verifica il test di integrazione con operazioni di prova; i primi endpoint veri arrivano con il catalogo eventi (fase 2).
