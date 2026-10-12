@@ -14,17 +14,14 @@ Contesto, regole di lavoro e scelte prese sono in [AGENTS.md](AGENTS.md).
 ```
 src/main/java/it/buonacaccia/
 ├── BuonaCacciaApplication.java   classe principale
-├── api/                          controller REST e DTO
-├── config/                       configurazione Spring
-├── job/                          attività pianificate
-├── mapper/                       conversioni dominio <-> DTO
-├── mockmigration/                dati di prova all'avvio (l'auth mock è in src/test)
+├── config/                       configurazione Spring (error: errori ed envelope, mongo: circuit breaker)
+├── guard/                        guardia @SecurityAccess
 ├── model/                        modello di dominio (documenti MongoDB)
-├── repository/nosql/             repository Spring Data MongoDB
-├── service/                      logica di business
-└── utils/                        utilità
+├── repository/                   repository Spring Data MongoDB
+├── service/                      logica di business (guard: regole della guardia)
+└── v1/                           API v1: controller, dto, mapper
 src/main/resources/application.yml
-src/test/java/                    test
+src/test/java/                    test, mock (package mock), AbstractTest
 ```
 
 ## Ambiente locale

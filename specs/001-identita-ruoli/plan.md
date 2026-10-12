@@ -34,7 +34,7 @@ Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel pr
 
 | Principio | Verifica | Esito |
 | --- | --- | --- |
-| I. Qualità del codice | Controller in `api` senza logica; regole in `service`; repository in `repository.nosql`; DTO ↔ dominio in `mapper`; mock nel codice di test (`src/test`, package `mock`) | ✅ |
+| I. Qualità del codice | Controller in `v1.controller` senza logica; regole in `service`; repository in `repository`; DTO ↔ dominio in `v1.mapper`; mock nel codice di test (`src/test`, package `mock`) | ✅ |
 | II. Test-first | Test di integrazione per ogni user story e caso limite, scritti prima del codice; `./gradlew build` in CI con Testcontainers | ✅ |
 | III. Coerenza con i client | Contratto OpenAPI 3.1 in `contracts/` prima del codice; envelope unico anche per 401/403/404; status significativo (Q14); nessuna modifica incompatibile | ✅ |
 | IV. Semplicità | Meccanismi standard di Spring Security (resource server) più una guardia dichiarativa di poche righe (`@SecurityAccess`); nessun catalogo di permessi; nessuna nuova infrastruttura oltre MongoDB già in compose | ✅ |
@@ -64,21 +64,21 @@ specs/001-identita-ruoli/
 ```text
 src/main/java/it/buonacaccia/
 ├── BuonaCacciaApplication.java
-├── api/
-│   ├── UserController.java              # users/me
-│   ├── GlobalExceptionHandler.java      # @RestControllerAdvice → envelope
-│   └── dto/ApiResponse.java, UserProfileResponse.java
 ├── config/
 │   ├── SecurityConfig.java              # resource server, envelope per 401/403
 │   ├── OpenApiConfig.java               # Swagger UI, schema bearerAuth
 │   ├── WebConfig.java                   # registra la guardia
-│   ├── guard/SecurityAccess.java, SecurityGuardInterceptor.java
+│   ├── error/ErrorCode.java, BuonaCacciaException.java, GlobalExceptionHandler.java
 │   └── mongo/CircuitBreakerService.java # Resilience4j su MongoDB
-├── mapper/UserMapper.java
+├── guard/SecurityAccess.java, SecurityGuardInterceptor.java
 ├── model/                               # User, Census, enum, Roles, Entitlements
-├── repository/nosql/UserRepository.java
-├── service/UserService.java, exception/BuonaCacciaException.java
-└── utils/ErrorCode.java
+├── repository/UserRepository.java
+├── service/UserService.java
+│   └── guard/SecurityGuardService.java  # regola ruoli/entitlement della guardia
+└── v1/
+    ├── controller/UserController.java   # users/me
+    ├── dto/ApiResponse.java, UserProfileResponse.java
+    └── mapper/UserMapper.java
 
 src/main/resources/application.yml, application-test.yml
 
@@ -93,14 +93,14 @@ src/test/java/it/buonacaccia/
 │   ├── MockedIdentityProperties.java, MockedUsersLoader.java, MockUserResponse.java
 │   ├── ProbeController.java             # operazioni di prova per guardia ed envelope (profilo probe)
 │   └── MockIdentityServiceTest.java
-├── api/                                 # MockAuthControllerTest, UserControllerTest, SecurityGuardTest,
+├── v1/controller/                       # MockAuthControllerTest, UserControllerTest, SecurityGuardTest,
 │                                        # EnvelopeTest, MockProfileDisabledTest, OpenApiDocsTest
 └── config/mongo/CircuitBreakerServiceTest.java
 
 src/test/resources/application-mocked.yml, mocked-identity.yml
 ```
 
-**Structure Decision**: applicazione Spring Boot unica con i package di AGENTS.md; dipendenze `api` → `service` → `repository.nosql` → `model`, con `config` che collega i pezzi e `utils` condiviso. Tutto il mock (utenti di prova, emittente dei token, `findAll`, `jwks`) sta in `src/test`, come in ScoutShopper-be: il jar dell'applicazione non lo contiene, e in fase 6 resta solo per i test.
+**Structure Decision**: applicazione Spring Boot unica con i package di AGENTS.md; dipendenze `v1` → `service` → `repository` → `model`, con `config` che collega i pezzi e `utils` condiviso. Tutto il mock (utenti di prova, emittente dei token, `findAll`, `jwks`) sta in `src/test`, come in ScoutShopper-be: il jar dell'applicazione non lo contiene, e in fase 6 resta solo per i test.
 
 ## Complexity Tracking
 

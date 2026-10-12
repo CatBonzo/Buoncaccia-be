@@ -422,6 +422,32 @@ Spunto: lo stile della persona (la sua struttura di progetto) entra nel
   progetto come vincolo esplicito e registrato, non come preferenza
   implicita del modello.
 
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: i package di src/main come in ScoutShopper
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice (screenshot della struttura di
+  ScoutShopper) i package di src/main sono diventati config (con error e
+  mongo), guard, model, repository, service (con guard) e v1 (controller,
+  dto, mapper). Tolti api, job, mapper, mockmigration, utils. La regola
+  della guardia e' passata in service/guard/SecurityGuardService;
+  l'interceptor in guard/ la applica. Test spostati negli stessi package.
+  35 test verdi.
+Chi: struttura scelta dall'autrice; spostamento e verifica dell'agente.
+Paradigma: e' la terza revisione della struttura in due giorni (cinque
+  servizi, poi applicazione unica con i package di un progetto di lavoro,
+  ora quelli di ScoutShopper). Con l'agente il costo di cambiare idea
+  sulla struttura e' basso, ma ogni cambio va riportato in AGENTS.md,
+  nella costituzione (principio I, versione 1.0.1) e nel plan, altrimenti
+  la documentazione diverge dal codice: il registro delle scelte tiene la
+  storia, con le righe superate marcate.
+Artefatti: src/main/java/it/buonacaccia/** (spostamenti), AGENTS.md,
+  .specify/memory/constitution.md, plan.md, README.md.
+Problemi: Docker del container cloud di nuovo fermo dopo il riavvio della
+  sessione (i test con Testcontainers fallivano tutti all'avvio): riavviato
+  il demone, nessun cambio al codice.
+Spunto: la spec e i test non cambiano quando cambiano i package: e' la
+  prova che la struttura e' una scelta di forma, non di comportamento.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================

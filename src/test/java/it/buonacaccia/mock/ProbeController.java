@@ -1,7 +1,7 @@
 package it.buonacaccia.mock;
 
-import it.buonacaccia.api.dto.ApiResponse;
-import it.buonacaccia.config.guard.SecurityAccess;
+import it.buonacaccia.v1.dto.ApiResponse;
+import it.buonacaccia.guard.SecurityAccess;
 import it.buonacaccia.model.Entitlements;
 import it.buonacaccia.model.Roles;
 import org.springframework.context.annotation.Profile;

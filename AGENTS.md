@@ -10,7 +10,7 @@ Guida per chi lavora su questo repository, persone o agenti IA. Va aggiornata a 
 - **Perimetro dell'MVP.** Tre ruoli: amministrazione, segreteria, user. Il resto della spec (capo presentatore, staff, pagamenti elettronici, documenti, candidature) arriva dopo.
 - **Ambiente.** Solo uso locale, nessuna pubblicazione. Tutto gira con Docker Compose sul PC di sviluppo, in un progetto Compose separato (`buonacaccia`) per tenere la tesi distinta dal lavoro.
 - **Stato attuale.** Fase 0 chiusa: applicazione Spring Boot (Gradle) sulla porta 8080 con `/actuator/health`; `compose.yaml` con MongoDB, Kafka e Mailpit; file di ambiente in `test-src/env/`; Spec-Kit inizializzato con la costituzione; CI su GitHub Actions. Fase 1 (identità e auth mock) in corso sul branch `001-identita-ruoli`: spec scritta in `specs/001-identita-ruoli/spec.md`, Q14 e Q15 chiuse; plan, tasks e implementazione fatti: token mock, guardia `@SecurityAccess`, envelope con status significativo, `/users/me`, Swagger UI; 31 test verdi. Prossimo passo: revisione e pull request verso `feature`.
-- **Architettura.** Un solo progetto Spring Boot, non più cinque microservizi: le aree funzionali (identità, eventi, iscrizioni, notifiche) convivono nella stessa applicazione e si distinguono nei package `service`, `api` e `model`.
+- **Architettura.** Un solo progetto Spring Boot, non più cinque microservizi: le aree funzionali (identità, eventi, iscrizioni, notifiche) convivono nella stessa applicazione e si distinguono nei package `service`, `v1` e `model`.
 
 ## 2. Coordinamento con il frontend
 
@@ -43,17 +43,16 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 
   | Package | Contenuto |
   | --- | --- |
-  | `api` | Controller REST e DTO; nessuna logica di business |
-  | `config` | Configurazione Spring |
-  | `job` | Attività pianificate (scheduler) |
-  | `mapper` | Conversioni dominio ↔ DTO |
-  | `mockmigration` | Dati di prova caricati all'avvio, solo nei profili di sviluppo (oggi vuoto: l'auth mock sta in `src/test`) |
-  | `model` | Documenti MongoDB, value object, stati |
-  | `repository.nosql` | Repository Spring Data MongoDB |
-  | `service` | Logica di business e regole BR della spec |
-  | `utils` | Utilità condivise |
+  | `config` | Configurazione Spring (sicurezza, OpenAPI, web); `config.error` catalogo errori, eccezione applicativa e gestore globale; `config.mongo` circuit breaker su MongoDB |
+  | `guard` | Guardia degli endpoint: annotazione `@SecurityAccess` e interceptor |
+  | `model` | Documenti MongoDB, value object, stati, costanti di ruoli ed entitlement |
+  | `repository` | Repository Spring Data MongoDB |
+  | `service` | Logica di business e regole BR della spec; `service.guard` regole di autorizzazione della guardia |
+  | `v1` | API versione 1: `v1.controller` (controller REST, nessuna logica), `v1.dto` (DTO ed envelope), `v1.mapper` (dominio ↔ DTO) |
 
-  Le dipendenze vanno in una sola direzione: `api` → `service` → `repository.nosql` → `model`.
+  Nei test (`src/test/java`) gli stessi package, più `mock` (auth mock e utenti di prova), `AbstractTest` e `TestBuonaCacciaApplication`.
+
+  Le dipendenze vanno in una sola direzione: `v1` → `service` → `repository` → `model`.
 - **Questo file.** A ogni passo si aggiornano lo stato (sezione 1) e il registro delle scelte (sezione 4).
 - **Diario della tesi.** A ogni passo si aggiunge una voce in `docs/tesi/diario-capitolo-3.txt` (testo semplice): che cosa si è fatto, chi ha deciso e chi ha eseguito, quale paradigma del capitolo 2 si vede, artefatti, problemi incontrati. Serve a documentare il capitolo 3.
 
@@ -76,7 +75,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-11 | Spring Boot 4.0.8 (la spec dice 3.x: da confermare) | Ultima versione stabile della 4.0; Spring Cloud non serve più senza gateway |
 | 2026-10-11 | Gradle 9.8.1 con wrapper e catalogo delle versioni | Versioni in un solo punto; build ripetibile senza Gradle installato |
 | 2026-10-11 | File di build in Groovy (`build.gradle`) | Lo stesso formato dei progetti Spring Boot che Mahima usa già |
-| 2026-10-11 | Struttura a package `api`, `config`, `job`, `mapper`, `mockmigration`, `model`, `repository.nosql`, `service`, `utils` | Scelta di Mahima, dalla struttura dei progetti Spring Boot che conosce |
+| 2026-10-11 | Struttura a package `api`, `config`, `job`, `mapper`, `mockmigration`, `model`, `repository.nosql`, `service`, `utils` (superata il 12/10) | Scelta di Mahima, dalla struttura dei progetti Spring Boot che conosce |
 | 2026-10-11 | Classe principale `BuonaCacciaApplication` | Convenzione Spring Boot `NomeAppApplication` |
 | 2026-10-11 | Cartella `.idea` fuori dal repository | IntelliJ la ricrea importando Gradle; evita conflitti tra macchine |
 | 2026-10-11 | Diario `docs/tesi/diario-capitolo-3.txt` aggiornato a ogni passo | Materiale per il capitolo 3 della tesi: collega ogni passo ai paradigmi del capitolo 2 |
@@ -101,6 +100,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-12 | `mocked-identity.yml` sul modello di `identity.yaml` di ScoutShopper-be, con i campi della spec (claim, censimento) | Richiesta di Mahima; la spec chiede `agesciUUID`, entitlement e censimento oltre ai ruoli (R6) |
 | 2026-10-12 | Codice di errore `40500` (metodo non supportato) | Senza, un metodo HTTP sbagliato diventava 500 |
 | 2026-10-12 | Mock in `src/test` come in ScoutShopper-be: package `it.buonacaccia.mock` (emittente dei token, utenti di prova, `findAll`, `jwks`), `mocked-identity.yml` e `application-mocked.yml` in `src/test/resources`; `AbstractTest` crea il DB con Testcontainers; avvio locale con `TestBuonaCacciaApplication` / `bootTestRun` | Richiesta di Mahima; il jar dell'applicazione non contiene codice di prova né un emittente di token |
+| 2026-10-12 | Package come in ScoutShopper-be: `config` (con `error`, `mongo`), `guard`, `model`, `repository`, `service` (con `guard`), `v1` (`controller`, `dto`, `mapper`); tolti `api`, `job`, `mapper`, `mockmigration`, `utils` | Scelta di Mahima, dallo screenshot della struttura di ScoutShopper; la versione dell'API (`v1`) è anche nel nome dei package |
 | 2026-10-12 | Lombok (versione dal BOM di Spring Boot, `lombok.config` alla radice): `@Slf4j` per i log, `@RequiredArgsConstructor` per l'iniezione; i DTO e i documenti restano `record` | Richiesta di Mahima, come in ScoutShopper-be; meno codice ripetuto. `@Slf4j` al posto di `@Log4j2` perché Spring Boot usa Logback |
 | 2026-10-12 | Log su console e su `logs/buonacaccia.log` (fuori da git), livelli in `application.yml`, DEBUG con il profilo `test` | Richiesta di Mahima, come in ScoutShopper-be |
 | 2026-10-12 | Circuit breaker Resilience4j 2.4.0 (`resilience4j-spring-boot4`) sulle chiamate a MongoDB: `config.mongo.CircuitBreakerService`, istanza `mongodb` in `application.yml`; database giù o circuito aperto = 503 (`50300`), chiave duplicata = 409 | Richiesta di Mahima, dal `CircuitBreakerService` di ScoutShopper-be. Differenza voluta: niente fallback silenzioso (con il fallback il circuito non si apriva mai e gli errori sparivano) (R13) |

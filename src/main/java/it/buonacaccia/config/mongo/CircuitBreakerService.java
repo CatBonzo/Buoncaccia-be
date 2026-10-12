@@ -4,8 +4,8 @@ import java.util.function.Supplier;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import it.buonacaccia.service.exception.BuonaCacciaException;
-import it.buonacaccia.utils.ErrorCode;
+import it.buonacaccia.config.error.BuonaCacciaException;
+import it.buonacaccia.config.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;

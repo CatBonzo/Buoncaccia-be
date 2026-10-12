@@ -8,7 +8,7 @@ import java.util.UUID;
 import it.buonacaccia.config.mongo.CircuitBreakerService;
 import it.buonacaccia.model.User;
 import it.buonacaccia.model.UserStatus;
-import it.buonacaccia.repository.nosql.UserRepository;
+import it.buonacaccia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;

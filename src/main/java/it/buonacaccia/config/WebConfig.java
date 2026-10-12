@@ -1,6 +1,6 @@
 package it.buonacaccia.config;
 
-import it.buonacaccia.config.guard.SecurityGuardInterceptor;
+import it.buonacaccia.guard.SecurityGuardInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

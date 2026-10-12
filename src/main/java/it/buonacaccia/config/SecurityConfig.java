@@ -2,8 +2,8 @@ package it.buonacaccia.config;
 
 import java.io.IOException;
 
-import it.buonacaccia.api.dto.ApiResponse;
-import it.buonacaccia.utils.ErrorCode;
+import it.buonacaccia.v1.dto.ApiResponse;
+import it.buonacaccia.config.error.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
