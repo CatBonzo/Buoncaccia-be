@@ -9,7 +9,7 @@ Guida per chi lavora su questo repository, persone o agenti IA. Va aggiornata a 
 - **Piano di lavoro.** Planner v2 (PC e Docker), fasi 0–6 dell'MVP: 0 fondamenta, 1 identità e auth mock, 2 catalogo eventi, 3 iscrizioni e lista d'attesa, 4 eventi di dominio e notifiche, 5 bonifico registrato dalla segreteria, 6 passaggio a Keycloak.
 - **Perimetro dell'MVP.** Tre ruoli: amministrazione, segreteria, user. Il resto della spec (capo presentatore, staff, pagamenti elettronici, documenti, candidature) arriva dopo.
 - **Ambiente.** Solo uso locale, nessuna pubblicazione. Tutto gira con Docker Compose sul PC di sviluppo, in un progetto Compose separato (`buonacaccia`) per tenere la tesi distinta dal lavoro.
-- **Stato attuale.** Fase 0 chiusa: applicazione Spring Boot (Gradle) sulla porta 8080 con `/actuator/health`; `compose.yaml` con MongoDB, Kafka e Mailpit; file di ambiente in `test-src/env/`; Spec-Kit inizializzato con la costituzione; CI su GitHub Actions. Fase 1 (identità e auth mock) in corso sul branch `001-identita-ruoli`: spec scritta in `specs/001-identita-ruoli/spec.md`, Q15 chiusa, in attesa di Q14.
+- **Stato attuale.** Fase 0 chiusa: applicazione Spring Boot (Gradle) sulla porta 8080 con `/actuator/health`; `compose.yaml` con MongoDB, Kafka e Mailpit; file di ambiente in `test-src/env/`; Spec-Kit inizializzato con la costituzione; CI su GitHub Actions. Fase 1 (identità e auth mock) in corso sul branch `001-identita-ruoli`: spec scritta in `specs/001-identita-ruoli/spec.md`, Q14 e Q15 chiuse, si passa al plan.
 - **Architettura.** Un solo progetto Spring Boot, non più cinque microservizi: le aree funzionali (identità, eventi, iscrizioni, notifiche) convivono nella stessa applicazione e si distinguono nei package `service`, `api` e `model`.
 
 ## 2. Coordinamento con il frontend
@@ -19,7 +19,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Un solo indirizzo.** Il frontend chiama `http://localhost:8080/api/v1/...`.
 - **Contratto prima del codice.** Ogni API è descritta in OpenAPI 3.1 nella cartella della feature (`specs/NNN-*/contracts/`) prima di essere implementata. Il frontend lavora su quel file, anche prima che l'endpoint esista.
 - **Envelope unico.** Ogni risposta, di successo o di errore, ha la forma `{ "errorCode", "errorMessage", "errorDomain", "payload" }`; `errorCode` = 0 significa successo e i dati sono in `payload`.
-- **Status HTTP.** Default: significativo (401, 403, 404, 409, 422). Decisione aperta (Q14).
+- **Status HTTP.** Significativo (401, 403, 404, 409, 422, 500) e coerente con `errorCode`; il corpo è sempre l'envelope (Q14, 12/10).
 - **Autenticazione, fase 1.** Profilo Spring `mocked`, utenti di prova in `src/main/resources/mocked-identity.yml`. `GET /api/v1/mock/auth/findAll` restituisce gli utenti di prova con il loro `accessToken`; il frontend lo manda come `Authorization: Bearer <token>`. I token cambiano a ogni riavvio del backend.
 - **Autenticazione, fase 2.** Keycloak con OIDC (authorization code + PKCE), realm `buonacaccia`. I claim del token restano gli stessi, quindi il frontend non cambia logica.
 - **Ruoli ed entitlement.** Il claim `role` dice che cosa mostrare (menu, aree); il claim `entitlement` dice quali azioni abilitare. Il frontend può nascondere un pulsante, ma il backend controlla sempre l'entitlement.
@@ -85,12 +85,12 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-11 | MongoDB come replica set a un nodo | Le transazioni (outbox, posti) richiedono un replica set |
 | 2026-10-11 | Spec-Kit con integrazione Claude Code (skill in `.claude/skills`), costituzione 1.0.0 dai 4 principi della spec | È il metodo della tesi; i comandi sono disponibili all'agente che sviluppa |
 | 2026-10-11 | CI su GitHub Actions: `./gradlew build` a ogni push e PR su `feature` e `main` | Verifica automatica e ripetibile (sensore deterministico) |
+| 2026-10-12 | Status HTTP significativo (401, 403, 404, 409, 422, 500) con l'envelope nel corpo (Q14, scelta di Mahima) | Usa la semantica standard di HTTP: client, proxy e strumenti capiscono l'esito senza leggere il corpo; `errorCode` resta per il dettaglio applicativo |
 
 ## 5. Domande aperte
 
 - Q11: una segreteria può gestire eventi di qualunque regione? (per l'MVP: sì)
 - Q12: rimborso con ritiro tardivo, US-10 o BR-10? (non serve nell'MVP)
-- Q14: status HTTP significativo o sempre 200? (default: significativo)
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
 - Spec e planner descrivono ancora i microservizi (par. 2.8, Appendice B, Planner v2): vanno allineati all'applicazione unica.
 - Kafka per le notifiche (ADR-003): resta utile dentro un'applicazione unica o si passa a eventi interni di Spring? (per ora resta in compose)

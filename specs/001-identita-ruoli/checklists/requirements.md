@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,6 +31,6 @@
 
 ## Notes
 
-- Q15 chiusa l'11/10 (FR-016). Resta 1 marcatore [NEEDS CLARIFICATION]: FR-015 (Q14, status HTTP), da chiudere prima di `/speckit-plan`.
+- Q15 chiusa l'11/10 (FR-016), Q14 chiusa il 12/10 (FR-015, status significativo). Nessun marcatore aperto: la spec è pronta per `/speckit-plan`.
 - Nomi di campi dell'envelope, claim del token e nome del file `mocked-identity.yml` sono citati di proposito: fanno parte del contratto concordato con il frontend (AGENTS.md, sez. 2), non dell'implementazione. Linguaggi, framework e struttura del codice restano fuori dalla spec.
 - I percorsi delle API compaiono solo negli Assumptions, come rimando all'Appendice A della spec di progetto.

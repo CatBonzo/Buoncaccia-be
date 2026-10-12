@@ -14,6 +14,10 @@
 
 - Q15: Quali valori hanno ruoli ed entitlement dell'MVP? → A: quelli proposti nel planner, confermati da Mahima (vedi FR-016).
 
+### Session 2026-10-12
+
+- Q14: Status HTTP degli errori significativo o sempre 200? → A: significativo (401, 403, 404, 409, 422, 500), sempre con l'envelope nel corpo; scelto da Mahima (vedi FR-015).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Ottenere un token di prova (Priority: P1)
@@ -108,7 +112,7 @@ Ogni risposta del backend, di successo o di errore, ha la stessa forma: codice d
 - **FR-012**: Un utente senza dati di censimento MUST risultare non socio (AUTH-4), pur potendo avere ruoli ed entitlement.
 - **FR-013**: Ogni risposta, di successo o di errore, MUST avere i campi `errorCode` (0 = successo), `errorMessage`, `errorDomain` e `payload`; gli errori MUST NOT mostrare dettagli interni.
 - **FR-014**: Gli errori di questa feature MUST avere un codice proprio per: non autenticato, permesso mancante, risorsa inesistente, richiesta non valida, errore interno.
-- **FR-015**: Lo status HTTP delle risposte di errore MUST essere [NEEDS CLARIFICATION: Q14 – significativo (401, 403, 404, 422, 500) oppure sempre 200 con l'esito solo in `errorCode`?].
+- **FR-015**: Lo status HTTP delle risposte di errore MUST essere significativo e coerente con `errorCode`: 401 (token assente, scaduto o non valido), 403 (entitlement mancante), 404 (risorsa inesistente), 409 (conflitto di stato), 422 (input non valido), 500 (errore imprevisto). Il corpo usa sempre l'envelope; le risposte di successo usano 200 (o 201 per una creazione).
 - **FR-016**: I tre ruoli dell'MVP MUST avere i valori `agesci:sistema:amministratore`, `agesci:regione:segreteria`, `agesci:socio:user`. Gli entitlement (prefisso `agesci:entitlement:`) sono: `evento:gestione`, `iscrizione:gestione`, `pagamento:registrazione` (segreteria); `iscrizione:self` (user); `tipoevento:gestione` (solo amministrazione, che ha anche tutti gli altri). L'esempio `agesci:entitlement:agesci:censito:sede:segreteria` resta fuori finché non se ne conosce il significato.
 - **FR-017**: Il passaggio dal token mock a Keycloak MUST richiedere solo un cambio di configurazione: nessuna regola di autorizzazione o di profilo può dipendere dal fatto che il token sia mock.
 

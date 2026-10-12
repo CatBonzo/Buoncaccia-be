@@ -284,6 +284,27 @@ Spunto: e' il punto in cui il metodo ferma l'agente e restituisce la
   decisione alla persona, invece di lasciarla all'interpretazione del
   modello (par. 2.4, esempio della funzione di autenticazione).
 
+--------------------------------------------------------------------------
+11-12/10/2026 - Fase 1: chiarimenti Q15 e Q14 (clarify)
+--------------------------------------------------------------------------
+Cosa: chiusi i due punti [NEEDS CLARIFICATION] della spec 001. Q15:
+  confermati i valori di ruoli ed entitlement dell'MVP (FR-016). Q14:
+  status HTTP degli errori significativo (401, 403, 404, 409, 422, 500),
+  sempre con l'envelope nel corpo (FR-015). Le risposte sono registrate
+  nella sezione Clarifications della spec, la checklist e' tutta spuntata
+  e AGENTS.md riporta le due scelte nel registro.
+Chi: decisioni dell'autrice, prese su schede con due opzioni e una
+  raccomandazione motivata dall'agente; registrazione dell'agente.
+Paradigma: Spec-Driven Development (par. 2.4), fase clarify: la domanda
+  aperta diventa una risposta scritta e datata nella spec, che il plan
+  dovra' rispettare.
+Artefatti: specs/001-identita-ruoli/spec.md (Clarifications, FR-015,
+  FR-016), checklists/requirements.md, AGENTS.md.
+Problemi: nessuno; l'attesa della risposta ha fermato il lavoro per un
+  giorno, come previsto dal metodo.
+Spunto: la scheda di decisione riduce il costo della scelta per la
+  persona (un tocco) senza toglierle la scelta.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
