@@ -77,7 +77,7 @@ src/main/java/it/buonacaccia/
 │   └── guard/SecurityGuardService.java  # regola ruoli/entitlement della guardia
 └── v1/
     ├── controller/UserController.java   # users/me
-    ├── dto/ApiResponse.java, UserProfileResponse.java
+    ├── dto/ApiResponse.java, UserProfileDTO.java
     └── mapper/UserMapper.java
 
 src/main/resources/application.yml, application-test.yml

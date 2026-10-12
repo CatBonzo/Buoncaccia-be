@@ -476,6 +476,17 @@ Problemi: Lombok e MapStruct sono entrambi processori di annotazioni; serve lomb
 Spunto: confronto tra mapper a mano (controllo totale, più codice) e generato (meno codice, errori di
   mappatura scoperti in compilazione).
 
+[2026-10-12] Commit di Mahima e build rossa in CI
+Cosa: Mahima ha rinominato i file dei DTO in UserProfileDTO/CensusDTO, spostato il JSON OpenAPI su /api-docs
+  e tolto alcuni package-info. La CI della PR è diventata rossa: il file si chiamava UserProfileDTO.java ma la
+  classe dentro era ancora UserProfileResponse, e il test di OpenAPI cercava ancora /v3/api-docs.
+Chi: modifiche di Mahima dall'IDE; Claude ha letto il fallimento, allineato classi, usi, test e documenti.
+Paradigma: la CI come rete di sicurezza della collaborazione umano-agente; ogni modifica, di chiunque,
+  passa dalla stessa build.
+Artefatti: v1/dto/*.java, v1/mapper/UserMapper.java, v1/controller/UserController.java, OpenApiDocsTest.java.
+Problemi: una rinomina di file fatta fuori dal refactoring dell'IDE non rinomina la classe.
+Spunto: in IntelliJ conviene Refactor > Rename (Shift+F6) sulla classe, che sposta file e usi insieme.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

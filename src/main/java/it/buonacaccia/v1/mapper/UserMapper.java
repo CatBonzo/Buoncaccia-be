@@ -4,8 +4,8 @@ import java.util.List;
 
 import it.buonacaccia.model.Census;
 import it.buonacaccia.model.User;
-import it.buonacaccia.v1.dto.CensusResponse;
-import it.buonacaccia.v1.dto.UserProfileResponse;
+import it.buonacaccia.v1.dto.CensusDTO;
+import it.buonacaccia.v1.dto.UserProfileDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -20,11 +20,11 @@ public interface UserMapper {
     // Model --> Dto
     @Mapping(target = "buonaCacciaUUID", source = "id")
     @Mapping(target = "member", expression = "java(user.isMember())")
-    UserProfileResponse toDto(User user);
+    UserProfileDTO toDto(User user);
 
     // List<Model> --> List<Dto>
-    List<UserProfileResponse> toDtoList(List<User> users);
+    List<UserProfileDTO> toDtoList(List<User> users);
 
     // Census --> Dto
-    CensusResponse toCensusDto(Census census);
+    CensusDTO toCensusDto(Census census);
 }

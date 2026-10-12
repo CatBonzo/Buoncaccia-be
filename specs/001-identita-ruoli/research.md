@@ -30,7 +30,7 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 
 ## R11. Documentazione OpenAPI generata con springdoc e Swagger UI
 
-- **Decisione**: `springdoc-openapi-starter-webmvc-ui` 3.0.3 (linea per Spring Boot 4.0), configurato in `application.yml` come in ScoutShopper-be: `/v3/api-docs` e `/swagger-ui.html`, entrambi pubblici. Uno schema di sicurezza `bearerAuth` permette di provare gli endpoint con il token preso da `findAll` (pulsante "Authorize").
+- **Decisione**: `springdoc-openapi-starter-webmvc-ui` 3.0.3 (linea per Spring Boot 4.0), configurato in `application.yml` come in ScoutShopper-be: `/api-docs` (era `/v3/api-docs`, cambiato da Mahima il 2026-10-12) e `/swagger-ui.html`, entrambi pubblici. Uno schema di sicurezza `bearerAuth` permette di provare gli endpoint con il token preso da `findAll` (pulsante "Authorize").
 - **Motivazione**: richiesta di Mahima; il frontend e chi sviluppa vedono e provano le API dal browser. Il contratto scritto a mano in `contracts/` resta la fonte di verità (costituzione, principio III); la documentazione generata serve a confrontarlo con il codice.
 - **Alternative**: springdoc 3.1.x (compilato per Spring Boot 4.1); solo il file `contracts/` servito come statico (non mostra lo stato reale del codice).
 

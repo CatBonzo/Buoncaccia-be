@@ -17,7 +17,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Builder
-public class CensusResponse {
+public class CensusDTO {
 
     private String memberCode;
     private String groupId;

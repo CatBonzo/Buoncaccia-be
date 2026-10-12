@@ -17,7 +17,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Builder
-public class UserProfileResponse {
+public class UserProfileDTO {
 
     private String buonaCacciaUUID;
     private String agesciUUID;
@@ -27,7 +27,7 @@ public class UserProfileResponse {
     private String email;
     private UserStatus status;
     private boolean member;
-    private CensusResponse census;
+    private CensusDTO census;
     private List<String> roles;
     private List<String> entitlements;
 }

@@ -10,7 +10,7 @@ class OpenApiDocsTest extends AbstractTest {
 
     @Test
     void apiDocsArePublicAndListTheEndpoints() {
-        Result result = get("/v3/api-docs");
+        Result result = get("/api-docs");
 
         assertThat(result.status()).isEqualTo(200);
         assertThat(result.body().get("paths").has("/api/v1/users/me")).isTrue();

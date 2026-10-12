@@ -3,7 +3,7 @@ package it.buonacaccia.v1.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.buonacaccia.v1.dto.ApiResponse;
-import it.buonacaccia.v1.dto.UserProfileResponse;
+import it.buonacaccia.v1.dto.UserProfileDTO;
 import it.buonacaccia.guard.SecurityAccess;
 import it.buonacaccia.v1.mapper.UserMapper;
 import it.buonacaccia.service.UserService;
@@ -27,7 +27,7 @@ public class UserController {
     @GetMapping("/me")
     @SecurityAccess
     @Operation(summary = "Profilo, censimento, ruoli ed entitlement della persona autenticata (FR-010)")
-    public ApiResponse<UserProfileResponse> me(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<UserProfileDTO> me(@AuthenticationPrincipal Jwt jwt) {
         log.debug("GET /users/me per agesciUUID {}", jwt.getClaimAsString("agesciUUID"));
         return ApiResponse.ok(UserMapper.INSTANCE.toDto(userService.syncFromToken(jwt)));
     }
