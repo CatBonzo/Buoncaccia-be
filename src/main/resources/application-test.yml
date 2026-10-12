@@ -4,3 +4,4 @@ logging:
     it.buonacaccia: DEBUG
     org.springframework.security: DEBUG
     org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    io.github.resilience4j: DEBUG

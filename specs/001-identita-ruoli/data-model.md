@@ -79,3 +79,4 @@ JWT RS256. Claim: `iss` (`mock-auth`), `sub` (= `buonaCacciaUUID`), `iat`, `exp`
 | 40900 | 409 | dominio della risorsa | Conflitto di stato (non usato in questa feature, riservato) |
 | 42200 | 422 | `SYSTEM` | Input non valido |
 | 50000 | 500 | `SYSTEM` | Errore imprevisto; messaggio generico, nessun dettaglio interno |
+| 50300 | 503 | `SYSTEM` | MongoDB non raggiungibile o circuit breaker aperto |

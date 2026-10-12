@@ -75,3 +75,9 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 - **Decisione**: campi in inglese secondo il glossario della spec: `buonaCacciaUUID`, `agesciUUID`, `firstName`, `lastName`, `census.memberCode` (codice socio), `groupId`, `unitId`, `branch`, `memberType` (`YOUTH`/`LEADER`), `status` (`IN_GOOD_STANDING`, `NOT_IN_GOOD_STANDING`), `year`. I nomi italiani del modello dati della spec (`codiceSocio`, `statoCensimento`…) vanno allineati.
 - **Motivazione**: regola di AGENTS.md (nomi nel codice in inglese); il JSON delle API riprende i nomi del codice.
 - **Alternative**: nomi italiani nel JSON (incoerenti con il resto delle API, già in inglese: `/events`, `/enrollments`).
+
+## R13. Lombok, log e circuit breaker (12/10, da ScoutShopper-be)
+
+- **Decisione**: Lombok per i log (`@Slf4j`) e i costruttori (`@RequiredArgsConstructor`); log su console e file `logs/buonacaccia.log`; circuit breaker Resilience4j (istanza `mongodb`) attorno a ogni chiamata del repository, tramite `CircuitBreakerService.execute`. Guasto del database o circuito aperto → `BuonaCacciaException(SERVICE_UNAVAILABLE)` → 503 con l'envelope; `DuplicateKeyException` → 409 e non conta come guasto.
+- **Motivazione**: richiesta di Mahima; sono le librerie che usava in ScoutShopper-be. Il circuit breaker evita che, con MongoDB giù, ogni richiesta aspetti il timeout del driver.
+- **Alternative**: il `wrapCatch` di ScoutShopper con valore di fallback (catturando l'eccezione dentro il circuito, Resilience4j registrava sempre un successo e il circuito non si apriva; il chiamante riceveva `null`); annotazione `@CircuitBreaker` (serve AOP, `spring-boot-starter-aspectj`, e il metodo deve passare da un proxy); `@Log4j2` (Spring Boot usa Logback, `@Slf4j` è il collegamento diretto).

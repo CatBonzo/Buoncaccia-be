@@ -12,6 +12,7 @@ import it.buonacaccia.api.dto.ApiResponse;
 import it.buonacaccia.api.dto.MockUserResponse;
 import it.buonacaccia.mapper.UserMapper;
 import it.buonacaccia.service.MockIdentityService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Utenti di prova e chiave pubblica: esistono solo con il profilo {@code mocked} (FR-004, FR-005). */
 @RestController
 @Profile("mocked")
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/mock/auth")
 @Tag(name = "mock-auth", description = "Utenti di prova e chiave pubblica (solo profilo mocked)")
 public class MockAuthController {
@@ -27,12 +29,6 @@ public class MockAuthController {
     private final MockIdentityService mockIdentityService;
     private final UserMapper userMapper;
     private final RSAKey mockSigningKey;
-
-    public MockAuthController(MockIdentityService mockIdentityService, UserMapper userMapper, RSAKey mockSigningKey) {
-        this.mockIdentityService = mockIdentityService;
-        this.userMapper = userMapper;
-        this.mockSigningKey = mockSigningKey;
-    }
 
     @GetMapping("/findAll")
     @SecurityRequirements

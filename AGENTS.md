@@ -100,6 +100,9 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-12 | `test.env` con profili `mocked,test` e database `buonacaccia-test` | Con il solo profilo `test` l'app non avrebbe un emittente di token (R12) |
 | 2026-10-12 | `mocked-identity.yml` sul modello di `identity.yaml` di ScoutShopper-be, con i campi della spec (claim, censimento) | Richiesta di Mahima; la spec chiede `agesciUUID`, entitlement e censimento oltre ai ruoli (R6) |
 | 2026-10-12 | Codice di errore `40500` (metodo non supportato) | Senza, un metodo HTTP sbagliato diventava 500 |
+| 2026-10-12 | Lombok (versione dal BOM di Spring Boot, `lombok.config` alla radice): `@Slf4j` per i log, `@RequiredArgsConstructor` per l'iniezione; i DTO e i documenti restano `record` | Richiesta di Mahima, come in ScoutShopper-be; meno codice ripetuto. `@Slf4j` al posto di `@Log4j2` perché Spring Boot usa Logback |
+| 2026-10-12 | Log su console e su `logs/buonacaccia.log` (fuori da git), livelli in `application.yml`, DEBUG con il profilo `test` | Richiesta di Mahima, come in ScoutShopper-be |
+| 2026-10-12 | Circuit breaker Resilience4j 2.4.0 (`resilience4j-spring-boot4`) sulle chiamate a MongoDB: `config.mongo.CircuitBreakerService`, istanza `mongodb` in `application.yml`; database giù o circuito aperto = 503 (`50300`), chiave duplicata = 409 | Richiesta di Mahima, dal `CircuitBreakerService` di ScoutShopper-be. Differenza voluta: niente fallback silenzioso (con il fallback il circuito non si apriva mai e gli errori sparivano) (R13) |
 
 ## 5. Domande aperte
 

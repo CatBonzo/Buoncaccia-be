@@ -22,6 +22,41 @@ management:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+# Circuit breaker sulle chiamate a MongoDB (Resilience4j, istanza "mongodb").
+# Su 10 chiamate, se almeno 5 sono state fatte e la metà fallisce, il circuito si apre per 5 s:
+# le richieste rispondono subito 503 invece di aspettare il database.
+resilience4j:
+  circuitbreaker:
+    instances:
+      mongodb:
+        register-health-indicator: true
+        allow-health-indicator-to-fail: false
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 5s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+        ignore-exceptions:
+          - org.springframework.dao.DuplicateKeyException
+
+# Log: console e file logs/buonacaccia.log (ignorato da git).
+logging:
+  level:
+    root: INFO
+    it.buonacaccia: INFO
+  file:
+    name: logs/buonacaccia.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # Documentazione OpenAPI generata (springdoc) e Swagger UI.
 # JSON: http://localhost:8080/v3/api-docs   Interfaccia: http://localhost:8080/swagger-ui.html

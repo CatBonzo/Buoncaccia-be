@@ -3,8 +3,7 @@ package it.buonacaccia.api;
 import it.buonacaccia.api.dto.ApiResponse;
 import it.buonacaccia.service.exception.BuonaCacciaException;
 import it.buonacaccia.utils.ErrorCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,13 +17,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /** Traduce ogni eccezione nell'envelope con lo status HTTP del catalogo (FR-013…FR-015). */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
     @ExceptionHandler(BuonaCacciaException.class)
     ResponseEntity<ApiResponse<Void>> handle(BuonaCacciaException e) {
+        log.debug("Errore applicativo {}: {}", e.errorCode(), e.getMessage());
         return respond(e.errorCode(), e.getMessage());
     }
 

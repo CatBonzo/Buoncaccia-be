@@ -12,7 +12,8 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(40500, 405, "SYSTEM", "Metodo HTTP non supportato per questa risorsa."),
     CONFLICT(40900, 409, "SYSTEM", "Conflitto con lo stato attuale della risorsa."),
     INVALID_INPUT(42200, 422, "SYSTEM", "Richiesta non valida."),
-    INTERNAL_ERROR(50000, 500, "SYSTEM", "Errore interno. Riprova più tardi.");
+    INTERNAL_ERROR(50000, 500, "SYSTEM", "Errore interno. Riprova più tardi."),
+    SERVICE_UNAVAILABLE(50300, 503, "SYSTEM", "Servizio temporaneamente non disponibile. Riprova tra poco.");
 
     private final int code;
     private final int httpStatus;

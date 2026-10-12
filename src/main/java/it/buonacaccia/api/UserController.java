@@ -7,13 +7,17 @@ import it.buonacaccia.api.dto.UserProfileResponse;
 import it.buonacaccia.config.guard.SecurityAccess;
 import it.buonacaccia.mapper.UserMapper;
 import it.buonacaccia.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
 @Tag(name = "users", description = "Profilo della persona autenticata")
 public class UserController {
@@ -21,15 +25,11 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
 
-    public UserController(UserService userService, UserMapper userMapper) {
-        this.userService = userService;
-        this.userMapper = userMapper;
-    }
-
     @GetMapping("/me")
     @SecurityAccess
     @Operation(summary = "Profilo, censimento, ruoli ed entitlement della persona autenticata (FR-010)")
     public ApiResponse<UserProfileResponse> me(@AuthenticationPrincipal Jwt jwt) {
+        log.debug("GET /users/me per agesciUUID {}", jwt.getClaimAsString("agesciUUID"));
         return ApiResponse.ok(userMapper.toProfile(userService.syncFromToken(jwt)));
     }
 }

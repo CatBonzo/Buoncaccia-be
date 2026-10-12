@@ -9,6 +9,8 @@ import java.util.Set;
 import it.buonacaccia.config.MockAuthConfig;
 import it.buonacaccia.config.MockedIdentityProperties.MockedUser;
 import it.buonacaccia.model.User;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
@@ -22,8 +24,10 @@ import org.springframework.stereotype.Service;
  * Utenti di prova con il loro token (profilo {@code mocked}, FR-001…FR-006). I token sono solo
  * in memoria: non stanno nel file né nel database e valgono fino al riavvio.
  */
+@Slf4j
 @Service
 @Profile("mocked")
+@RequiredArgsConstructor
 public class MockIdentityService {
 
     /** Voce del file con l'id Buona Caccia definitivo e il token emesso. */
@@ -32,15 +36,9 @@ public class MockIdentityService {
 
     private final UserService userService;
     private final JwtEncoder mockJwtEncoder;
+    @Value("${buonacaccia.mock-auth.token-validity:P365D}")
     private final Duration tokenValidity;
     private volatile List<IssuedMockUser> issued = List.of();
-
-    public MockIdentityService(UserService userService, JwtEncoder mockJwtEncoder,
-            @Value("${buonacaccia.mock-auth.token-validity:P365D}") Duration tokenValidity) {
-        this.userService = userService;
-        this.mockJwtEncoder = mockJwtEncoder;
-        this.tokenValidity = tokenValidity;
-    }
 
     /** Salva gli utenti di prova ed emette un token per ciascuno; due voci con lo stesso agesciUUID fermano l'avvio. */
     public List<IssuedMockUser> load(List<MockedUser> entries) {
@@ -53,6 +51,7 @@ public class MockIdentityService {
         issued = entries.stream()
                 .map(entry -> {
                     User user = userService.upsertMockUser(entry);
+                    log.info("Utente di prova {} ({}): token emesso", entry.username(), user.id());
                     return new IssuedMockUser(entry, user.id(), issueToken(entry, user.id()));
                 })
                 .toList();

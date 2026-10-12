@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * {@code entitlement} del token già validato da Spring Security. Le eccezioni diventano 401/403
  * con l'envelope nel gestore globale.
  */
+@Slf4j
 @Component
 public class SecurityGuardInterceptor implements HandlerInterceptor {
 
@@ -45,6 +47,8 @@ public class SecurityGuardInterceptor implements HandlerInterceptor {
         }
         if (!hasAny(jwt.getClaimAsStringList(ROLE_CLAIM), access.role())
                 || !hasAny(jwt.getClaimAsStringList(ENTITLEMENT_CLAIM), access.entitlement())) {
+            log.warn("Accesso negato a {} {} per {}: richiesti ruolo {} ed entitlement {}", request.getMethod(),
+                    request.getRequestURI(), jwt.getSubject(), List.of(access.role()), List.of(access.entitlement()));
             throw new AccessDeniedException("Permesso mancante");
         }
         return true;

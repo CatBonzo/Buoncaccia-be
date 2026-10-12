@@ -366,6 +366,34 @@ Problemi: la richiesta e' arrivata a plan appena scritto e ha cambiato
 Spunto: il progetto precedente funziona come "memoria di stile"
   dell'autrice; il metodo decide quali parti si riusano e quali no.
 
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: Lombok, log e circuit breaker da ScoutShopper
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice l'agente ha portato da ScoutShopper-be
+  Lombok (@Slf4j, @RequiredArgsConstructor), la configurazione dei log
+  (console e file logs/buonacaccia.log) e il circuit breaker Resilience4j
+  sulle chiamate a MongoDB. 4 nuovi test sul circuit breaker (si apre
+  dopo i guasti, a circuito aperto non chiama il database e risponde
+  503, una chiave duplicata e' un 409 e non apre il circuito): 35 test
+  verdi.
+Chi: richiesta dell'autrice; lettura del pom.xml di ScoutShopper,
+  adattamento a Gradle e Spring Boot 4, test e codice dell'agente.
+Paradigma: AI-Assisted Programming (par. 2.2) con revisione critica del
+  codice di partenza: il CircuitBreakerService di ScoutShopper catturava
+  l'eccezione dentro il circuito e restituiva un valore di ripiego, quindi
+  il circuito non si apriva mai. Il test scritto prima lo dimostra; la
+  versione nuova lascia contare i guasti. Anche la configurazione YAML
+  di ScoutShopper stava sotto "spring:" e Resilience4j non la leggeva.
+Artefatti: build.gradle e libs.versions.toml (Lombok dal BOM, Resilience4j
+  2.4.0 per Spring Boot 4), lombok.config, config/mongo/
+  CircuitBreakerService.java, application.yml, research.md R13.
+Problemi: di nuovo i 429 di Maven Central (risolti con il ciclo di
+  tentativi); Lombok non trovava la versione perche' il BOM non si applica
+  da solo al processore di annotazioni (aggiunta la platform anche li');
+  Docker del container cloud fermo dopo il riavvio della sessione.
+Spunto: riusare il proprio codice passato con un agente non e' copiare:
+  i test fanno emergere i difetti nascosti del codice di partenza.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
