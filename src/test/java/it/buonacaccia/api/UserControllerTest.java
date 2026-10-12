@@ -10,7 +10,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import it.buonacaccia.ApiTestSupport;
+import it.buonacaccia.AbstractTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
@@ -22,7 +22,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import tools.jackson.databind.JsonNode;
 
 /** US2: il proprio profilo (FR-010…FR-012) e i rifiuti dei token non validi (FR-007). */
-class UserControllerTest extends ApiTestSupport {
+class UserControllerTest extends AbstractTest {
 
     @Autowired
     private JwtEncoder mockJwtEncoder;

@@ -34,7 +34,7 @@ Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel pr
 
 | Principio | Verifica | Esito |
 | --- | --- | --- |
-| I. Qualità del codice | Controller in `api` senza logica; regole in `service`; repository in `repository.nosql`; DTO ↔ dominio in `mapper`; dati di prova in `mockmigration` | ✅ |
+| I. Qualità del codice | Controller in `api` senza logica; regole in `service`; repository in `repository.nosql`; DTO ↔ dominio in `mapper`; mock nel codice di test (`src/test`, package `mock`) | ✅ |
 | II. Test-first | Test di integrazione per ogni user story e caso limite, scritti prima del codice; `./gradlew build` in CI con Testcontainers | ✅ |
 | III. Coerenza con i client | Contratto OpenAPI 3.1 in `contracts/` prima del codice; envelope unico anche per 401/403/404; status significativo (Q14); nessuna modifica incompatibile | ✅ |
 | IV. Semplicità | Meccanismi standard di Spring Security (resource server) più una guardia dichiarativa di poche righe (`@SecurityAccess`); nessun catalogo di permessi; nessuna nuova infrastruttura oltre MongoDB già in compose | ✅ |
@@ -65,57 +65,42 @@ specs/001-identita-ruoli/
 src/main/java/it/buonacaccia/
 ├── BuonaCacciaApplication.java
 ├── api/
-│   ├── MockAuthController.java          # @Profile("mocked"): findAll, jwks
 │   ├── UserController.java              # users/me
 │   ├── GlobalExceptionHandler.java      # @RestControllerAdvice → envelope
-│   └── dto/
-│       ├── ApiResponse.java             # envelope
-│       ├── MockUserResponse.java
-│       └── UserProfileResponse.java
+│   └── dto/ApiResponse.java, UserProfileResponse.java
 ├── config/
-│   ├── SecurityConfig.java              # filter chain, entry point e access denied con envelope
-│   ├── OpenApiConfig.java               # schema bearerAuth per Swagger UI
+│   ├── SecurityConfig.java              # resource server, envelope per 401/403
+│   ├── OpenApiConfig.java               # Swagger UI, schema bearerAuth
 │   ├── WebConfig.java                   # registra la guardia
-│   ├── guard/SecurityAccess.java        # annotazione: role / entitlement richiesti
-│   ├── guard/SecurityGuardInterceptor.java
-│   ├── MockAuthConfig.java              # @Profile("mocked"): chiave RSA, JwtEncoder, JwtDecoder
-│   └── MockedIdentityProperties.java    # @ConfigurationProperties("mocked-identity")
-├── mapper/
-│   └── UserMapper.java
-├── mockmigration/
-│   └── MockedUsersLoader.java           # @Profile("mocked"): upsert utenti all'avvio
-├── model/
-│   ├── User.java, Census.java
-│   ├── UserStatus.java, Branch.java, MemberType.java, CensusStatus.java
-│   ├── Roles.java, Entitlements.java    # costanti dei valori confermati (Q15)
-├── repository/nosql/
-│   └── UserRepository.java
-├── service/
-│   ├── MockTokenService.java            # @Profile("mocked"): token in memoria
-│   ├── UserService.java                 # profilo, syncFromToken
-│   └── exception/BuonaCacciaException.java
-└── utils/
-    └── ErrorCode.java                   # catalogo codici, status, dominio, messaggio
+│   ├── guard/SecurityAccess.java, SecurityGuardInterceptor.java
+│   └── mongo/CircuitBreakerService.java # Resilience4j su MongoDB
+├── mapper/UserMapper.java
+├── model/                               # User, Census, enum, Roles, Entitlements
+├── repository/nosql/UserRepository.java
+├── service/UserService.java, exception/BuonaCacciaException.java
+└── utils/ErrorCode.java
 
-src/main/resources/
-├── application.yml                      # comune; resource server Keycloak per i profili non mock
-├── application-mocked.yml               # import di mocked-identity.yml, validità token
-├── application-test.yml                 # log dettagliati (con test.env)
-└── mocked-identity.yml                  # 4 utenti di prova
+src/main/resources/application.yml, application-test.yml
 
 src/test/java/it/buonacaccia/
-├── BuonaCacciaApplicationTest.java      # health (esistente)
-├── TestcontainersConfiguration.java     # MongoDB con @ServiceConnection
-├── api/MockAuthControllerTest.java      # US1
-├── api/UserControllerTest.java          # US2
-├── api/SecurityGuardTest.java           # US3, con controller di prova solo nei test
-├── api/OpenApiDocsTest.java             # /v3/api-docs pubblico
-├── api/EnvelopeTest.java                # US4
-├── api/MockProfileDisabledTest.java     # US1 scenario 4
-└── mockmigration/MockedUsersLoaderTest.java  # casi limite del file
+├── AbstractTest.java                    # crea il DB (Testcontainers) e avvia l'app, come in ScoutShopper-be
+├── TestBuonaCacciaApplication.java      # avvio locale con i mock (bootTestRun / IntelliJ)
+├── BuonaCacciaApplicationTest.java      # health
+├── mock/                                # tutto il mock, fuori dal jar (profilo mocked)
+│   ├── MockAuthConfig.java              # chiave RSA, JwtEncoder, JwtDecoder
+│   ├── MockAuthController.java          # findAll, jwks
+│   ├── MockIdentityService.java         # upsert utenti e token in memoria
+│   ├── MockedIdentityProperties.java, MockedUsersLoader.java, MockUserResponse.java
+│   ├── ProbeController.java             # operazioni di prova per guardia ed envelope (profilo probe)
+│   └── MockIdentityServiceTest.java
+├── api/                                 # MockAuthControllerTest, UserControllerTest, SecurityGuardTest,
+│                                        # EnvelopeTest, MockProfileDisabledTest, OpenApiDocsTest
+└── config/mongo/CircuitBreakerServiceTest.java
+
+src/test/resources/application-mocked.yml, mocked-identity.yml
 ```
 
-**Structure Decision**: applicazione Spring Boot unica con i package di AGENTS.md; dipendenze `api` → `service` → `repository.nosql` → `model`, con `config` che collega i pezzi e `utils` condiviso. Le classi del profilo `mocked` sono marcate `@Profile("mocked")` e spariscono in fase 6.
+**Structure Decision**: applicazione Spring Boot unica con i package di AGENTS.md; dipendenze `api` → `service` → `repository.nosql` → `model`, con `config` che collega i pezzi e `utils` condiviso. Tutto il mock (utenti di prova, emittente dei token, `findAll`, `jwks`) sta in `src/test`, come in ScoutShopper-be: il jar dell'applicazione non lo contiene, e in fase 6 resta solo per i test.
 
 ## Complexity Tracking
 

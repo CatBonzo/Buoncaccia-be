@@ -1,11 +1,11 @@
-package it.buonacaccia.service;
+package it.buonacaccia.mock;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 
-import it.buonacaccia.config.MockedIdentityProperties.Authentication;
-import it.buonacaccia.config.MockedIdentityProperties.MockedUser;
+import it.buonacaccia.mock.MockedIdentityProperties.Authentication;
+import it.buonacaccia.mock.MockedIdentityProperties.MockedUser;
 import org.junit.jupiter.api.Test;
 
 /** Caso limite: due voci del file con lo stesso agesciUUID fermano l'avvio. */

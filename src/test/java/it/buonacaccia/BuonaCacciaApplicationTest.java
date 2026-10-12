@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-class BuonaCacciaApplicationTest extends ApiTestSupport {
+class BuonaCacciaApplicationTest extends AbstractTest {
 
     @Test
     void healthIsUpAndPublic() {

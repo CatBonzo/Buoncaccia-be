@@ -2,7 +2,7 @@ package it.buonacaccia.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import it.buonacaccia.ApiTestSupport;
+import it.buonacaccia.AbstractTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 /** US3: la guardia {@code @SecurityAccess} su entitlement e ruoli (FR-008, AUTH-1). */
 @ActiveProfiles({"mocked", "probe"})
-class SecurityGuardTest extends ApiTestSupport {
+class SecurityGuardTest extends AbstractTest {
 
     @ParameterizedTest
     @CsvSource({

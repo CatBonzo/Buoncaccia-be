@@ -5,10 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import it.buonacaccia.config.MockedIdentityProperties.CensusData;
-import it.buonacaccia.config.MockedIdentityProperties.MockedUser;
 import it.buonacaccia.config.mongo.CircuitBreakerService;
-import it.buonacaccia.model.Census;
 import it.buonacaccia.model.User;
 import it.buonacaccia.model.UserStatus;
 import it.buonacaccia.repository.nosql.UserRepository;
@@ -17,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-/** Utenti: creazione dai dati di prova e allineamento dal token (FR-001, FR-002, FR-011). */
+/** Utenti: upsert su agesciUUID e allineamento dal token (FR-001, FR-002, FR-011). */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,28 +24,17 @@ public class UserService {
     private final CircuitBreakerService circuitBreakerService;
 
     /**
-     * Crea o aggiorna l'utente di una voce di {@code mocked-identity.yml}, con chiave {@code agesciUUID}:
-     * l'id resta quello già salvato, altrimenti quello indicato nella voce o un UUID nuovo.
+     * Crea o aggiorna un utente con chiave {@code agesciUUID} (FR-001, FR-002): se esiste già restano
+     * il suo id, lo stato e la data di creazione, il resto viene da {@code candidate}.
      */
-    public User upsertMockUser(MockedUser entry) {
-        Instant now = Instant.now();
-        User existing = findByAgesciUUID(entry.agesciUUID());
-        String id = existing != null ? existing.id()
-                : entry.buonaCacciaUUID() != null ? entry.buonaCacciaUUID() : UUID.randomUUID().toString();
-        log.debug("Utente di prova {} ({}): {}", entry.username(), id, existing != null ? "aggiornato" : "creato");
-        return save(new User(
-                id,
-                entry.agesciUUID(),
-                entry.username(),
-                entry.email(),
-                entry.firstName(),
-                entry.lastName(),
-                existing != null ? existing.status() : UserStatus.ACTIVE,
-                toCensus(entry.census()),
-                entry.authentication().role(),
-                entry.authentication().entitlement(),
-                existing != null ? existing.createdAt() : now,
-                now));
+    public User upsertByAgesciUUID(User candidate) {
+        User existing = findByAgesciUUID(candidate.agesciUUID());
+        User user = existing == null ? candidate : new User(existing.id(), candidate.agesciUUID(),
+                candidate.username(), candidate.email(), candidate.firstName(), candidate.lastName(),
+                existing.status(), candidate.census(), candidate.roles(), candidate.entitlements(),
+                existing.createdAt(), Instant.now());
+        log.debug("Utente {} ({}): {}", user.username(), user.id(), existing != null ? "aggiornato" : "creato");
+        return save(user);
     }
 
     /**
@@ -87,13 +73,5 @@ public class UserService {
     private static List<String> listClaim(Jwt jwt, String name) {
         List<String> values = jwt.getClaimAsStringList(name);
         return values == null ? List.of() : values;
-    }
-
-    private static Census toCensus(CensusData data) {
-        if (data == null) {
-            return null;
-        }
-        return new Census(data.memberCode(), data.groupId(), data.unitId(), data.branch(), data.memberType(),
-                data.status(), data.year(), null);
     }
 }

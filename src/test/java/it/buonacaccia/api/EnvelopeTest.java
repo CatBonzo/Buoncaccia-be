@@ -2,14 +2,14 @@ package it.buonacaccia.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import it.buonacaccia.ApiTestSupport;
+import it.buonacaccia.AbstractTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import tools.jackson.databind.JsonNode;
 
 /** US4: ogni risposta ha l'envelope (FR-013…FR-015). */
 @ActiveProfiles({"mocked", "probe"})
-class EnvelopeTest extends ApiTestSupport {
+class EnvelopeTest extends AbstractTest {
 
     @Test
     void successHasTheFourFields() {

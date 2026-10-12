@@ -8,19 +8,29 @@ import java.net.http.HttpResponse;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.mongodb.MongoDBContainer;
+import org.testcontainers.utility.DockerImageName;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Base dei test di integrazione: applicazione vera su porta casuale, profilo {@code mocked},
- * MongoDB in Testcontainers e un client HTTP che restituisce status e corpo JSON.
+ * Base dei test di integrazione, come l'AbstractTest di ScoutShopper-be: crea il database
+ * (MongoDB in Testcontainers, stessa immagine di compose.yaml, uno solo per tutta la suite),
+ * avvia l'applicazione vera su porta casuale con il profilo {@code mocked} e offre un client
+ * HTTP che restituisce status e corpo JSON.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
 @ActiveProfiles("mocked")
-public abstract class ApiTestSupport {
+public abstract class AbstractTest {
+
+    @ServiceConnection
+    protected static final MongoDBContainer MONGO = new MongoDBContainer(DockerImageName.parse("mongo:8.0.32"));
+
+    static {
+        MONGO.start();
+    }
 
     protected static final JsonMapper JSON = JsonMapper.builder().build();
 

@@ -21,7 +21,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Envelope unico.** Ogni risposta, di successo o di errore, ha la forma `{ "errorCode", "errorMessage", "errorDomain", "payload" }`; `errorCode` = 0 significa successo e i dati sono in `payload`.
 - **Status HTTP.** Significativo (401, 403, 404, 409, 422, 500) e coerente con `errorCode`; il corpo è sempre l'envelope (Q14, 12/10).
 - **Documentazione viva.** Swagger UI su `http://localhost:8080/swagger-ui.html` (JSON su `/v3/api-docs`): "Authorize" accetta un `accessToken` preso da `findAll`.
-- **Autenticazione, fase 1.** Profilo Spring `mocked`, utenti di prova in `src/main/resources/mocked-identity.yml`. `GET /api/v1/mock/auth/findAll` restituisce gli utenti di prova con il loro `accessToken`; il frontend lo manda come `Authorization: Bearer <token>`. I token cambiano a ogni riavvio del backend.
+- **Autenticazione, fase 1.** Profilo Spring `mocked`, utenti di prova in `src/test/resources/mocked-identity.yml`; tutto il mock sta nel codice di test (package `it.buonacaccia.mock`) e si avvia con `TestBuonaCacciaApplication`. `GET /api/v1/mock/auth/findAll` restituisce gli utenti di prova con il loro `accessToken`; il frontend lo manda come `Authorization: Bearer <token>`. I token cambiano a ogni riavvio del backend.
 - **Autenticazione, fase 2.** Keycloak con OIDC (authorization code + PKCE), realm `buonacaccia`. I claim del token restano gli stessi, quindi il frontend non cambia logica.
 - **Ruoli ed entitlement.** Il claim `role` dice che cosa mostrare (menu, aree); il claim `entitlement` dice quali azioni abilitare. Il frontend può nascondere un pulsante, ma il backend controlla sempre l'entitlement.
 - **Convenzioni.** Paginazione `page`/`size`, ordinamento `sort=campo,asc|desc`, date ISO 8601 in UTC (le regole di dominio usano Europe/Rome), risorse al plurale in inglese.
@@ -37,7 +37,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Test.** I test definiscono il "fatto": scritti prima, devono fallire e poi passare. `./gradlew build` deve passare prima di ogni push.
 - **Versioni.** Tutte in `gradle/libs.versions.toml`; dipendenze e plugin in `build.gradle` alla radice. Immagini Docker con tag fissato, mai `latest`.
 - **Segreti.** Mai nel repository: `.env` è ignorato. I file in `test-src/env/` contengono solo valori locali di sviluppo, nessuna password reale.
-- **Ambiente locale.** `docker compose up -d` avvia MongoDB (replica set `rs0`, porta 27017), Kafka (KRaft, porta 9092) e Mailpit (SMTP 1025, web 8025), tutti su `127.0.0.1`. L'applicazione si avvia da IntelliJ caricando `test-src/env/mocked.env`.
+- **Ambiente locale.** `docker compose up -d` avvia MongoDB (replica set `rs0`, porta 27017), Kafka (KRaft, porta 9092) e Mailpit (SMTP 1025, web 8025), tutti su `127.0.0.1`. L'applicazione con i mock si avvia da IntelliJ lanciando `TestBuonaCacciaApplication` (in `src/test`) con le variabili di `test-src/env/mocked.env`, oppure con `./gradlew bootTestRun`.
 - **Spec-Kit.** Comandi come skill di Claude Code in `.claude/skills/speckit-*`; costituzione in `.specify/memory/constitution.md`; le feature vanno in `specs/NNN-titolo-breve/`.
 - **Struttura del progetto.** Standard Spring Boot: codice in `src/main/java`, risorse in `src/main/resources`, test in `src/test/java`. Package radice `it.buonacaccia` con la classe `BuonaCacciaApplication` e questi package:
 
@@ -47,7 +47,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
   | `config` | Configurazione Spring |
   | `job` | Attività pianificate (scheduler) |
   | `mapper` | Conversioni dominio ↔ DTO |
-  | `mockmigration` | Dati di prova caricati all'avvio, solo nei profili di sviluppo |
+  | `mockmigration` | Dati di prova caricati all'avvio, solo nei profili di sviluppo (oggi vuoto: l'auth mock sta in `src/test`) |
   | `model` | Documenti MongoDB, value object, stati |
   | `repository.nosql` | Repository Spring Data MongoDB |
   | `service` | Logica di business e regole BR della spec |
@@ -100,6 +100,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-12 | `test.env` con profili `mocked,test` e database `buonacaccia-test` | Con il solo profilo `test` l'app non avrebbe un emittente di token (R12) |
 | 2026-10-12 | `mocked-identity.yml` sul modello di `identity.yaml` di ScoutShopper-be, con i campi della spec (claim, censimento) | Richiesta di Mahima; la spec chiede `agesciUUID`, entitlement e censimento oltre ai ruoli (R6) |
 | 2026-10-12 | Codice di errore `40500` (metodo non supportato) | Senza, un metodo HTTP sbagliato diventava 500 |
+| 2026-10-12 | Mock in `src/test` come in ScoutShopper-be: package `it.buonacaccia.mock` (emittente dei token, utenti di prova, `findAll`, `jwks`), `mocked-identity.yml` e `application-mocked.yml` in `src/test/resources`; `AbstractTest` crea il DB con Testcontainers; avvio locale con `TestBuonaCacciaApplication` / `bootTestRun` | Richiesta di Mahima; il jar dell'applicazione non contiene codice di prova né un emittente di token |
 | 2026-10-12 | Lombok (versione dal BOM di Spring Boot, `lombok.config` alla radice): `@Slf4j` per i log, `@RequiredArgsConstructor` per l'iniezione; i DTO e i documenti restano `record` | Richiesta di Mahima, come in ScoutShopper-be; meno codice ripetuto. `@Slf4j` al posto di `@Log4j2` perché Spring Boot usa Logback |
 | 2026-10-12 | Log su console e su `logs/buonacaccia.log` (fuori da git), livelli in `application.yml`, DEBUG con il profilo `test` | Richiesta di Mahima, come in ScoutShopper-be |
 | 2026-10-12 | Circuit breaker Resilience4j 2.4.0 (`resilience4j-spring-boot4`) sulle chiamate a MongoDB: `config.mongo.CircuitBreakerService`, istanza `mongodb` in `application.yml`; database giù o circuito aperto = 503 (`50300`), chiave duplicata = 409 | Richiesta di Mahima, dal `CircuitBreakerService` di ScoutShopper-be. Differenza voluta: niente fallback silenzioso (con il fallback il circuito non si apriva mai e gli errori sparivano) (R13) |

@@ -46,4 +46,5 @@ Scritto il 12/10 insieme all'implementazione, dopo la richiesta di Mahima di por
 
 - [x] T018 `./gradlew build` verde (31 test), prova a mano con `test.env`
 - [x] T019 AGENTS.md, diario, quickstart
+- [x] T021 Mock in `src/test` (package `mock`), `AbstractTest` che crea il DB, `TestBuonaCacciaApplication`
 - [x] T020 Test `CircuitBreakerServiceTest`; Lombok, log e circuit breaker su MongoDB (R13)

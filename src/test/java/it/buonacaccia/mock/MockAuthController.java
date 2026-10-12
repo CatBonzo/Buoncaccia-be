@@ -1,4 +1,4 @@
-package it.buonacaccia.api;
+package it.buonacaccia.mock;
 
 import java.util.List;
 import java.util.Map;
@@ -9,16 +9,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.buonacaccia.api.dto.ApiResponse;
-import it.buonacaccia.api.dto.MockUserResponse;
-import it.buonacaccia.mapper.UserMapper;
-import it.buonacaccia.service.MockIdentityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Utenti di prova e chiave pubblica: esistono solo con il profilo {@code mocked} (FR-004, FR-005). */
+/**
+ * Utenti di prova e chiave pubblica (FR-004, FR-005). Sta nel codice di test, come in ScoutShopper-be:
+ * non entra nel jar dell'applicazione e c'è solo con il profilo {@code mocked}.
+ */
 @RestController
 @Profile("mocked")
 @RequiredArgsConstructor
@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class MockAuthController {
 
     private final MockIdentityService mockIdentityService;
-    private final UserMapper userMapper;
     private final RSAKey mockSigningKey;
 
     @GetMapping("/findAll")
@@ -35,7 +34,7 @@ public class MockAuthController {
     @Operation(summary = "Utenti di prova con il loro access token",
             description = "I token cambiano a ogni riavvio del backend.")
     public ApiResponse<List<MockUserResponse>> findAll() {
-        return ApiResponse.ok(mockIdentityService.findAll().stream().map(userMapper::toMockUser).toList());
+        return ApiResponse.ok(mockIdentityService.findAll().stream().map(MockIdentityService::toResponse).toList());
     }
 
     @GetMapping("/jwks")

@@ -18,7 +18,7 @@ src/main/java/it/buonacaccia/
 ├── config/                       configurazione Spring
 ├── job/                          attività pianificate
 ├── mapper/                       conversioni dominio <-> DTO
-├── mockmigration/                dati di prova all'avvio
+├── mockmigration/                dati di prova all'avvio (l'auth mock è in src/test)
 ├── model/                        modello di dominio (documenti MongoDB)
 ├── repository/nosql/             repository Spring Data MongoDB
 ├── service/                      logica di business
@@ -35,13 +35,14 @@ docker compose down      # ferma i container (i dati restano)
 docker compose down -v   # ferma e cancella i dati
 ```
 
-Per avviare l'applicazione contro questi container, caricare in IntelliJ le variabili di `test-src/env/mocked.env`.
+Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ `TestBuonaCacciaApplication` (in `src/test/java`) con le variabili di `test-src/env/mocked.env`. Il mock sta tutto nel codice di test e non entra nel jar.
 
 ## Comandi
 
 ```bash
 ./gradlew build      # compila e lancia i test
-./gradlew bootRun    # avvia l'applicazione su http://localhost:8080
+./gradlew bootRun      # avvia l'applicazione (senza mock: serve Keycloak, fase 6)
+./gradlew bootTestRun  # avvia l'applicazione con i mock su http://localhost:8080
 ```
 
 `GET /actuator/health` risponde con lo stato dell'applicazione.

@@ -1,7 +1,5 @@
-package it.buonacaccia.mockmigration;
+package it.buonacaccia.mock;
 
-import it.buonacaccia.config.MockedIdentityProperties;
-import it.buonacaccia.service.MockIdentityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;

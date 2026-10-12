@@ -50,6 +50,7 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 
 - **Decisione**: `mocked-identity.yml` viene importato solo nel profilo `mocked` (`spring.config.import: classpath:mocked-identity.yml` in `application-mocked.yml`, non opzionale) e legato a `@ConfigurationProperties("mocked-identity")` con validazione (`@NotEmpty`, `@NotBlank`). Un `ApplicationRunner` nel package `mockmigration` fa l'upsert di ogni voce su `agesciUUID` e fallisce se due voci hanno lo stesso `agesciUUID`. Radice del file: `mocked-identity.users` (la spec usa `mock-auth.users`; si allinea al nome scelto da Mahima).
 - **Motivazione**: gli errori di file mancante, vuoto o malformato fermano l'avvio con il messaggio di Spring Boot che indica file e proprietà (casi limite della spec) senza codice di parsing nostro. `mockmigration` è il package previsto da AGENTS.md per i dati di prova.
+- **Aggiornamento 12/10**: su richiesta di Mahima tutto il mock (questo file, `application-mocked.yml`, emittente dei token, `findAll`, `jwks`, caricamento degli utenti) è passato in `src/test`, package `it.buonacaccia.mock`, come in ScoutShopper-be; il package `mockmigration` resta per i dati di prova futuri. L'app con i mock si avvia con `TestBuonaCacciaApplication` (`./gradlew bootTestRun`).
 - **Alternative**: lettura del file con un parser YAML a mano (più codice, messaggi peggiori); `optional:` nell'import (il backend partirebbe senza utenti, contro i casi limite).
 
 ## R7. Sincronizzazione di ruoli ed entitlement sull'utente (FR-011)

@@ -1,7 +1,7 @@
-package it.buonacaccia.api.dto;
+package it.buonacaccia.mock;
 
-import it.buonacaccia.config.MockedIdentityProperties.Authentication;
-import it.buonacaccia.config.MockedIdentityProperties.CensusData;
+import it.buonacaccia.mock.MockedIdentityProperties.Authentication;
+import it.buonacaccia.mock.MockedIdentityProperties.CensusData;
 
 /** Voce di {@code GET /api/v1/mock/auth/findAll}: dati del file più {@code issuer} e {@code accessToken}. */
 public record MockUserResponse(

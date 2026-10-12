@@ -5,12 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.buonacaccia.ApiTestSupport;
+import it.buonacaccia.AbstractTest;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 
 /** US1: ottenere un token di prova (FR-001…FR-006). */
-class MockAuthControllerTest extends ApiTestSupport {
+class MockAuthControllerTest extends AbstractTest {
 
     @Test
     void findAllReturnsTheFourMockUsersWithIssuerAndToken() {

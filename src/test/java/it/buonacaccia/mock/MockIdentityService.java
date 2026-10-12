@@ -1,4 +1,4 @@
-package it.buonacaccia.service;
+package it.buonacaccia.mock;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -6,9 +6,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import it.buonacaccia.config.MockAuthConfig;
-import it.buonacaccia.config.MockedIdentityProperties.MockedUser;
+import java.util.UUID;
+
+import it.buonacaccia.mock.MockedIdentityProperties.CensusData;
+import it.buonacaccia.mock.MockedIdentityProperties.MockedUser;
+import it.buonacaccia.model.Census;
 import it.buonacaccia.model.User;
+import it.buonacaccia.model.UserStatus;
+import it.buonacaccia.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +26,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 /**
- * Utenti di prova con il loro token (profilo {@code mocked}, FR-001…FR-006). I token sono solo
+ * Utenti di prova con il loro token (profilo {@code mocked}, FR-001…FR-006), solo nel codice di test. I token sono solo
  * in memoria: non stanno nel file né nel database e valgono fino al riavvio.
  */
 @Slf4j
@@ -50,7 +55,7 @@ public class MockIdentityService {
         }
         issued = entries.stream()
                 .map(entry -> {
-                    User user = userService.upsertMockUser(entry);
+                    User user = userService.upsertByAgesciUUID(toUser(entry));
                     log.info("Utente di prova {} ({}): token emesso", entry.username(), user.id());
                     return new IssuedMockUser(entry, user.id(), issueToken(entry, user.id()));
                 })
@@ -60,6 +65,31 @@ public class MockIdentityService {
 
     public List<IssuedMockUser> findAll() {
         return issued;
+    }
+
+    /** Voce di findAll: dati del file, id definitivo, emittente e token. */
+    public static MockUserResponse toResponse(IssuedMockUser issued) {
+        MockedUser entry = issued.entry();
+        return new MockUserResponse(entry.agesciUUID(), issued.buonaCacciaUUID(), entry.label(), entry.username(),
+                entry.firstName(), entry.lastName(), entry.email(), entry.authentication(), entry.census(),
+                MockAuthConfig.ISSUER, issued.accessToken());
+    }
+
+    /** Utente candidato per l'upsert: id dalla voce del file se indicato, altrimenti un UUID nuovo. */
+    private static User toUser(MockedUser entry) {
+        Instant now = Instant.now();
+        String id = entry.buonaCacciaUUID() != null ? entry.buonaCacciaUUID() : UUID.randomUUID().toString();
+        return new User(id, entry.agesciUUID(), entry.username(), entry.email(), entry.firstName(), entry.lastName(),
+                UserStatus.ACTIVE, toCensus(entry.census()), entry.authentication().role(),
+                entry.authentication().entitlement(), now, now);
+    }
+
+    private static Census toCensus(CensusData data) {
+        if (data == null) {
+            return null;
+        }
+        return new Census(data.memberCode(), data.groupId(), data.unitId(), data.branch(), data.memberType(),
+                data.status(), data.year(), null);
     }
 
     private String issueToken(MockedUser entry, String buonaCacciaUUID) {

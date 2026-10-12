@@ -2,11 +2,11 @@ package it.buonacaccia.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import it.buonacaccia.ApiTestSupport;
+import it.buonacaccia.AbstractTest;
 import org.junit.jupiter.api.Test;
 
 /** Documentazione OpenAPI generata (springdoc) e Swagger UI, pubbliche. */
-class OpenApiDocsTest extends ApiTestSupport {
+class OpenApiDocsTest extends AbstractTest {
 
     @Test
     void apiDocsArePublicAndListTheEndpoints() {

@@ -1,4 +1,4 @@
-package it.buonacaccia.support;
+package it.buonacaccia.mock;
 
 import it.buonacaccia.api.dto.ApiResponse;
 import it.buonacaccia.config.guard.SecurityAccess;

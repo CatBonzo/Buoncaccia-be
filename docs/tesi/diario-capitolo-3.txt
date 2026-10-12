@@ -394,6 +394,34 @@ Problemi: di nuovo i 429 di Maven Central (risolti con il ciclo di
 Spunto: riusare il proprio codice passato con un agente non e' copiare:
   i test fanno emergere i difetti nascosti del codice di partenza.
 
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: il mock nel codice di test
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice tutto il mock (emittente dei token,
+  utenti di prova, findAll, jwks, mocked-identity.yml) e' passato da
+  src/main a src/test, nel package it.buonacaccia.mock, come nei suoi
+  progetti Spring Boot. La base dei test si chiama AbstractTest e crea il
+  database (MongoDB in Testcontainers, uno per tutta la suite). Per
+  avviare l'app con i mock c'e' TestBuonaCacciaApplication (in IntelliJ,
+  o ./gradlew bootTestRun). Verificato: il jar non contiene piu' classi
+  mock; 35 test verdi; avvio locale con compose e 4 utenti in MongoDB.
+Chi: decisione e struttura dell'autrice (da uno screenshot di un suo
+  progetto); spostamento, adattamento e verifica dell'agente.
+Paradigma: Spec-Driven Development e Code Harness: la regola "fuori dal
+  profilo mocked le risorse mock non esistono" (FR-004) diventa piu'
+  forte, perche' il codice mock non e' proprio nel prodotto. Il codice
+  applicativo non dipende piu' dai tipi del mock (UserService ha un upsert
+  generico).
+Artefatti: src/test/java/it/buonacaccia/mock/*, AbstractTest.java,
+  TestBuonaCacciaApplication.java, src/test/resources/mocked-identity.yml,
+  plan.md, research.md R6, AGENTS.md, README, env.
+Problemi: nessuno nel codice; lo screenshot veniva da un progetto di
+  lavoro, quindi ne sono stati presi solo la struttura e lo stile, non i
+  nomi.
+Spunto: lo stile della persona (la sua struttura di progetto) entra nel
+  progetto come vincolo esplicito e registrato, non come preferenza
+  implicita del modello.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================

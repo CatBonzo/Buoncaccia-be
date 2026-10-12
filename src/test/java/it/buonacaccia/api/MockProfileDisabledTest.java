@@ -2,13 +2,13 @@ package it.buonacaccia.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import it.buonacaccia.ApiTestSupport;
+import it.buonacaccia.AbstractTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 /** US1 scenario 4: senza il profilo mocked le risorse /mock non esistono (FR-004). */
 @ActiveProfiles(value = "default", inheritProfiles = false)
-class MockProfileDisabledTest extends ApiTestSupport {
+class MockProfileDisabledTest extends AbstractTest {
 
     @Test
     void findAllDoesNotExist() {
