@@ -56,8 +56,8 @@ public class MockIdentityService {
         issued = entries.stream()
                 .map(entry -> {
                     User user = userService.upsertByAgesciUUID(toUser(entry));
-                    log.info("Utente di prova {} ({}): token emesso", entry.username(), user.id());
-                    return new IssuedMockUser(entry, user.id(), issueToken(entry, user.id()));
+                    log.info("Utente di prova {} ({}): token emesso", entry.username(), user.getId());
+                    return new IssuedMockUser(entry, user.getId(), issueToken(entry, user.getId()));
                 })
                 .toList();
         return issued;
@@ -79,17 +79,35 @@ public class MockIdentityService {
     private static User toUser(MockedUser entry) {
         Instant now = Instant.now();
         String id = entry.buonaCacciaUUID() != null ? entry.buonaCacciaUUID() : UUID.randomUUID().toString();
-        return new User(id, entry.agesciUUID(), entry.username(), entry.email(), entry.firstName(), entry.lastName(),
-                UserStatus.ACTIVE, toCensus(entry.census()), entry.authentication().role(),
-                entry.authentication().entitlement(), now, now);
+        return User.builder()
+                .id(id)
+                .agesciUUID(entry.agesciUUID())
+                .username(entry.username())
+                .email(entry.email())
+                .firstName(entry.firstName())
+                .lastName(entry.lastName())
+                .status(UserStatus.ACTIVE)
+                .census(toCensus(entry.census()))
+                .roles(entry.authentication().role())
+                .entitlements(entry.authentication().entitlement())
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 
     private static Census toCensus(CensusData data) {
         if (data == null) {
             return null;
         }
-        return new Census(data.memberCode(), data.groupId(), data.unitId(), data.branch(), data.memberType(),
-                data.status(), data.year(), null);
+        return Census.builder()
+                .memberCode(data.memberCode())
+                .groupId(data.groupId())
+                .unitId(data.unitId())
+                .branch(data.branch())
+                .memberType(data.memberType())
+                .status(data.status())
+                .year(data.year())
+                .build();
     }
 
     private String issueToken(MockedUser entry, String buonaCacciaUUID) {

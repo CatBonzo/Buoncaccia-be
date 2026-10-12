@@ -449,6 +449,20 @@ Spunto: la spec e i test non cambiano quando cambiano i package: e' la
   prova che la struttura e' una scelta di forma, non di comportamento.
 
 ==========================================================================
+[2026-10-12] Da record a classi Lombok per modello e DTO
+Cosa: User e Census (documenti MongoDB) e i DTO di risposta passano da record Java a classi con
+  @AllArgsConstructor @NoArgsConstructor @Getter @Setter @ToString @Builder (e @Document sui documenti).
+  UserService ora carica l'utente, cambia i campi con i setter e salva, invece di ricostruire un record nuovo.
+Chi: richiesta di Mahima ("perché le classi sono record? dovrebbero essere classi per lavorare con il db"),
+  con l'elenco esatto delle annotazioni Lombok; Claude ha fatto la conversione e aggiornato gli usi.
+Paradigma: coerenza con lo stile di riferimento (ScoutShopper-be) prima della preferenza tecnica; la
+  decisione precedente ("restano record") è stata marcata come superata in AGENTS.md, non cancellata.
+Artefatti: model/User.java, model/Census.java, v1/dto/*.java (CensusResponse ora file a sé),
+  v1/mapper/UserMapper.java, service/UserService.java, mock/MockIdentityService.java, mock/MockUserResponse.java.
+Problemi: nessuno; i 35 test sono rimasti verdi senza modifiche, segno che coprivano il comportamento e non la forma.
+Spunto: record = immutabilità e meno codice, ma ogni modifica crea un oggetto nuovo; classe mutabile = modello
+  più naturale per un documento che si aggiorna sul DB. Restano record le proprietà di configurazione, che non cambiano.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

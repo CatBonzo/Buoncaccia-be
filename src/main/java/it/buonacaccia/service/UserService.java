@@ -2,7 +2,6 @@ package it.buonacaccia.service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import it.buonacaccia.config.mongo.CircuitBreakerService;
@@ -28,13 +27,21 @@ public class UserService {
      * il suo id, lo stato e la data di creazione, il resto viene da {@code candidate}.
      */
     public User upsertByAgesciUUID(User candidate) {
-        User existing = findByAgesciUUID(candidate.agesciUUID());
-        User user = existing == null ? candidate : new User(existing.id(), candidate.agesciUUID(),
-                candidate.username(), candidate.email(), candidate.firstName(), candidate.lastName(),
-                existing.status(), candidate.census(), candidate.roles(), candidate.entitlements(),
-                existing.createdAt(), Instant.now());
-        log.debug("Utente {} ({}): {}", user.username(), user.id(), existing != null ? "aggiornato" : "creato");
-        return save(user);
+        User existing = findByAgesciUUID(candidate.getAgesciUUID());
+        if (existing == null) {
+            log.debug("Utente {} ({}): creato", candidate.getUsername(), candidate.getId());
+            return save(candidate);
+        }
+        existing.setUsername(candidate.getUsername());
+        existing.setEmail(candidate.getEmail());
+        existing.setFirstName(candidate.getFirstName());
+        existing.setLastName(candidate.getLastName());
+        existing.setCensus(candidate.getCensus());
+        existing.setRoles(candidate.getRoles());
+        existing.setEntitlements(candidate.getEntitlements());
+        existing.setUpdatedAt(Instant.now());
+        log.debug("Utente {} ({}): aggiornato", existing.getUsername(), existing.getId());
+        return save(existing);
     }
 
     /**
@@ -44,20 +51,23 @@ public class UserService {
     public User syncFromToken(Jwt jwt) {
         Instant now = Instant.now();
         String agesciUUID = jwt.getClaimAsString("agesciUUID");
-        List<String> roles = listClaim(jwt, "role");
-        List<String> entitlements = listClaim(jwt, "entitlement");
-        User existing = findByAgesciUUID(agesciUUID);
-        if (existing == null) {
+        User user = findByAgesciUUID(agesciUUID);
+        if (user == null) {
             log.info("Primo accesso di agesciUUID {}: utente creato dai claim del token", agesciUUID);
+            user = User.builder()
+                    .id(UUID.randomUUID().toString())
+                    .agesciUUID(agesciUUID)
+                    .username(jwt.getClaimAsString("preferred_username"))
+                    .email(jwt.getClaimAsString("email"))
+                    .firstName(jwt.getClaimAsString("given_name"))
+                    .lastName(jwt.getClaimAsString("family_name"))
+                    .status(UserStatus.ACTIVE)
+                    .createdAt(now)
+                    .build();
         }
-        User user = Optional.ofNullable(existing)
-                .map(found -> new User(found.id(), found.agesciUUID(), found.username(), found.email(),
-                        found.firstName(), found.lastName(), found.status(), found.census(),
-                        roles, entitlements, found.createdAt(), now))
-                .orElseGet(() -> new User(UUID.randomUUID().toString(), agesciUUID,
-                        jwt.getClaimAsString("preferred_username"), jwt.getClaimAsString("email"),
-                        jwt.getClaimAsString("given_name"), jwt.getClaimAsString("family_name"),
-                        UserStatus.ACTIVE, null, roles, entitlements, now, now));
+        user.setRoles(listClaim(jwt, "role"));
+        user.setEntitlements(listClaim(jwt, "entitlement"));
+        user.setUpdatedAt(now);
         return save(user);
     }
 

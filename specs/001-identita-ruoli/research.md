@@ -42,7 +42,7 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 
 ## R5. Envelope e catalogo degli errori
 
-- **Decisione**: record `ApiResponse<T>(int errorCode, String errorMessage, String errorDomain, T payload)`. Codici a cinque cifre `SSSNN`, dove `SSS` è lo status HTTP e `NN` il dettaglio: `0` successo, `40100` non autenticato, `40300` permesso mancante, `40400` risorsa inesistente, `40900` conflitto, `42200` input non valido, `50000` errore interno. Domini: `AUTH`, `IDENTITY`, `SYSTEM`. Messaggi in italiano. Un `@RestControllerAdvice` gestisce le eccezioni dei controller; un `AuthenticationEntryPoint` e un `AccessDeniedHandler` scrivono lo stesso envelope per gli errori del filtro di sicurezza.
+- **Decisione**: classe Lombok `ApiResponse<T>` con i campi `int errorCode, String errorMessage, String errorDomain, T payload` (era un `record`, cambiato il 2026-10-12 su richiesta di Mahima). Codici a cinque cifre `SSSNN`, dove `SSS` è lo status HTTP e `NN` il dettaglio: `0` successo, `40100` non autenticato, `40300` permesso mancante, `40400` risorsa inesistente, `40900` conflitto, `42200` input non valido, `50000` errore interno. Domini: `AUTH`, `IDENTITY`, `SYSTEM`. Messaggi in italiano. Un `@RestControllerAdvice` gestisce le eccezioni dei controller; un `AuthenticationEntryPoint` e un `AccessDeniedHandler` scrivono lo stesso envelope per gli errori del filtro di sicurezza.
 - **Motivazione**: FR-013…FR-015 e Q14 (status significativo). Il prefisso uguale allo status rende il catalogo leggibile ed estendibile (es. `42201` per un campo specifico) senza tabelle di conversione.
 - **Alternative**: RFC 9457 Problem Details (scartato dalla spec v1.3 in favore dell'envelope); codici sequenziali `1, 2, 3` (non dicono nulla da soli).
 
