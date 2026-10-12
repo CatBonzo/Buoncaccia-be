@@ -32,7 +32,7 @@ docker compose down      # ferma i container (i dati restano)
 docker compose down -v   # ferma e cancella i dati
 ```
 
-Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ `BuonaCacciaApplication` con le variabili di `test-src/env/mocked.env` (profilo `mocked`). Poi dal browser: http://localhost:8080/api/v1/mock/auth/findAll. Senza il profilo `mocked` il mock non si carica.
+Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ la configurazione già pronta **BuonaCacciaApplication (mocked)** (file `.run/`, la trova da sola in alto a destra), che imposta il profilo `mocked` e le variabili di `test-src/env/mocked.env`. Poi dal browser: http://localhost:8080/api/v1/mock/auth/findAll. Senza il profilo `mocked` il mock non si carica.
 
 ## Comandi
 

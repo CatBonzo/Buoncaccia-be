@@ -501,6 +501,15 @@ Problemi: si perde la garanzia "il jar non contiene mock"; resta quella "senza p
   si carica", verificata da MockProfileDisabledTest.
 Spunto: trade-off fra isolamento del codice di prova e comodità di sviluppo con il frontend.
 
+[2026-10-12] Configurazione di avvio condivisa per IntelliJ
+Cosa: aggiunto .run/BuonaCacciaApplication (mocked).run.xml, che IntelliJ carica da solo: profilo mocked e
+  variabili di mocked.env già impostate.
+Chi: Mahima apriva findAll dal browser e riceveva 404 (envelope 40400): l'app partiva senza il profilo mocked.
+Paradigma: rendere riproducibile anche l'avvio locale, non solo la build; la configurazione è codice versionato.
+Artefatti: .run/BuonaCacciaApplication (mocked).run.xml, README, AGENTS.md.
+Problemi: un profilo Spring dimenticato non dà errore, cambia solo quali componenti esistono.
+Spunto: "funziona sulla mia macchina" vale anche fra umano e agente: l'agente provava con l'env caricato.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
