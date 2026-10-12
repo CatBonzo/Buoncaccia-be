@@ -463,6 +463,19 @@ Problemi: nessuno; i 35 test sono rimasti verdi senza modifiche, segno che copri
 Spunto: record = immutabilità e meno codice, ma ogni modifica crea un oggetto nuovo; classe mutabile = modello
   più naturale per un documento che si aggiorna sul DB. Restano record le proprietà di configurazione, che non cambiano.
 
+[2026-10-12] Mapper generato con MapStruct
+Cosa: lo UserMapper scritto a mano (copia campo per campo con i builder) diventa un'interfaccia MapStruct:
+  si dichiarano i metodi (toDto, toDtoList, toCensusDto) e la libreria genera UserMapperImpl in compilazione.
+Chi: richiesta di Mahima ("da ScoutShopper guarda il mapper, esempio UserMapper"); Claude ha copiato lo
+  stile (INSTANCE, unmappedTargetPolicy IGNORE, commenti Model --> Dto) e aggiunto le dipendenze Gradle.
+Paradigma: generazione di codice da una dichiarazione, vicino allo spirito spec-driven: si descrive il "cosa"
+  e lo strumento produce il "come". Le eccezioni ai nomi uguali sono esplicite con @Mapping.
+Artefatti: v1/mapper/UserMapper.java, gradle/libs.versions.toml, build.gradle, v1/controller/UserController.java.
+Problemi: Lombok e MapStruct sono entrambi processori di annotazioni; serve lombok-mapstruct-binding perché
+  MapStruct veda i getter e i builder generati da Lombok. 35 test verdi senza modifiche.
+Spunto: confronto tra mapper a mano (controllo totale, più codice) e generato (meno codice, errori di
+  mappatura scoperti in compilazione).
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

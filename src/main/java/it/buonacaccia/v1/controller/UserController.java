@@ -23,13 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
-    private final UserMapper userMapper;
 
     @GetMapping("/me")
     @SecurityAccess
     @Operation(summary = "Profilo, censimento, ruoli ed entitlement della persona autenticata (FR-010)")
     public ApiResponse<UserProfileResponse> me(@AuthenticationPrincipal Jwt jwt) {
         log.debug("GET /users/me per agesciUUID {}", jwt.getClaimAsString("agesciUUID"));
-        return ApiResponse.ok(userMapper.toProfile(userService.syncFromToken(jwt)));
+        return ApiResponse.ok(UserMapper.INSTANCE.toDto(userService.syncFromToken(jwt)));
     }
 }
