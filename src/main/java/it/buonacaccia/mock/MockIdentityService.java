@@ -26,7 +26,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 /**
- * Utenti di prova con il loro token (profilo {@code mocked}, FR-001…FR-006), solo nel codice di test. I token sono solo
+ * Utenti di prova con il loro token (profilo {@code mocked}, FR-001…FR-006). I token sono solo
  * in memoria: non stanno nel file né nel database e valgono fino al riavvio.
  */
 @Slf4j

@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Utenti di prova e chiave pubblica (FR-004, FR-005). Sta nel codice di test, come in ScoutShopper-be:
- * non entra nel jar dell'applicazione e c'è solo con il profilo {@code mocked}.
+ * Utenti di prova e chiave pubblica (FR-004, FR-005), raggiungibili dal browser
+ * avviando {@code BuonaCacciaApplication} con il profilo {@code mocked}; senza profilo non esistono.
  */
 @RestController
 @Profile("mocked")

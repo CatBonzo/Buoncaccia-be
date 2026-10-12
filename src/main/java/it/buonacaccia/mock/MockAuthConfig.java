@@ -23,7 +23,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
  * Emittente dei token mock (profilo {@code mocked}, FR-003, research R1-R2): a ogni avvio una nuova
  * chiave RSA, quindi i token di un avvio precedente non passano più la verifica della firma.
  * Fuori dal mock il {@link JwtDecoder} viene dalla configurazione standard (Keycloak, fase 6).
- * Sta nel codice di test: nel jar dell'applicazione non c'è nessun emittente di token.
+ * Senza il profilo {@code mocked} questa configurazione non si carica e non c'è nessun emittente di token.
  */
 @Configuration(proxyBeanMethods = false)
 @Profile("mocked")

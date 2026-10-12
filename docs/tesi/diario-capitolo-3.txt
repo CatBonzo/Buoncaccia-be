@@ -487,6 +487,20 @@ Artefatti: v1/dto/*.java, v1/mapper/UserMapper.java, v1/controller/UserControlle
 Problemi: una rinomina di file fatta fuori dal refactoring dell'IDE non rinomina la classe.
 Spunto: in IntelliJ conviene Refactor > Rename (Shift+F6) sulla classe, che sposta file e usi insieme.
 
+[2026-10-12] Il mock torna in src/main
+Cosa: emittente dei token, utenti di prova e findAll tornano nel package mock di src/main, con
+  mocked-identity.yml e application-mocked.yml in src/main/resources; tolta TestBuonaCacciaApplication.
+  Restano nei test AbstractTest, i test del mock e ProbeController.
+Chi: Mahima voleva aprire /api/v1/mock/auth/findAll dal browser avviando BuonaCacciaApplication; con il
+  mock in src/test rispondeva 404 perché il classpath principale non vede le classi di test.
+Paradigma: decisione rivista dopo l'uso reale; la riga precedente in AGENTS.md è marcata come superata.
+  Il confine fra codice vero e mock non è più la cartella ma il profilo Spring "mocked".
+Artefatti: src/main/java/it/buonacaccia/mock/*, src/main/resources/{mocked-identity,application-mocked}.yml,
+  env, README, quickstart, plan, research, tasks.
+Problemi: si perde la garanzia "il jar non contiene mock"; resta quella "senza profilo mocked il mock non
+  si carica", verificata da MockProfileDisabledTest.
+Spunto: trade-off fra isolamento del codice di prova e comodità di sviluppo con il frontend.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

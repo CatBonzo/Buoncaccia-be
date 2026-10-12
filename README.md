@@ -32,14 +32,14 @@ docker compose down      # ferma i container (i dati restano)
 docker compose down -v   # ferma e cancella i dati
 ```
 
-Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ `TestBuonaCacciaApplication` (in `src/test/java`) con le variabili di `test-src/env/mocked.env`. Il mock sta tutto nel codice di test e non entra nel jar.
+Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ `BuonaCacciaApplication` con le variabili di `test-src/env/mocked.env` (profilo `mocked`). Poi dal browser: http://localhost:8080/api/v1/mock/auth/findAll. Senza il profilo `mocked` il mock non si carica.
 
 ## Comandi
 
 ```bash
 ./gradlew build      # compila e lancia i test
 ./gradlew bootRun      # avvia l'applicazione (senza mock: serve Keycloak, fase 6)
-./gradlew bootTestRun  # avvia l'applicazione con i mock su http://localhost:8080
+./gradlew bootRun      # con mocked.env caricato avvia l'applicazione con i mock su http://localhost:8080
 ```
 
 `GET /actuator/health` risponde con lo stato dell'applicazione.

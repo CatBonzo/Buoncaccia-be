@@ -34,7 +34,7 @@ Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel pr
 
 | Principio | Verifica | Esito |
 | --- | --- | --- |
-| I. Qualità del codice | Controller in `v1.controller` senza logica; regole in `service`; repository in `repository`; DTO ↔ dominio in `v1.mapper`; mock nel codice di test (`src/test`, package `mock`) | ✅ |
+| I. Qualità del codice | Controller in `v1.controller` senza logica; regole in `service`; repository in `repository`; DTO ↔ dominio in `v1.mapper`; mock nel package `mock`, attivo solo con il profilo `mocked` | ✅ |
 | II. Test-first | Test di integrazione per ogni user story e caso limite, scritti prima del codice; `./gradlew build` in CI con Testcontainers | ✅ |
 | III. Coerenza con i client | Contratto OpenAPI 3.1 in `contracts/` prima del codice; envelope unico anche per 401/403/404; status significativo (Q14); nessuna modifica incompatibile | ✅ |
 | IV. Semplicità | Meccanismi standard di Spring Security (resource server) più una guardia dichiarativa di poche righe (`@SecurityAccess`); nessun catalogo di permessi; nessuna nuova infrastruttura oltre MongoDB già in compose | ✅ |
@@ -71,6 +71,11 @@ src/main/java/it/buonacaccia/
 │   ├── error/ErrorCode.java, BuonaCacciaException.java, GlobalExceptionHandler.java
 │   └── mongo/CircuitBreakerService.java # Resilience4j su MongoDB
 ├── guard/SecurityAccess.java, SecurityGuardInterceptor.java
+├── mock/                                # solo con il profilo mocked (findAll dal browser)
+│   ├── MockAuthConfig.java              # chiave RSA, JwtEncoder, JwtDecoder
+│   ├── MockAuthController.java          # findAll, jwks
+│   ├── MockIdentityService.java         # upsert utenti e token in memoria
+│   └── MockedIdentityProperties.java, MockedUsersLoader.java, MockUserResponse.java
 ├── model/                               # User, Census, enum, Roles, Entitlements
 ├── repository/UserRepository.java
 ├── service/UserService.java
@@ -80,24 +85,18 @@ src/main/java/it/buonacaccia/
     ├── dto/ApiResponse.java, UserProfileDTO.java
     └── mapper/UserMapper.java
 
-src/main/resources/application.yml, application-test.yml
+src/main/resources/application.yml, application-test.yml, application-mocked.yml, mocked-identity.yml
 
 src/test/java/it/buonacaccia/
 ├── AbstractTest.java                    # crea il DB (Testcontainers) e avvia l'app, come in ScoutShopper-be
-├── TestBuonaCacciaApplication.java      # avvio locale con i mock (bootTestRun / IntelliJ)
 ├── BuonaCacciaApplicationTest.java      # health
-├── mock/                                # tutto il mock, fuori dal jar (profilo mocked)
-│   ├── MockAuthConfig.java              # chiave RSA, JwtEncoder, JwtDecoder
-│   ├── MockAuthController.java          # findAll, jwks
-│   ├── MockIdentityService.java         # upsert utenti e token in memoria
-│   ├── MockedIdentityProperties.java, MockedUsersLoader.java, MockUserResponse.java
+├── mock/
 │   ├── ProbeController.java             # operazioni di prova per guardia ed envelope (profilo probe)
 │   └── MockIdentityServiceTest.java
 ├── v1/controller/                       # MockAuthControllerTest, UserControllerTest, SecurityGuardTest,
 │                                        # EnvelopeTest, MockProfileDisabledTest, OpenApiDocsTest
 └── config/mongo/CircuitBreakerServiceTest.java
 
-src/test/resources/application-mocked.yml, mocked-identity.yml
 ```
 
 **Structure Decision**: applicazione Spring Boot unica con i package di AGENTS.md; dipendenze `v1` → `service` → `repository` → `model`, con `config` che collega i pezzi e `utils` condiviso. Tutto il mock (utenti di prova, emittente dei token, `findAll`, `jwks`) sta in `src/test`, come in ScoutShopper-be: il jar dell'applicazione non lo contiene, e in fase 6 resta solo per i test.
