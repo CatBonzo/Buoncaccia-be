@@ -305,6 +305,32 @@ Problemi: nessuno; l'attesa della risposta ha fermato il lavoro per un
 Spunto: la scheda di decisione riduce il costo della scelta per la
   persona (un tocco) senza toglierle la scelta.
 
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: il piano tecnico della feature 001 (speckit-plan)
+--------------------------------------------------------------------------
+Cosa: con la spec senza punti aperti, l'agente ha eseguito speckit-plan:
+  plan.md (contesto tecnico, controllo della costituzione, struttura dei
+  file), research.md (dieci decisioni tecniche con motivazione e
+  alternative), data-model.md (utente, censimento, utenti di prova,
+  token, catalogo degli errori), il contratto OpenAPI 3.1 dei tre
+  endpoint e quickstart.md con gli scenari da provare a mano.
+Chi: piano e scelte tecniche dell'agente, vincolate da spec, costituzione
+  e decisioni gia' prese dall'autrice; nessuna riga di codice ancora.
+Paradigma: Spec-Driven Development (par. 2.4): la specifica dice "cosa",
+  il piano dice "come", e il "Constitution Check" e' un cancello che il
+  piano deve superare prima e dopo il design. Il contratto OpenAPI scritto
+  prima del codice e' il punto di incontro con il frontend (full-stack).
+Artefatti: specs/001-identita-ruoli/plan.md, research.md, data-model.md,
+  quickstart.md, contracts/identity.openapi.yaml; AGENTS.md (otto nuove
+  righe nel registro delle scelte).
+Problemi: piccole divergenze tra spec di progetto e scelte reali (nome
+  del file e del profilo, nomi italiani dei campi, validazione del token
+  con la chiave in memoria invece che via HTTP): non nascoste ma scritte
+  in research.md e tra le domande aperte, da riportare nella spec.
+Spunto: il piano rende esplicite scelte che con il vibe coding
+  resterebbero implicite nel codice (es. il formato dei codici di errore),
+  e quindi discutibili prima di costare.
+
 ==========================================================================
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================

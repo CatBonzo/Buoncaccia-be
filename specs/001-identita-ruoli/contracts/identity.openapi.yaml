@@ -1,0 +1,263 @@
+openapi: 3.1.0
+info:
+  title: Buona Caccia – Identità e auth mock
+  version: 1.0.0
+  description: |
+    Contratto della feature 001-identita-ruoli. Ogni risposta, di successo o di
+    errore, usa l'envelope `errorCode` / `errorMessage` / `errorDomain` / `payload`
+    (errorCode 0 = successo). Lo status HTTP è significativo (Q14).
+    Le risorse `/api/v1/mock/**` esistono solo con il profilo `mocked`.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: mock-auth
+    description: Utenti di prova e chiave pubblica (solo profilo `mocked`)
+  - name: users
+    description: Profilo della persona autenticata
+
+paths:
+  /api/v1/mock/auth/findAll:
+    get:
+      tags: [mock-auth]
+      operationId: findAllMockUsers
+      summary: Elenco degli utenti di prova con il loro access token
+      security: []
+      responses:
+        '200':
+          description: Utenti di prova
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      payload:
+                        type: array
+                        items: { $ref: '#/components/schemas/MockUser' }
+              example:
+                errorCode: 0
+                errorMessage: null
+                errorDomain: null
+                payload:
+                  - agesciUUID: 7c1e2a2e-0001-4a6b-9a01-000000000001
+                    buonaCacciaUUID: user-001
+                    label: Amministrazione
+                    username: amministratore
+                    firstName: Anna
+                    lastName: Amministratrice
+                    email: amministratore@buonacaccia.local
+                    authentication:
+                      isMemberOf: agesci:socio:false
+                      role: [agesci:sistema:amministratore]
+                      entitlement:
+                        - agesci:entitlement:tipoevento:gestione
+                        - agesci:entitlement:evento:gestione
+                        - agesci:entitlement:iscrizione:gestione
+                        - agesci:entitlement:pagamento:registrazione
+                        - agesci:entitlement:iscrizione:self
+                    census: null
+                    issuer: mock-auth
+                    accessToken: eyJhbGciOiJSUzI1NiJ9...
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/mock/auth/jwks:
+    get:
+      tags: [mock-auth]
+      operationId: getMockJwks
+      summary: Chiave pubblica per verificare i token mock
+      description: |
+        Formato JWK Set standard (RFC 7517), senza envelope: è letto dalle librerie
+        di sicurezza, non dal frontend, e deve avere la stessa forma del JWKS di Keycloak.
+      security: []
+      responses:
+        '200':
+          description: JWK Set con una chiave RSA
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JwkSet' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/users/me:
+    get:
+      tags: [users]
+      operationId: getMyProfile
+      summary: Profilo della persona autenticata
+      description: |
+        Aggiorna sull'utente la copia di ruoli ed entitlement del token e, se l'utente
+        non esiste ancora, lo crea dai claim del token (FR-011).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profilo
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      payload: { $ref: '#/components/schemas/UserProfile' }
+              example:
+                errorCode: 0
+                errorMessage: null
+                errorDomain: null
+                payload:
+                  buonaCacciaUUID: user-003
+                  agesciUUID: 7c1e2a2e-0003-4a6b-9a01-000000000003
+                  username: socio
+                  firstName: Sara
+                  lastName: Socia
+                  email: socio@buonacaccia.local
+                  status: ACTIVE
+                  member: true
+                  census:
+                    memberCode: '100003'
+                    groupId: null
+                    unitId: null
+                    branch: CO
+                    memberType: LEADER
+                    status: IN_GOOD_STANDING
+                    year: 2026
+                  roles: [agesci:socio:user]
+                  entitlements: [agesci:entitlement:iscrizione:self]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: Token assente, malformato, alterato, di un emittente sconosciuto o scaduto
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40100, errorMessage: "Autenticazione richiesta: token assente o non valido.", errorDomain: AUTH, payload: null }
+    Forbidden:
+      description: Il token non contiene l'entitlement richiesto dall'operazione
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40300, errorMessage: "Permesso mancante per questa operazione.", errorDomain: AUTH, payload: null }
+    NotFound:
+      description: Risorsa inesistente
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40400, errorMessage: "Risorsa non trovata.", errorDomain: SYSTEM, payload: null }
+    UnprocessableEntity:
+      description: Input non valido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 42200, errorMessage: "Richiesta non valida.", errorDomain: SYSTEM, payload: null }
+    InternalError:
+      description: Errore imprevisto, senza dettagli interni
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 50000, errorMessage: "Errore interno. Riprova più tardi.", errorDomain: SYSTEM, payload: null }
+
+  schemas:
+    Envelope:
+      type: object
+      required: [errorCode, errorMessage, errorDomain, payload]
+      properties:
+        errorCode:
+          type: integer
+          description: 0 = successo; altrimenti SSSNN con SSS = status HTTP
+        errorMessage: { type: [string, 'null'] }
+        errorDomain:
+          type: [string, 'null']
+          enum: [AUTH, IDENTITY, SYSTEM, null]
+        payload: {}
+
+    ErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            errorCode: { type: integer, enum: [40100, 40300, 40400, 40900, 42200, 50000] }
+            errorMessage: { type: string }
+            errorDomain: { type: string }
+            payload: { type: 'null' }
+
+    MockUser:
+      type: object
+      required: [agesciUUID, buonaCacciaUUID, label, username, firstName, lastName, authentication, issuer, accessToken]
+      properties:
+        agesciUUID: { type: string }
+        buonaCacciaUUID: { type: string }
+        label: { type: string }
+        username: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: [string, 'null'] }
+        authentication: { $ref: '#/components/schemas/Authentication' }
+        census:
+          oneOf:
+            - $ref: '#/components/schemas/Census'
+            - type: 'null'
+        issuer: { type: string, const: mock-auth }
+        accessToken: { type: string, description: JWT RS256 valido fino al riavvio del backend }
+
+    Authentication:
+      type: object
+      required: [isMemberOf, role, entitlement]
+      properties:
+        isMemberOf: { type: string, examples: ['agesci:socio:true'] }
+        role: { type: array, items: { type: string } }
+        entitlement: { type: array, items: { type: string } }
+
+    UserProfile:
+      type: object
+      required: [buonaCacciaUUID, agesciUUID, username, firstName, lastName, status, member, roles, entitlements]
+      properties:
+        buonaCacciaUUID: { type: string }
+        agesciUUID: { type: string }
+        username: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: [string, 'null'] }
+        status: { type: string, enum: [ACTIVE] }
+        member: { type: boolean, description: true se la persona ha i dati di censimento (socia AGESCI) }
+        census:
+          oneOf:
+            - $ref: '#/components/schemas/Census'
+            - type: 'null'
+        roles: { type: array, items: { type: string } }
+        entitlements: { type: array, items: { type: string } }
+
+    Census:
+      type: object
+      required: [memberCode, branch, memberType, status, year]
+      properties:
+        memberCode: { type: string, description: Codice socio }
+        groupId: { type: [string, 'null'] }
+        unitId: { type: [string, 'null'] }
+        branch: { type: string, enum: [LC, EG, RS, CO] }
+        memberType: { type: string, enum: [YOUTH, LEADER] }
+        status: { type: string, enum: [IN_GOOD_STANDING, NOT_IN_GOOD_STANDING] }
+        year: { type: integer }
+
+    JwkSet:
+      type: object
+      required: [keys]
+      properties:
+        keys:
+          type: array
+          items:
+            type: object
+            required: [kty, kid, n, e]
+            properties:
+              kty: { type: string, const: RSA }
+              kid: { type: string }
+              use: { type: string, const: sig }
+              alg: { type: string, const: RS256 }
+              n: { type: string }
+              e: { type: string }
