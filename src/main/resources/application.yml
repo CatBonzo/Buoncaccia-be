@@ -59,11 +59,11 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # Documentazione OpenAPI generata (springdoc) e Swagger UI.
-# JSON: http://localhost:8080/v3/api-docs   Interfaccia: http://localhost:8080/swagger-ui.html
+# JSON: http://localhost:8080/api-docs   Interfaccia: http://localhost:8080/swagger-ui.html
 springdoc:
   api-docs:
     enabled: true
-    path: /v3/api-docs
+    path: /api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
