@@ -522,6 +522,16 @@ Artefatti: application.yml, test-src/env/test.env, .run/BuonaCacciaApplication (
 Problemi: si perdono i log DEBUG del profilo test; un file utenti mancante non ferma più l'avvio (import optional).
 Spunto: meno file = meno punti in cui sbagliare, ma più peso sulle variabili d'ambiente.
 
+[2026-10-13] Due ambienti locali, due database
+Cosa: confermati entrambi i file env: mocked.env (database buonacaccia) e test.env (database buonacaccia-test),
+  con una configurazione IntelliJ ciascuno in .run/.
+Chi: Claude proponeva di togliere mocked.env perché ormai quasi uguale a test.env; Mahima ha scelto di tenerli
+  per avere due database separati.
+Paradigma: l'agente propone una semplificazione, la persona decide in base a come lavora davvero.
+Artefatti: .run/*.run.xml, test-src/env/*.env, README, AGENTS.md.
+Problemi: nessuno.
+Spunto: separare i dati di sviluppo da quelli delle prove a mano evita di "sporcare" il database su cui si lavora.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
