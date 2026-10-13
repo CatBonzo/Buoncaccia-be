@@ -259,7 +259,312 @@ Spunto: il controllo "ci siamo?" chiesto dalla persona e' stato
   (il backlog), non a memoria: e' il vantaggio della tracciabilita'
   descritto nel par. 2.4.
 
+--------------------------------------------------------------------------
+11/10/2026 - Fase 1: la specifica della feature 001 (speckit-specify)
+--------------------------------------------------------------------------
+Cosa: primo uso reale del ciclo Spec-Kit. L'agente ha creato il branch
+  001-identita-ruoli e, seguendo la skill speckit-specify, ha scritto
+  specs/001-identita-ruoli/spec.md: quattro user story con priorita'
+  (token di prova, profilo personale, controllo degli entitlement, forma
+  unica delle risposte), casi limite, 17 requisiti funzionali, criteri di
+  successo misurabili e assunzioni. Ha poi validato la specifica con la
+  checklist di qualita' generata dallo stesso comando.
+Chi: contenuti ricavati dalla specifica di progetto v2.0 e dalle scelte
+  gia' prese dall'autrice; stesura e validazione dell'agente.
+Paradigma: Spec-Driven Development (par. 2.4, Figura 16): intento ->
+  specifica, prima di piano e codice. Il comando limita a tre i punti da
+  chiarire e obbliga a scrivere i default negli "Assumptions".
+Artefatti: specs/001-identita-ruoli/spec.md,
+  specs/001-identita-ruoli/checklists/requirements.md.
+Problemi: due decisioni non si possono inferire e restano marcate
+  [NEEDS CLARIFICATION]: lo status HTTP degli errori (Q14) e i valori
+  definitivi di ruoli ed entitlement (Q15). Il codice non parte finche'
+  l'autrice non risponde.
+Spunto: e' il punto in cui il metodo ferma l'agente e restituisce la
+  decisione alla persona, invece di lasciarla all'interpretazione del
+  modello (par. 2.4, esempio della funzione di autenticazione).
+
+--------------------------------------------------------------------------
+11-12/10/2026 - Fase 1: chiarimenti Q15 e Q14 (clarify)
+--------------------------------------------------------------------------
+Cosa: chiusi i due punti [NEEDS CLARIFICATION] della spec 001. Q15:
+  confermati i valori di ruoli ed entitlement dell'MVP (FR-016). Q14:
+  status HTTP degli errori significativo (401, 403, 404, 409, 422, 500),
+  sempre con l'envelope nel corpo (FR-015). Le risposte sono registrate
+  nella sezione Clarifications della spec, la checklist e' tutta spuntata
+  e AGENTS.md riporta le due scelte nel registro.
+Chi: decisioni dell'autrice, prese su schede con due opzioni e una
+  raccomandazione motivata dall'agente; registrazione dell'agente.
+Paradigma: Spec-Driven Development (par. 2.4), fase clarify: la domanda
+  aperta diventa una risposta scritta e datata nella spec, che il plan
+  dovra' rispettare.
+Artefatti: specs/001-identita-ruoli/spec.md (Clarifications, FR-015,
+  FR-016), checklists/requirements.md, AGENTS.md.
+Problemi: nessuno; l'attesa della risposta ha fermato il lavoro per un
+  giorno, come previsto dal metodo.
+Spunto: la scheda di decisione riduce il costo della scelta per la
+  persona (un tocco) senza toglierle la scelta.
+
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: il piano tecnico della feature 001 (speckit-plan)
+--------------------------------------------------------------------------
+Cosa: con la spec senza punti aperti, l'agente ha eseguito speckit-plan:
+  plan.md (contesto tecnico, controllo della costituzione, struttura dei
+  file), research.md (dieci decisioni tecniche con motivazione e
+  alternative), data-model.md (utente, censimento, utenti di prova,
+  token, catalogo degli errori), il contratto OpenAPI 3.1 dei tre
+  endpoint e quickstart.md con gli scenari da provare a mano.
+Chi: piano e scelte tecniche dell'agente, vincolate da spec, costituzione
+  e decisioni gia' prese dall'autrice; nessuna riga di codice ancora.
+Paradigma: Spec-Driven Development (par. 2.4): la specifica dice "cosa",
+  il piano dice "come", e il "Constitution Check" e' un cancello che il
+  piano deve superare prima e dopo il design. Il contratto OpenAPI scritto
+  prima del codice e' il punto di incontro con il frontend (full-stack).
+Artefatti: specs/001-identita-ruoli/plan.md, research.md, data-model.md,
+  quickstart.md, contracts/identity.openapi.yaml; AGENTS.md (otto nuove
+  righe nel registro delle scelte).
+Problemi: piccole divergenze tra spec di progetto e scelte reali (nome
+  del file e del profilo, nomi italiani dei campi, validazione del token
+  con la chiave in memoria invece che via HTTP): non nascoste ma scritte
+  in research.md e tra le domande aperte, da riportare nella spec.
+Spunto: il piano rende esplicite scelte che con il vibe coding
+  resterebbero implicite nel codice (es. il formato dei codici di errore),
+  e quindi discutibili prima di costare.
+
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: implementazione, con il progetto ScoutShopper come modello
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice l'agente ha letto il suo progetto
+  precedente ScoutShopper-be (Spring Boot, JWT, guardia @SecurityAccess,
+  identity.yaml, springdoc) e ne ha portato le idee in Buona Caccia,
+  adattandole alla spec: guardia @SecurityAccess su ruoli ed entitlement,
+  Swagger UI configurato in application.yml, test.env utilizzabile,
+  mocked-identity.yml come identity.yaml ma con claim e censimento. Ha
+  completato la feature 001: token mock RS256 in memoria, /users/me,
+  envelope con status significativo, utenti su MongoDB. 31 test di
+  integrazione (MongoDB in Testcontainers), build verde, prova a mano.
+Chi: richiesta e modello dell'autrice; lettura del vecchio progetto,
+  adattamento, test e codice dell'agente.
+Paradigma: AI-Assisted Programming (par. 2.2) dentro lo Spec-Driven
+  Development: l'agente riusa conoscenza dell'autrice (un suo progetto)
+  ma la filtra con spec e costituzione. Esempi: il vecchio aspetto
+  rivalidava il token a mano con una chiave HMAC fissa nel codice; qui
+  la validazione resta a Spring Security (chiave RSA nuova a ogni avvio)
+  e la guardia legge solo i claim. Test-first: 28 test su 31 passati al
+  primo giro, i 3 rossi erano errori dei test stessi (profilo ereditato,
+  pagina HTML letta come JSON).
+Artefatti: codice in src/main/java (api, config, config/guard, mapper,
+  mockmigration, model, repository/nosql, service, utils), 8 classi di
+  test, mocked-identity.yml, application*.yml, test.env, tasks.md,
+  research.md (R4 rivista, R11, R12).
+Problemi: la richiesta e' arrivata a plan appena scritto e ha cambiato
+  una scelta (da @PreAuthorize alla guardia): la scelta superata resta
+  nel registro di AGENTS.md. Il passo "tasks" e' stato scritto insieme
+  all'implementazione invece che prima: deviazione dal ciclo Spec-Kit,
+  dichiarata in tasks.md. springdoc 3.1 richiede Spring Boot 4.1: usata
+  la 3.0.3.
+Spunto: il progetto precedente funziona come "memoria di stile"
+  dell'autrice; il metodo decide quali parti si riusano e quali no.
+
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: Lombok, log e circuit breaker da ScoutShopper
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice l'agente ha portato da ScoutShopper-be
+  Lombok (@Slf4j, @RequiredArgsConstructor), la configurazione dei log
+  (console e file logs/buonacaccia.log) e il circuit breaker Resilience4j
+  sulle chiamate a MongoDB. 4 nuovi test sul circuit breaker (si apre
+  dopo i guasti, a circuito aperto non chiama il database e risponde
+  503, una chiave duplicata e' un 409 e non apre il circuito): 35 test
+  verdi.
+Chi: richiesta dell'autrice; lettura del pom.xml di ScoutShopper,
+  adattamento a Gradle e Spring Boot 4, test e codice dell'agente.
+Paradigma: AI-Assisted Programming (par. 2.2) con revisione critica del
+  codice di partenza: il CircuitBreakerService di ScoutShopper catturava
+  l'eccezione dentro il circuito e restituiva un valore di ripiego, quindi
+  il circuito non si apriva mai. Il test scritto prima lo dimostra; la
+  versione nuova lascia contare i guasti. Anche la configurazione YAML
+  di ScoutShopper stava sotto "spring:" e Resilience4j non la leggeva.
+Artefatti: build.gradle e libs.versions.toml (Lombok dal BOM, Resilience4j
+  2.4.0 per Spring Boot 4), lombok.config, config/mongo/
+  CircuitBreakerService.java, application.yml, research.md R13.
+Problemi: di nuovo i 429 di Maven Central (risolti con il ciclo di
+  tentativi); Lombok non trovava la versione perche' il BOM non si applica
+  da solo al processore di annotazioni (aggiunta la platform anche li');
+  Docker del container cloud fermo dopo il riavvio della sessione.
+Spunto: riusare il proprio codice passato con un agente non e' copiare:
+  i test fanno emergere i difetti nascosti del codice di partenza.
+
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: il mock nel codice di test
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice tutto il mock (emittente dei token,
+  utenti di prova, findAll, jwks, mocked-identity.yml) e' passato da
+  src/main a src/test, nel package it.buonacaccia.mock, come nei suoi
+  progetti Spring Boot. La base dei test si chiama AbstractTest e crea il
+  database (MongoDB in Testcontainers, uno per tutta la suite). Per
+  avviare l'app con i mock c'e' TestBuonaCacciaApplication (in IntelliJ,
+  o ./gradlew bootTestRun). Verificato: il jar non contiene piu' classi
+  mock; 35 test verdi; avvio locale con compose e 4 utenti in MongoDB.
+Chi: decisione e struttura dell'autrice (da uno screenshot di un suo
+  progetto); spostamento, adattamento e verifica dell'agente.
+Paradigma: Spec-Driven Development e Code Harness: la regola "fuori dal
+  profilo mocked le risorse mock non esistono" (FR-004) diventa piu'
+  forte, perche' il codice mock non e' proprio nel prodotto. Il codice
+  applicativo non dipende piu' dai tipi del mock (UserService ha un upsert
+  generico).
+Artefatti: src/test/java/it/buonacaccia/mock/*, AbstractTest.java,
+  TestBuonaCacciaApplication.java, src/test/resources/mocked-identity.yml,
+  plan.md, research.md R6, AGENTS.md, README, env.
+Problemi: nessuno nel codice; lo screenshot veniva da un progetto di
+  lavoro, quindi ne sono stati presi solo la struttura e lo stile, non i
+  nomi.
+Spunto: lo stile della persona (la sua struttura di progetto) entra nel
+  progetto come vincolo esplicito e registrato, non come preferenza
+  implicita del modello.
+
+--------------------------------------------------------------------------
+12/10/2026 - Fase 1: i package di src/main come in ScoutShopper
+--------------------------------------------------------------------------
+Cosa: su richiesta dell'autrice (screenshot della struttura di
+  ScoutShopper) i package di src/main sono diventati config (con error e
+  mongo), guard, model, repository, service (con guard) e v1 (controller,
+  dto, mapper). Tolti api, job, mapper, mockmigration, utils. La regola
+  della guardia e' passata in service/guard/SecurityGuardService;
+  l'interceptor in guard/ la applica. Test spostati negli stessi package.
+  35 test verdi.
+Chi: struttura scelta dall'autrice; spostamento e verifica dell'agente.
+Paradigma: e' la terza revisione della struttura in due giorni (cinque
+  servizi, poi applicazione unica con i package di un progetto di lavoro,
+  ora quelli di ScoutShopper). Con l'agente il costo di cambiare idea
+  sulla struttura e' basso, ma ogni cambio va riportato in AGENTS.md,
+  nella costituzione (principio I, versione 1.0.1) e nel plan, altrimenti
+  la documentazione diverge dal codice: il registro delle scelte tiene la
+  storia, con le righe superate marcate.
+Artefatti: src/main/java/it/buonacaccia/** (spostamenti), AGENTS.md,
+  .specify/memory/constitution.md, plan.md, README.md.
+Problemi: Docker del container cloud di nuovo fermo dopo il riavvio della
+  sessione (i test con Testcontainers fallivano tutti all'avvio): riavviato
+  il demone, nessun cambio al codice.
+Spunto: la spec e i test non cambiano quando cambiano i package: e' la
+  prova che la struttura e' una scelta di forma, non di comportamento.
+
 ==========================================================================
+[2026-10-12] Da record a classi Lombok per modello e DTO
+Cosa: User e Census (documenti MongoDB) e i DTO di risposta passano da record Java a classi con
+  @AllArgsConstructor @NoArgsConstructor @Getter @Setter @ToString @Builder (e @Document sui documenti).
+  UserService ora carica l'utente, cambia i campi con i setter e salva, invece di ricostruire un record nuovo.
+Chi: richiesta di Mahima ("perché le classi sono record? dovrebbero essere classi per lavorare con il db"),
+  con l'elenco esatto delle annotazioni Lombok; Claude ha fatto la conversione e aggiornato gli usi.
+Paradigma: coerenza con lo stile di riferimento (ScoutShopper-be) prima della preferenza tecnica; la
+  decisione precedente ("restano record") è stata marcata come superata in AGENTS.md, non cancellata.
+Artefatti: model/User.java, model/Census.java, v1/dto/*.java (CensusResponse ora file a sé),
+  v1/mapper/UserMapper.java, service/UserService.java, mock/MockIdentityService.java, mock/MockUserResponse.java.
+Problemi: nessuno; i 35 test sono rimasti verdi senza modifiche, segno che coprivano il comportamento e non la forma.
+Spunto: record = immutabilità e meno codice, ma ogni modifica crea un oggetto nuovo; classe mutabile = modello
+  più naturale per un documento che si aggiorna sul DB. Restano record le proprietà di configurazione, che non cambiano.
+
+[2026-10-12] Mapper generato con MapStruct
+Cosa: lo UserMapper scritto a mano (copia campo per campo con i builder) diventa un'interfaccia MapStruct:
+  si dichiarano i metodi (toDto, toDtoList, toCensusDto) e la libreria genera UserMapperImpl in compilazione.
+Chi: richiesta di Mahima ("da ScoutShopper guarda il mapper, esempio UserMapper"); Claude ha copiato lo
+  stile (INSTANCE, unmappedTargetPolicy IGNORE, commenti Model --> Dto) e aggiunto le dipendenze Gradle.
+Paradigma: generazione di codice da una dichiarazione, vicino allo spirito spec-driven: si descrive il "cosa"
+  e lo strumento produce il "come". Le eccezioni ai nomi uguali sono esplicite con @Mapping.
+Artefatti: v1/mapper/UserMapper.java, gradle/libs.versions.toml, build.gradle, v1/controller/UserController.java.
+Problemi: Lombok e MapStruct sono entrambi processori di annotazioni; serve lombok-mapstruct-binding perché
+  MapStruct veda i getter e i builder generati da Lombok. 35 test verdi senza modifiche.
+Spunto: confronto tra mapper a mano (controllo totale, più codice) e generato (meno codice, errori di
+  mappatura scoperti in compilazione).
+
+[2026-10-12] Commit di Mahima e build rossa in CI
+Cosa: Mahima ha rinominato i file dei DTO in UserProfileDTO/CensusDTO, spostato il JSON OpenAPI su /api-docs
+  e tolto alcuni package-info. La CI della PR è diventata rossa: il file si chiamava UserProfileDTO.java ma la
+  classe dentro era ancora UserProfileResponse, e il test di OpenAPI cercava ancora /v3/api-docs.
+Chi: modifiche di Mahima dall'IDE; Claude ha letto il fallimento, allineato classi, usi, test e documenti.
+Paradigma: la CI come rete di sicurezza della collaborazione umano-agente; ogni modifica, di chiunque,
+  passa dalla stessa build.
+Artefatti: v1/dto/*.java, v1/mapper/UserMapper.java, v1/controller/UserController.java, OpenApiDocsTest.java.
+Problemi: una rinomina di file fatta fuori dal refactoring dell'IDE non rinomina la classe.
+Spunto: in IntelliJ conviene Refactor > Rename (Shift+F6) sulla classe, che sposta file e usi insieme.
+
+[2026-10-12] Il mock torna in src/main
+Cosa: emittente dei token, utenti di prova e findAll tornano nel package mock di src/main, con
+  mocked-identity.yml e application-mocked.yml in src/main/resources; tolta TestBuonaCacciaApplication.
+  Restano nei test AbstractTest, i test del mock e ProbeController.
+Chi: Mahima voleva aprire /api/v1/mock/auth/findAll dal browser avviando BuonaCacciaApplication; con il
+  mock in src/test rispondeva 404 perché il classpath principale non vede le classi di test.
+Paradigma: decisione rivista dopo l'uso reale; la riga precedente in AGENTS.md è marcata come superata.
+  Il confine fra codice vero e mock non è più la cartella ma il profilo Spring "mocked".
+Artefatti: src/main/java/it/buonacaccia/mock/*, src/main/resources/{mocked-identity,application-mocked}.yml,
+  env, README, quickstart, plan, research, tasks.
+Problemi: si perde la garanzia "il jar non contiene mock"; resta quella "senza profilo mocked il mock non
+  si carica", verificata da MockProfileDisabledTest.
+Spunto: trade-off fra isolamento del codice di prova e comodità di sviluppo con il frontend.
+
+[2026-10-12] Configurazione di avvio condivisa per IntelliJ
+Cosa: aggiunto .run/BuonaCacciaApplication (mocked).run.xml, che IntelliJ carica da solo: profilo mocked e
+  variabili di mocked.env già impostate.
+Chi: Mahima apriva findAll dal browser e riceveva 404 (envelope 40400): l'app partiva senza il profilo mocked.
+Paradigma: rendere riproducibile anche l'avvio locale, non solo la build; la configurazione è codice versionato.
+Artefatti: .run/BuonaCacciaApplication (mocked).run.xml, README, AGENTS.md.
+Problemi: un profilo Spring dimenticato non dà errore, cambia solo quali componenti esistono.
+Spunto: "funziona sulla mia macchina" vale anche fra umano e agente: l'agente provava con l'env caricato.
+
+[2026-10-13] Collegamento a Docker in test.env, via i file di profilo
+Cosa: eliminati application-mocked.yml e application-test.yml. L'URI di MongoDB (container di compose.yaml)
+  sta solo in test-src/env/test.env, che attiva il profilo mocked; application.yml importa mocked-identity.yml
+  come optional e non ha più un URI di default. Allineata anche la configurazione IntelliJ.
+Chi: Mahima, dopo un "Connection refused" su localhost:27017 sul suo Mac (il container Mongo non era in ascolto);
+  ha chiesto un solo posto per il collegamento e meno file. Claude ha spostato i valori e aggiornato i documenti.
+Paradigma: semplificazione guidata dall'uso reale dello sviluppatore; la configurazione d'ambiente separata
+  dal codice (variabili d'ambiente, stile twelve-factor).
+Artefatti: application.yml, test-src/env/test.env, .run/BuonaCacciaApplication (mocked).run.xml, README, specs.
+Problemi: si perdono i log DEBUG del profilo test; un file utenti mancante non ferma più l'avvio (import optional).
+Spunto: meno file = meno punti in cui sbagliare, ma più peso sulle variabili d'ambiente.
+
+[2026-10-13] Due ambienti locali, due database
+Cosa: confermati entrambi i file env: mocked.env (database buonacaccia) e test.env (database buonacaccia-test),
+  con una configurazione IntelliJ ciascuno in .run/.
+Chi: Claude proponeva di togliere mocked.env perché ormai quasi uguale a test.env; Mahima ha scelto di tenerli
+  per avere due database separati.
+Paradigma: l'agente propone una semplificazione, la persona decide in base a come lavora davvero.
+Artefatti: .run/*.run.xml, test-src/env/*.env, README, AGENTS.md.
+Problemi: nessuno.
+Spunto: separare i dati di sviluppo da quelli delle prove a mano evita di "sporcare" il database su cui si lavora.
+
+[2026-10-13] Log di @Slf4j visibili in console
+Cosa: in application.yml il package it.buonacaccia passa da INFO a DEBUG (le librerie restano a INFO) e la console
+  ha un formato corto con orario, livello colorato e classe.
+Chi: Mahima voleva vedere i log nel terminale e aveva provato a modificare application.yml senza riuscirci;
+  Claude ha cambiato il livello e provato l'avvio: compaiono i log di UserService, MockIdentityService, UserController.
+Paradigma: l'osservabilità come requisito di sviluppo, non solo di produzione.
+Artefatti: src/main/resources/application.yml, AGENTS.md.
+Problemi: la maggior parte dei log del progetto era a livello debug, sotto la soglia INFO.
+Spunto: livello per package invece che globale, per non annegare nei log delle librerie.
+
+[2026-10-13] Log: livello da variabile d'ambiente e formato standard
+Cosa: Mahima ha introdotto LOGGING_LEVEL negli env e rinominato compose.yaml in docker-compose.yaml. Con la sua
+  prima versione anche root andava a debug: oltre 3000 righe all'avvio, quasi tutte interne di Spring. Claude ha
+  lasciato root a info, legato solo it.buonacaccia a LOGGING_LEVEL e tolto il formato console personalizzato.
+Chi: Mahima ("non voglio vedere tutto di tutto", con un esempio del formato che vuole); Claude ha misurato e corretto.
+Paradigma: iterazione rapida umano-agente su un dettaglio di esperienza dello sviluppatore; misura prima di cambiare.
+Artefatti: application.yml, test-src/env/*.env, docker-compose.yaml, AGENTS.md.
+Problemi: una variabile usata per due livelli diversi (root e package) mescola log utili e rumore.
+Spunto: configurazione per ambiente tramite variabili, con default sicuri nel file versionato.
+
+[2026-10-13] Spring Boot 4.1.1 e decisione Q11 prima della fase 2
+Cosa: Spring Boot da 4.0.8 a 4.1.1 e springdoc da 3.0.3 a 3.1.1 (solo due righe nel catalogo delle versioni);
+  build, 35 test e avvio con i mock verdi al primo colpo. Q11 decisa: la segreteria regionale gestisce solo
+  gli eventi della propria regione. Aggiornate la spec v2.0 (.md e .docx), la costituzione e AGENTS.md.
+Chi: Mahima ha deciso entrambe le cose; Claude ha verificato su Maven Central le ultime versioni stabili,
+  aggiornato e provato.
+Paradigma: catalogo delle versioni centralizzato (libs.versions.toml) + test automatici = aggiornamenti a basso
+  rischio; decisione di dominio presa prima di specificare la feature che la usa (spec-driven).
+Artefatti: gradle/libs.versions.toml, spec v2.0 §2.2 e Appendice B, AGENTS.md.
+Problemi: la decisione Q11 reintroduce un vincolo territoriale, ma solo come relazione con la risorsa,
+  non come "perimetro" generale; resta da decidere da quale claim del token arriva la regione.
+Spunto: come una scelta di dominio rimandata ("per l'MVP va bene così") torni prima della feature che la tocca.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

@@ -2,26 +2,15 @@ package it.buonacaccia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class BuonaCacciaApplicationTest {
-
-    @Value("${local.server.port}")
-    private int port;
+class BuonaCacciaApplicationTest extends AbstractTest {
 
     @Test
-    void healthIsUp() throws Exception {
-        var request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/actuator/health")).build();
-        var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+    void healthIsUpAndPublic() {
+        Result result = get("/actuator/health");
 
-        assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.body()).contains("\"status\":\"UP\"");
+        assertThat(result.status()).isEqualTo(200);
+        assertThat(result.body().get("status").asString()).isEqualTo("UP");
     }
 }

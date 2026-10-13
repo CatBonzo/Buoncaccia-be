@@ -4,7 +4,7 @@ Backend per la gestione delle iscrizioni agli eventi AGESCI, sviluppato in modal
 
 ## Stack
 
-- Java 21, Spring Boot 4.0
+- Java 21, Spring Boot 4.1
 - Gradle 9 (wrapper incluso, `build.gradle` in Groovy), versioni in `gradle/libs.versions.toml`
 
 Contesto, regole di lavoro e scelte prese sono in [AGENTS.md](AGENTS.md).
@@ -14,17 +14,14 @@ Contesto, regole di lavoro e scelte prese sono in [AGENTS.md](AGENTS.md).
 ```
 src/main/java/it/buonacaccia/
 ├── BuonaCacciaApplication.java   classe principale
-├── api/                          controller REST e DTO
-├── config/                       configurazione Spring
-├── job/                          attività pianificate
-├── mapper/                       conversioni dominio <-> DTO
-├── mockmigration/                dati di prova all'avvio
+├── config/                       configurazione Spring (error: errori ed envelope, mongo: circuit breaker)
+├── guard/                        guardia @SecurityAccess
 ├── model/                        modello di dominio (documenti MongoDB)
-├── repository/nosql/             repository Spring Data MongoDB
-├── service/                      logica di business
-└── utils/                        utilità
+├── repository/                   repository Spring Data MongoDB
+├── service/                      logica di business (guard: regole della guardia)
+└── v1/                           API v1: controller, dto, mapper
 src/main/resources/application.yml
-src/test/java/                    test
+src/test/java/                    test, mock (package mock), AbstractTest
 ```
 
 ## Ambiente locale
@@ -35,16 +32,19 @@ docker compose down      # ferma i container (i dati restano)
 docker compose down -v   # ferma e cancella i dati
 ```
 
-Per avviare l'applicazione contro questi container, caricare in IntelliJ le variabili di `test-src/env/mocked.env`.
+Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ una delle configurazioni già pronte (file `.run/`, in alto a destra): **BuonaCacciaApplication (mocked)** usa `test-src/env/mocked.env` e il database `buonacaccia`, **BuonaCacciaApplication (test)** usa `test-src/env/test.env` e il database `buonacaccia-test`. Entrambe attivano il profilo `mocked`. Poi dal browser: http://localhost:8080/api/v1/mock/auth/findAll. Senza il profilo `mocked` il mock non si carica.
 
 ## Comandi
 
 ```bash
 ./gradlew build      # compila e lancia i test
-./gradlew bootRun    # avvia l'applicazione su http://localhost:8080
+./gradlew bootRun      # avvia l'applicazione (senza mock: serve Keycloak, fase 6)
+./gradlew bootRun      # con test.env caricato avvia l'applicazione con i mock su http://localhost:8080
 ```
 
 `GET /actuator/health` risponde con lo stato dell'applicazione.
+
+Con il profilo `mocked` (`test-src/env/test.env`): utenti e token di prova su `GET /api/v1/mock/auth/findAll`, profilo su `GET /api/v1/users/me`, documentazione su `http://localhost:8080/swagger-ui.html`.
 
 ## IntelliJ IDEA
 

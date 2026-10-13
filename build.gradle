@@ -19,11 +19,30 @@ repositories {
 dependencies {
     implementation platform(libs.spring.boot.dependencies)
     testImplementation platform(libs.spring.boot.dependencies)
+    annotationProcessor platform(libs.spring.boot.dependencies)
+    testAnnotationProcessor platform(libs.spring.boot.dependencies)
 
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
+    implementation libs.springdoc.openapi.webmvc.ui
+    implementation libs.resilience4j.spring.boot
+
+    // Lombok: versione gestita dal BOM di Spring Boot
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation libs.mapstruct
+    annotationProcessor libs.mapstruct.processor
+    annotationProcessor libs.lombok.mapstruct.binding
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

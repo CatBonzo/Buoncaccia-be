@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BuonaCacciaApplication (test)" type="Application" factoryName="Application">
+    <envs>
+      <env name="SPRING_PROFILES_ACTIVE" value="mocked" />
+      <env name="SERVER_PORT" value="8080" />
+      <env name="SPRING_MONGODB_URI" value="mongodb://localhost:27017/buonacaccia-test?directConnection=true" />
+      <env name="SPRING_KAFKA_BOOTSTRAP_SERVERS" value="localhost:9092" />
+      <env name="SPRING_MAIL_HOST" value="localhost" />
+      <env name="SPRING_MAIL_PORT" value="1025" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="it.buonacaccia.BuonaCacciaApplication" />
+    <module name="buonacaccia-be.main" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

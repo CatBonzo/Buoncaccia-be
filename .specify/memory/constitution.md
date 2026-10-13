@@ -1,5 +1,6 @@
 <!--
 Sync Impact Report
+- 1.0.1 (12/10): PATCH, nomi dei package del principio I allineati alla nuova struttura (v1.controller, repository, v1.mapper)
 - Versione: (template) → 1.0.0
 - Principi: I Qualità del codice, II Test-first, III Coerenza con i client, IV Semplicità
 - Sezioni aggiunte: Vincoli tecnologici, Flusso di lavoro, Governance
@@ -13,7 +14,7 @@ Sync Impact Report
 
 ### I. La qualità del codice è un criterio di rilascio
 
-Controller snelli nel package `api`; la logica di business sta nel package `service`; repository dichiarativi in `repository.nosql`; confini espliciti tra DTO e modello di dominio, con le conversioni nel package `mapper`. Nessun codice inutilizzato e nessun workaround non documentato.
+Controller snelli nel package `v1.controller`; la logica di business sta nel package `service`; repository dichiarativi in `repository`; confini espliciti tra DTO e modello di dominio, con le conversioni nel package `v1.mapper`. Nessun codice inutilizzato e nessun workaround non documentato.
 
 ### II. I test definiscono il "completato" (NON NEGOZIABILE)
 
@@ -31,7 +32,7 @@ Si parte dall'opzione più semplice che soddisfa la specifica. Complessità, com
 
 ## Vincoli tecnologici
 
-- Java 21, Spring Boot 4.0, Gradle (`build.gradle` in Groovy); versioni solo in `gradle/libs.versions.toml`.
+- Java 21, Spring Boot 4.1, Gradle (`build.gradle` in Groovy); versioni solo in `gradle/libs.versions.toml`.
 - Un'unica applicazione Spring Boot con la struttura a package descritta in `AGENTS.md`.
 - MongoDB come database; Apache Kafka per gli eventi di dominio e le notifiche; Docker Compose per l'ambiente locale.
 - Autenticazione con token JWT Bearer: prima token mock (profilo `mocked`), poi Keycloak, con gli stessi claim. I permessi sono gli entitlement del token: il backend non ha un catalogo di permessi suo.
@@ -48,4 +49,4 @@ Si parte dall'opzione più semplice che soddisfa la specifica. Complessità, com
 
 Questa costituzione prevale sulle consuetudini locali e sulle impostazioni predefinite dei modelli. Ogni piano, specifica, elenco di attività e revisione ne verifica la conformità ("Constitution Check"). Le modifiche seguono il versionamento MAJOR (principio tolto o ridefinito), MINOR (principio o sezione aggiunti), PATCH (chiarimenti), e vanno registrate in `AGENTS.md`. Le indicazioni operative quotidiane sono in `AGENTS.md`.
 
-**Versione**: 1.0.0 | **Ratificata**: 2026-10-11 | **Ultima modifica**: 2026-10-11
+**Versione**: 1.0.1 | **Ratificata**: 2026-10-11 | **Ultima modifica**: 2026-10-12

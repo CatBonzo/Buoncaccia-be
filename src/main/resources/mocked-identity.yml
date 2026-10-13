@@ -1,0 +1,81 @@
+# Utenti di prova del profilo "mocked" (come identity.yaml di ScoutShopper-be).
+# All'avvio il backend crea o aggiorna ogni utente su MongoDB (chiave agesciUUID) e genera per
+# ciascuno un token firmato, tenuto solo in memoria: lo restituisce GET /api/v1/mock/auth/findAll.
+# I token NON vanno scritti qui e cambiano a ogni riavvio.
+#
+# Campi di ogni voce:
+#   agesciUUID        obbligatorio, unico nel file
+#   buonaCacciaUUID   facoltativo: se c'è diventa l'id dell'utente (utile nei test)
+#   label             etichetta per il frontend
+#   username, firstName, lastName, email
+#   authentication    claim del token: isMemberOf, role (lista), entitlement (lista)
+#   census            facoltativo: dati di censimento; assente = persona non socia AGESCI
+mocked-identity:
+  users:
+    - agesciUUID: 7c1e2a2e-0001-4a6b-9a01-000000000001
+      buonaCacciaUUID: user-001
+      label: "Amministrazione"
+      username: amministratore
+      firstName: "Anna"
+      lastName: "Amministratrice"
+      email: amministratore@buonacaccia.local
+      authentication:
+        isMemberOf: agesci:socio:false
+        role:
+          - agesci:sistema:amministratore
+        entitlement:
+          - agesci:entitlement:tipoevento:gestione
+          - agesci:entitlement:evento:gestione
+          - agesci:entitlement:iscrizione:gestione
+          - agesci:entitlement:pagamento:registrazione
+          - agesci:entitlement:iscrizione:self
+
+    - agesciUUID: 7c1e2a2e-0002-4a6b-9a01-000000000002
+      buonaCacciaUUID: user-002
+      label: "Segreteria regionale"
+      username: segreteria
+      firstName: "Sergio"
+      lastName: "Segretario"
+      email: segreteria@buonacaccia.local
+      authentication:
+        isMemberOf: agesci:socio:false
+        role:
+          - agesci:regione:segreteria
+        entitlement:
+          - agesci:entitlement:evento:gestione
+          - agesci:entitlement:iscrizione:gestione
+          - agesci:entitlement:pagamento:registrazione
+
+    - agesciUUID: 7c1e2a2e-0003-4a6b-9a01-000000000003
+      buonaCacciaUUID: user-003
+      label: "Socio censito in regola"
+      username: socio
+      firstName: "Sara"
+      lastName: "Socia"
+      email: socio@buonacaccia.local
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100003"
+        branch: CO
+        memberType: LEADER
+        status: IN_GOOD_STANDING
+        year: 2026
+
+    - agesciUUID: 7c1e2a2e-0004-4a6b-9a01-000000000004
+      buonaCacciaUUID: user-004
+      label: "Utente esterno (non socio)"
+      username: esterno
+      firstName: "Ettore"
+      lastName: "Esterno"
+      email: esterno@buonacaccia.local
+      authentication:
+        isMemberOf: agesci:socio:false
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
