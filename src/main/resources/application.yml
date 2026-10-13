@@ -55,8 +55,8 @@ resilience4j:
 # per vederne meno basta mettere INFO. Le librerie (Spring, Mongo) restano a INFO.
 logging:
   level:
-    root: INFO
-    it.buonacaccia: DEBUG
+    root: ${LOGGING_LEVEL:info}
+    it.buonacaccia: ${LOGGING_LEVEL:debug}
   file:
     name: logs/buonacaccia.log
   pattern:
