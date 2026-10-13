@@ -565,6 +565,19 @@ Problemi: la decisione Q11 reintroduce un vincolo territoriale, ma solo come rel
   non come "perimetro" generale; resta da decidere da quale claim del token arriva la regione.
 Spunto: come una scelta di dominio rimandata ("per l'MVP va bene così") torni prima della feature che la tocca.
 
+[2026-10-13] Merge della fase 1 e spec della fase 2 (catalogo eventi)
+Cosa: Mahima ha fatto il merge della PR #1 in feature. Claude ha creato il branch 002-catalogo-eventi e scritto con
+  speckit-specify la spec: 5 user story (creare e pubblicare, catalogo pubblico, apertura/chiusura automatica,
+  tipi evento, modifica e annullamento), 23 requisiti, 6 criteri di successo. Una sola domanda aperta: da quale
+  informazione del token si ricava la regione della segreteria (serve per Q11).
+Chi: il merge e le decisioni (Q11, versioni) sono di Mahima; la spec è di Claude, partendo dalla spec di progetto v2.0.
+Paradigma: SDD, il passo "specify" separato dal "plan": cosa e perché, senza tecnologia; i default scelti
+  dall'agente sono dichiarati nelle Assumptions invece di trasformarsi in domande.
+Artefatti: specs/002-catalogo-eventi/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: la tabella delle feature della spec di progetto mette strutture/anagrafica (002) prima del catalogo
+  (003), il Planner v2 no: seguito il planner, regioni come lista fissa.
+Spunto: come la spec di feature "ritaglia" la spec di progetto (FR di progetto citati tra parentesi) e la traccia.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
