@@ -32,7 +32,7 @@ Si parte dall'opzione più semplice che soddisfa la specifica. Complessità, com
 
 ## Vincoli tecnologici
 
-- Java 21, Spring Boot 4.0, Gradle (`build.gradle` in Groovy); versioni solo in `gradle/libs.versions.toml`.
+- Java 21, Spring Boot 4.1, Gradle (`build.gradle` in Groovy); versioni solo in `gradle/libs.versions.toml`.
 - Un'unica applicazione Spring Boot con la struttura a package descritta in `AGENTS.md`.
 - MongoDB come database; Apache Kafka per gli eventi di dominio e le notifiche; Docker Compose per l'ambiente locale.
 - Autenticazione con token JWT Bearer: prima token mock (profilo `mocked`), poi Keycloak, con gli stessi claim. I permessi sono gli entitlement del token: il backend non ha un catalogo di permessi suo.

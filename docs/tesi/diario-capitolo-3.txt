@@ -552,6 +552,19 @@ Artefatti: application.yml, test-src/env/*.env, docker-compose.yaml, AGENTS.md.
 Problemi: una variabile usata per due livelli diversi (root e package) mescola log utili e rumore.
 Spunto: configurazione per ambiente tramite variabili, con default sicuri nel file versionato.
 
+[2026-10-13] Spring Boot 4.1.1 e decisione Q11 prima della fase 2
+Cosa: Spring Boot da 4.0.8 a 4.1.1 e springdoc da 3.0.3 a 3.1.1 (solo due righe nel catalogo delle versioni);
+  build, 35 test e avvio con i mock verdi al primo colpo. Q11 decisa: la segreteria regionale gestisce solo
+  gli eventi della propria regione. Aggiornate la spec v2.0 (.md e .docx), la costituzione e AGENTS.md.
+Chi: Mahima ha deciso entrambe le cose; Claude ha verificato su Maven Central le ultime versioni stabili,
+  aggiornato e provato.
+Paradigma: catalogo delle versioni centralizzato (libs.versions.toml) + test automatici = aggiornamenti a basso
+  rischio; decisione di dominio presa prima di specificare la feature che la usa (spec-driven).
+Artefatti: gradle/libs.versions.toml, spec v2.0 §2.2 e Appendice B, AGENTS.md.
+Problemi: la decisione Q11 reintroduce un vincolo territoriale, ma solo come relazione con la risorsa,
+  non come "perimetro" generale; resta da decidere da quale claim del token arriva la regione.
+Spunto: come una scelta di dominio rimandata ("per l'MVP va bene così") torni prima della feature che la tocca.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

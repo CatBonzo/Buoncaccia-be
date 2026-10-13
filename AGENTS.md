@@ -72,7 +72,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-10 | Cinque microservizi per l'MVP (superata l'11/10) | La tesi è a microservizi; si parte dal numero minimo (costituzione, principio IV) |
 | 2026-10-11 | Branch `feature` come principale, merge su `main` più avanti | Scelta di Mahima |
 | 2026-10-11 | Un solo repository Gradle multi-modulo (superata in giornata) | Un solo progetto da aprire in IntelliJ, una sola build e CI |
-| 2026-10-11 | Spring Boot 4.0.8 (la spec dice 3.x: da confermare) | Ultima versione stabile della 4.0; Spring Cloud non serve più senza gateway |
+| 2026-10-11 | ~~Spring Boot 4.0.8 (la spec dice 3.x: da confermare)~~ (superata il 13/10: 4.1.1) | Ultima versione stabile della 4.0; Spring Cloud non serve più senza gateway |
 | 2026-10-11 | Gradle 9.8.1 con wrapper e catalogo delle versioni | Versioni in un solo punto; build ripetibile senza Gradle installato |
 | 2026-10-11 | File di build in Groovy (`build.gradle`) | Lo stesso formato dei progetti Spring Boot che Mahima usa già |
 | 2026-10-11 | Struttura a package `api`, `config`, `job`, `mapper`, `mockmigration`, `model`, `repository.nosql`, `service`, `utils` (superata il 12/10) | Scelta di Mahima, dalla struttura dei progetti Spring Boot che conosce |
@@ -113,10 +113,12 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-13 | Restano due file env con due database separati: `mocked.env` → `buonacaccia` (sviluppo), `test.env` → `buonacaccia-test` (prove a mano); entrambi profilo `mocked`. Due configurazioni IntelliJ in `.run/`: "BuonaCacciaApplication (mocked)" e "(test)" | Scelta di Mahima: tenere separati i dati di sviluppo da quelli delle prove |
 | 2026-10-13 | ~~Log dell'applicazione (`it.buonacaccia`) a DEBUG in `application.yml`, librerie a INFO; console con orario, livello colorato e classe~~ (superata, vedi sotto) | Richiesta di Mahima: vedere nel terminale di IntelliJ i log di `@Slf4j`. Prima il package era a INFO e i `log.debug` non comparivano |
 | 2026-10-13 | Log: console nel formato standard di Spring Boot; `root` sempre a `info`; il package `it.buonacaccia` segue la variabile `LOGGING_LEVEL` (negli env `debug`, default `info`). `compose.yaml` rinominato `docker-compose.yaml` | Scelte di Mahima: vedere i propri log di `@Slf4j` senza quelli interni di Spring (con `root` a debug l'avvio faceva oltre 3000 righe, ora circa 45), nel formato che usa al lavoro |
+| 2026-10-13 | Spring Boot 4.1.1 e springdoc-openapi 3.1.1 (Resilience4j 2.4.0 e MapStruct 1.6.3 già alle ultime) | Mahima: allineare il progetto all'ultima versione stabile. springdoc 3.1 è la linea per Boot 4.1. Spec v2.0 aggiornata (§1 e Appendice B) |
+| 2026-10-13 | Q11: la segreteria regionale crea e modifica solo gli eventi della propria regione; le iscrizioni restano senza vincolo territoriale | Decisione di Mahima. È una relazione con la risorsa (AUTH-2), non un "perimetro" generale: il backend confronta la regione dell'evento con quella della segreteria nel token. Il claim da usare si decide nella spec della fase 2 |
 
 ## 5. Domande aperte
 
-- Q11: una segreteria può gestire eventi di qualunque regione? (per l'MVP: sì)
+- ~~Q11: una segreteria può gestire eventi di qualunque regione?~~ Decisa il 13/10: solo la propria regione.
 - Q12: rimborso con ritiro tardivo, US-10 o BR-10? (non serve nell'MVP)
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
 - Spec di progetto da allineare alla feature 001: nomi dei campi del censimento in inglese, radice `mocked-identity.users`, profilo `mocked`.

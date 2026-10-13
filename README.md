@@ -4,7 +4,7 @@ Backend per la gestione delle iscrizioni agli eventi AGESCI, sviluppato in modal
 
 ## Stack
 
-- Java 21, Spring Boot 4.0
+- Java 21, Spring Boot 4.1
 - Gradle 9 (wrapper incluso, `build.gradle` in Groovy), versioni in `gradle/libs.versions.toml`
 
 Contesto, regole di lavoro e scelte prese sono in [AGENTS.md](AGENTS.md).

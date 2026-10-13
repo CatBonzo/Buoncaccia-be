@@ -1,6 +1,6 @@
 [versions]
-spring-boot = "4.0.8"
-springdoc = "3.0.3"
+spring-boot = "4.1.1"
+springdoc = "3.1.1"
 resilience4j = "2.4.0"
 mapstruct = "1.6.3"
 lombok-mapstruct-binding = "0.2.0"

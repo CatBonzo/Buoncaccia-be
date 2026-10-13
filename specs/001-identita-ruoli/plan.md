@@ -12,7 +12,7 @@ Il backend diventa un OAuth2 resource server che accetta token JWT RS256. Nel pr
 
 **Language/Version**: Java 21
 
-**Primary Dependencies**: Spring Boot 4.0.8 (webmvc, actuator, security, oauth2-resource-server, data-mongodb, validation); springdoc-openapi 3.0.3; Nimbus JOSE+JWT (tramite il resource server) per chiave e token mock
+**Primary Dependencies**: Spring Boot 4.1.1 (webmvc, actuator, security, oauth2-resource-server, data-mongodb, validation); springdoc-openapi 3.1.1; Nimbus JOSE+JWT (tramite il resource server) per chiave e token mock
 
 **Storage**: MongoDB 8.0 (replica set `rs0` in compose), collezione `users`
 
