@@ -510,6 +510,18 @@ Artefatti: .run/BuonaCacciaApplication (mocked).run.xml, README, AGENTS.md.
 Problemi: un profilo Spring dimenticato non dà errore, cambia solo quali componenti esistono.
 Spunto: "funziona sulla mia macchina" vale anche fra umano e agente: l'agente provava con l'env caricato.
 
+[2026-10-13] Collegamento a Docker in test.env, via i file di profilo
+Cosa: eliminati application-mocked.yml e application-test.yml. L'URI di MongoDB (container di compose.yaml)
+  sta solo in test-src/env/test.env, che attiva il profilo mocked; application.yml importa mocked-identity.yml
+  come optional e non ha più un URI di default. Allineata anche la configurazione IntelliJ.
+Chi: Mahima, dopo un "Connection refused" su localhost:27017 sul suo Mac (il container Mongo non era in ascolto);
+  ha chiesto un solo posto per il collegamento e meno file. Claude ha spostato i valori e aggiornato i documenti.
+Paradigma: semplificazione guidata dall'uso reale dello sviluppatore; la configurazione d'ambiente separata
+  dal codice (variabili d'ambiente, stile twelve-factor).
+Artefatti: application.yml, test-src/env/test.env, .run/BuonaCacciaApplication (mocked).run.xml, README, specs.
+Problemi: si perdono i log DEBUG del profilo test; un file utenti mancante non ferma più l'avvio (import optional).
+Spunto: meno file = meno punti in cui sbagliare, ma più peso sulle variabili d'ambiente.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

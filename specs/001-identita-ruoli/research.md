@@ -39,6 +39,7 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 - **Decisione**: `test.env` attiva i profili `mocked,test`: utenti e token di prova come in `mocked.env`, ma database separato `buonacaccia-test` e log più dettagliati (`application-test.yml`).
 - **Motivazione**: con il solo profilo `test` l'applicazione non avrebbe un emittente di token (Keycloak arriva in fase 6) e non partirebbe; così il file serve davvero a provare a mano senza toccare i dati di sviluppo.
 - **Alternative**: lasciare `test` da solo (non avviabile); duplicare la configurazione mock nel profilo `test`.
+- **Aggiornamento 13/10**: su richiesta di Mahima tolti `application-test.yml` e `application-mocked.yml`. `test.env` attiva solo `mocked` e contiene il collegamento a MongoDB (`SPRING_MONGODB_URI`), che non ha più un valore di default in `application.yml`.
 
 ## R5. Envelope e catalogo degli errori
 
@@ -50,6 +51,7 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 
 - **Decisione**: `mocked-identity.yml` viene importato solo nel profilo `mocked` (`spring.config.import: classpath:mocked-identity.yml` in `application-mocked.yml`, non opzionale) e legato a `@ConfigurationProperties("mocked-identity")` con validazione (`@NotEmpty`, `@NotBlank`). Un `ApplicationRunner` nel package `mockmigration` fa l'upsert di ogni voce su `agesciUUID` e fallisce se due voci hanno lo stesso `agesciUUID`. Radice del file: `mocked-identity.users` (la spec usa `mock-auth.users`; si allinea al nome scelto da Mahima).
 - **Motivazione**: gli errori di file mancante, vuoto o malformato fermano l'avvio con il messaggio di Spring Boot che indica file e proprietà (casi limite della spec) senza codice di parsing nostro. `mockmigration` è il package previsto da AGENTS.md per i dati di prova.
+- **Aggiornamento 13/10**: `application-mocked.yml` tolto; `mocked-identity.yml` è importato da `application.yml` con `optional:` e letto solo quando il profilo `mocked` carica `MockAuthConfig`. La durata dei token ha il default `P365D` nel codice.
 - **Aggiornamento 12/10**: su richiesta di Mahima tutto il mock (questo file, `application-mocked.yml`, emittente dei token, `findAll`, `jwks`, caricamento degli utenti) è passato in `src/test`, package `it.buonacaccia.mock`, come in ScoutShopper-be; il package `mockmigration` resta per i dati di prova futuri. L'app con i mock si avvia con `TestBuonaCacciaApplication` (`./gradlew bootTestRun`).
 - **Aggiornamento 12/10 (sera)**: il mock torna in `src/main` (stesso package, risorse in `src/main/resources`), sempre solo con il profilo `mocked`, perché Mahima vuole aprire `findAll` dal browser avviando `BuonaCacciaApplication`. Tolta `TestBuonaCacciaApplication`; nei test restano `AbstractTest` e `ProbeController`.
 - **Alternative**: lettura del file con un parser YAML a mano (più codice, messaggi peggiori); `optional:` nell'import (il backend partirebbe senza utenti, contro i casi limite).

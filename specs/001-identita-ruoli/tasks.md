@@ -7,8 +7,8 @@ Scritto il 12/10 insieme all'implementazione, dopo la richiesta di Mahima di por
 ## Fase 1: setup
 
 - [x] T001 Dipendenze in `build.gradle` e `gradle/libs.versions.toml`: security-oauth2-resource-server, data-mongodb, validation, springdoc 3.0.3; test con Testcontainers
-- [x] T002 `application.yml` (MongoDB, resource server Keycloak, springdoc), `application-mocked.yml`, `application-test.yml`
-- [x] T003 `test-src/env/test.env` con profili `mocked,test` e database `buonacaccia-test` (R12)
+- [x] T002 `application.yml` (MongoDB, resource server Keycloak, springdoc), ~~`application-mocked.yml`, `application-test.yml`~~ (tolti il 13/10)
+- [x] T003 `test-src/env/test.env` con profilo `mocked`, database `buonacaccia-test` e collegamento a MongoDB (R12, aggiornato 13/10)
 
 ## Fase 2: fondamenta
 
@@ -47,5 +47,6 @@ Scritto il 12/10 insieme all'implementazione, dopo la richiesta di Mahima di por
 - [x] T018 `./gradlew build` verde (31 test), prova a mano con `test.env`
 - [x] T019 AGENTS.md, diario, quickstart
 - [x] T021 ~~Mock in `src/test`~~ (poi tornato in `src/main` con profilo `mocked`), `AbstractTest` che crea il DB
+- [x] T023 Tolti `application-mocked.yml` e `application-test.yml`; URI di MongoDB solo in `test.env`
 - [x] T022 Mock in `src/main` (package `mock`, profilo `mocked`): `findAll` dal browser con `BuonaCacciaApplication`
 - [x] T020 Test `CircuitBreakerServiceTest`; Lombok, log e circuit breaker su MongoDB (R13)

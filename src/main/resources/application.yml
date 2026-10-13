@@ -1,11 +1,13 @@
 spring:
   application:
     name: buonacaccia-be
+  # Utenti di prova del mock: usati solo con il profilo mocked (MockAuthConfig).
+  config:
+    import: optional:classpath:mocked-identity.yml
   data:
     mongodb:
       auto-index-creation: true
-  mongodb:
-    uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/buonacaccia?directConnection=true}
+  # Collegamento a MongoDB (container di compose.yaml): SPRING_MONGODB_URI in test-src/env/test.env.
   security:
     oauth2:
       resourceserver:

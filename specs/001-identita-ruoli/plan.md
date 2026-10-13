@@ -85,7 +85,7 @@ src/main/java/it/buonacaccia/
     ├── dto/ApiResponse.java, UserProfileDTO.java
     └── mapper/UserMapper.java
 
-src/main/resources/application.yml, application-test.yml, application-mocked.yml, mocked-identity.yml
+src/main/resources/application.yml, mocked-identity.yml
 
 src/test/java/it/buonacaccia/
 ├── AbstractTest.java                    # crea il DB (Testcontainers) e avvia l'app, come in ScoutShopper-be

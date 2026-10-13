@@ -3,7 +3,7 @@
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="mocked" />
       <env name="SERVER_PORT" value="8080" />
-      <env name="SPRING_MONGODB_URI" value="mongodb://localhost:27017/buonacaccia?directConnection=true" />
+      <env name="SPRING_MONGODB_URI" value="mongodb://localhost:27017/buonacaccia-test?directConnection=true" />
       <env name="SPRING_KAFKA_BOOTSTRAP_SERVERS" value="localhost:9092" />
       <env name="SPRING_MAIL_HOST" value="localhost" />
       <env name="SPRING_MAIL_PORT" value="1025" />

@@ -32,19 +32,19 @@ docker compose down      # ferma i container (i dati restano)
 docker compose down -v   # ferma e cancella i dati
 ```
 
-Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ la configurazione già pronta **BuonaCacciaApplication (mocked)** (file `.run/`, la trova da sola in alto a destra), che imposta il profilo `mocked` e le variabili di `test-src/env/mocked.env`. Poi dal browser: http://localhost:8080/api/v1/mock/auth/findAll. Senza il profilo `mocked` il mock non si carica.
+Per avviare l'applicazione con utenti e token di prova contro questi container, lanciare da IntelliJ la configurazione già pronta **BuonaCacciaApplication (mocked)** (file `.run/`, la trova da sola in alto a destra), che imposta il profilo `mocked` e le variabili di `test-src/env/test.env` (collegamento a MongoDB compreso). Poi dal browser: http://localhost:8080/api/v1/mock/auth/findAll. Senza il profilo `mocked` il mock non si carica.
 
 ## Comandi
 
 ```bash
 ./gradlew build      # compila e lancia i test
 ./gradlew bootRun      # avvia l'applicazione (senza mock: serve Keycloak, fase 6)
-./gradlew bootRun      # con mocked.env caricato avvia l'applicazione con i mock su http://localhost:8080
+./gradlew bootRun      # con test.env caricato avvia l'applicazione con i mock su http://localhost:8080
 ```
 
 `GET /actuator/health` risponde con lo stato dell'applicazione.
 
-Con il profilo `mocked` (`test-src/env/mocked.env` o `test.env`): utenti e token di prova su `GET /api/v1/mock/auth/findAll`, profilo su `GET /api/v1/users/me`, documentazione su `http://localhost:8080/swagger-ui.html`.
+Con il profilo `mocked` (`test-src/env/test.env`): utenti e token di prova su `GET /api/v1/mock/auth/findAll`, profilo su `GET /api/v1/users/me`, documentazione su `http://localhost:8080/swagger-ui.html`.
 
 ## IntelliJ IDEA
 

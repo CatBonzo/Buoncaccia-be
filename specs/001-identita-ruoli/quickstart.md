@@ -17,10 +17,10 @@ Atteso: build verde. I test di integrazione avviano da soli un MongoDB con Testc
 
 ## 2. Avvio in modalità mock
 
-Da IntelliJ si lancia `BuonaCacciaApplication` con le variabili di `test-src/env/mocked.env` (o `test.env`: database separato e log dettagliati), oppure:
+Da IntelliJ si lancia `BuonaCacciaApplication` con le variabili di `test-src/env/test.env` (lì c'è il collegamento a MongoDB), oppure:
 
 ```bash
-set -a; . test-src/env/mocked.env; set +a
+set -a; . test-src/env/test.env; set +a
 ./gradlew bootRun
 ```
 
