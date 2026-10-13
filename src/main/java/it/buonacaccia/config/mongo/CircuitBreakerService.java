@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,7 +31,8 @@ public class CircuitBreakerService {
      * Esegue l'operazione dentro il circuit breaker indicato.
      *
      * @throws BuonaCacciaException {@code SERVICE_UNAVAILABLE} se il database non risponde o il
-     *                              circuito è aperto, {@code CONFLICT} per una chiave duplicata
+     *                              circuito è aperto, {@code CONFLICT} per una chiave duplicata,
+     *                              {@code STALE_VERSION} per una versione superata (FR-018 della feature 002)
      */
     public <T> T execute(String circuitBreakerName, Supplier<T> operation) {
         try {
@@ -41,6 +43,9 @@ public class CircuitBreakerService {
         } catch (DuplicateKeyException e) {
             log.warn("Chiave duplicata su {}: {}", circuitBreakerName, e.getMessage());
             throw new BuonaCacciaException(ErrorCode.CONFLICT);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Versione superata su {}: {}", circuitBreakerName, e.getMessage());
+            throw new BuonaCacciaException(ErrorCode.STALE_VERSION);
         } catch (DataAccessException e) {
             log.error("Errore di accesso a {}", circuitBreakerName, e);
             throw new BuonaCacciaException(ErrorCode.SERVICE_UNAVAILABLE);

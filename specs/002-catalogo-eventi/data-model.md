@@ -70,10 +70,12 @@ Non si cancella: si disattiva.
 | `lifecycle = DRAFT` | `DRAFT` (BOZZA) |
 | `lifecycle = CANCELLED` | `CANCELLED` (ANNULLATO) |
 | ora < `registrationOpensAt` | `PUBLISHED` (PUBBLICATO) |
+| ora ≥ `startsAt` e ora ≤ `endsAt` | `IN_PROGRESS` (IN_CORSO) |
+| ora > `endsAt` | `COMPLETED` (CONCLUSO) |
 | ora ≤ `registrationClosesAt` e nessuna chiusura anticipata | `REGISTRATION_OPEN` (ISCRIZIONI_APERTE) |
-| ora < `startsAt` | `REGISTRATION_CLOSED` (ISCRIZIONI_CHIUSE) |
-| ora ≤ `endsAt` | `IN_PROGRESS` (IN_CORSO) |
-| altrimenti | `COMPLETED` (CONCLUSO) |
+| altrimenti | `REGISTRATION_CLOSED` (ISCRIZIONI_CHIUSE) |
+
+L'inizio dell'evento viene prima della chiusura delle iscrizioni: se la chiusura è il giorno stesso della partenza (ammesso da FR-007), dalle 00:00 di quel giorno l'evento è IN_CORSO e non più con iscrizioni aperte. Deciso in implementazione perché la tabella precedente lasciava le iscrizioni aperte a evento iniziato.
 
 ### Transizioni comandate dalle persone
 

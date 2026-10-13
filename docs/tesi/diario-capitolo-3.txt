@@ -609,6 +609,24 @@ Problemi: (1) la contraddizione su FR-007, risolta a favore del caso limite, pi�
 Spunto: i documenti scritti dall'agente hanno contraddizioni come quelli scritti da persone; il valore della
   pipeline SDD sta anche nei controlli automatici fra un documento e l'altro.
 
+[2026-10-13] Implementazione della fase 2 (catalogo eventi)
+Cosa: implementati i 49 task: regioni, tipi evento, eventi (crea, modifica, pubblica, chiudi, annulla), ricerca
+  pubblica con filtri e pagine, dettaglio, "i miei eventi". Regione della segreteria da isMemberOf; stato
+  calcolato dall'ora italiana senza job. 93 test verdi (erano 35), compresa una prova con 1.000 eventi.
+Chi: Claude, seguendo tasks.md; nessuna nuova decisione chiesta a Mahima.
+Paradigma: test-first per storia. I test di integrazione delle 5 storie sono stati scritti prima del codice e
+  lanciati rossi (24 su 24 per creazione e modifica); poi il codice fino al verde. Un orologio sostituibile
+  (MutableClock) permette di provare "alle 08:59:59 è chiuso, alle 09:00 è aperto" senza aspettare.
+Artefatti: 40 file Java nuovi o toccati (model, repository, service, guard, v1), mocked-identity.yml (segreteria
+  PIE e LIG), test in src/test, data-model.md corretto, AGENTS.md.
+Problemi: (1) Jackson 3 rifiuta un booleano primitivo assente nel JSON: i DTO usano Boolean; trovato grazie al
+  log dell'errore 422. (2) La tabella degli stati del piano lasciava le iscrizioni aperte a evento già iniziato
+  se la chiusura era il giorno della partenza: emerso scrivendo il test, corretto nel codice e nel data model.
+  (3) Il test "database non raggiungibile" per il catalogo non è stato aggiunto: fermerebbe il database condiviso
+  dagli altri test; il 503 resta coperto dal test del circuit breaker della fase 1.
+Spunto: anche dopo analyze, scrivere i test fa emergere ambiguità che i documenti non mostrano (caso 2): il
+  ciclo spec → test → codice corregge la spec a ritroso.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

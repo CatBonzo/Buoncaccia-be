@@ -7,6 +7,7 @@ import it.buonacaccia.config.error.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +17,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Resource server JWT (FR-007): tutto richiede un token valido tranne le risorse pubbliche
- * (mock, health, documentazione). Gli errori del filtro escono con l'envelope (FR-013, FR-015).
+ * (mock, health, documentazione) e le letture del catalogo (feature 002: regioni, tipi evento,
+ * ricerca e dettaglio degli eventi). Un token presente ma non valido dà 401 anche lì (research R9). Gli errori del filtro escono con l'envelope (FR-013, FR-015).
  * Ruoli ed entitlement si controllano con la guardia {@code @SecurityAccess}.
  */
 @Configuration(proxyBeanMethods = false)
@@ -32,6 +34,15 @@ public class SecurityConfig {
             "/error"
     };
 
+    /** Letture pubbliche del catalogo (FR-019, FR-020, FR-022). */
+    private static final String[] PUBLIC_GET_PATHS = {
+            "/api/v1/regions",
+            "/api/v1/event-types",
+            "/api/v1/event-types/*",
+            "/api/v1/events",
+            "/api/v1/events/*"
+    };
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
         http
@@ -39,6 +50,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/events/managed").authenticated()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET_PATHS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())

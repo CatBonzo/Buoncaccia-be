@@ -9,7 +9,8 @@ import lombok.ToString;
 
 /**
  * Envelope di ogni risposta (FR-013): {@code errorCode} 0 = successo e dati in {@code payload};
- * altrimenti codice, messaggio e dominio dell'errore, con {@code payload} vuoto.
+ * altrimenti codice, messaggio e dominio dell'errore; {@code payload} è vuoto, salvo per i 422 dove
+ * contiene l'elenco dei campi da correggere (research R7 della feature 002).
  */
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,6 +33,10 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> error(ErrorCode error, String message) {
-        return new ApiResponse<>(error.code(), message, error.domain(), null);
+        return error(error, message, null);
+    }
+
+    public static <T> ApiResponse<T> error(ErrorCode error, String message, T payload) {
+        return new ApiResponse<>(error.code(), message, error.domain(), payload);
     }
 }

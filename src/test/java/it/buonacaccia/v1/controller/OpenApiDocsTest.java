@@ -15,6 +15,18 @@ class OpenApiDocsTest extends AbstractTest {
         assertThat(result.status()).isEqualTo(200);
         assertThat(result.body().get("paths").has("/api/v1/users/me")).isTrue();
         assertThat(result.body().get("paths").has("/api/v1/mock/auth/findAll")).isTrue();
+        // Feature 002: i 9 percorsi (14 operazioni) del contratto catalog.openapi.yaml.
+        assertThat(result.body().get("paths").propertyNames()).contains(
+                "/api/v1/regions",
+                "/api/v1/event-types",
+                "/api/v1/event-types/{code}",
+                "/api/v1/event-types/{code}/deactivate",
+                "/api/v1/events",
+                "/api/v1/events/managed",
+                "/api/v1/events/{id}",
+                "/api/v1/events/{id}/publish",
+                "/api/v1/events/{id}/close-registrations",
+                "/api/v1/events/{id}/cancel");
         assertThat(result.body().get("components").get("securitySchemes").has("bearerAuth")).isTrue();
     }
 
