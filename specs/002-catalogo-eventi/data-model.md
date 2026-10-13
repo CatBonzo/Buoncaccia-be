@@ -29,7 +29,7 @@ Non si cancella: si disattiva.
 | --- | --- | --- |
 | `id` | string (UUID), `@Id` | Generato |
 | `code` | string | `<SIGLA>-<ANNO>-<NNN>`, generato alla creazione (R5), univoco |
-| `typeCode` | string | Tipo evento attivo alla creazione e alla pubblicazione |
+| `typeCode` | string | Tipo evento attivo alla creazione; alla pubblicazione basta che esista (una bozza resta pubblicabile se il tipo viene disattivato dopo) |
 | `title` | string | Obbligatorio per pubblicare, max 200 |
 | `description` | string | Max 5000 |
 | `level` | enum `EventLevel` | `NATIONAL`, `REGIONAL`, `ZONE` |

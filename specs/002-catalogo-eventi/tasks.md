@@ -62,14 +62,14 @@ description: "Task della feature 002 catalogo eventi"
 
 ### Test per US1 (prima del codice)
 
-- [ ] T019 [US1] Scrivere `test/v1/controller/EventManagementTest.java` (integrazione, `AbstractTest`, token mock): creazione bozza con default di requisiti e adempimenti dal tipo (FR-005); codice `PIE-2027-001` e progressivo `PIE-2027-002`; bozza salvabile incompleta (FR-008); tipo disattivato → 422; senza token → 401; senza `evento:gestione` → 403; segreteria PIE che crea per LIG o NATIONAL → 403; pubblicazione valida → stato secondo l'ora; pubblicazione con titolo vuoto, date incoerenti e posti 0 → 422 `42201` con tre voci nel `payload`; `segreteria-lig` che pubblica un evento PIE → 403; ripubblicare → 409 `40901`; `GET /events/managed` per admin (tutto) e segreteria (solo PIE, bozze comprese)
+- [ ] T019 [US1] Scrivere `test/v1/controller/EventManagementTest.java` (integrazione, `AbstractTest`, token mock): creazione bozza con default di requisiti e adempimenti dal tipo (FR-005); codice `PIE-2027-001` e progressivo `PIE-2027-002`; bozza salvabile incompleta (FR-008); tipo disattivato → 422 alla creazione, ma una bozza il cui tipo viene disattivato dopo si pubblica lo stesso (caso limite); senza token → 401; senza `evento:gestione` → 403; segreteria PIE che crea per LIG o NATIONAL → 403; pubblicazione valida → stato secondo l'ora; pubblicazione con titolo vuoto, date incoerenti e posti 0 → 422 `42201` con tre voci nel `payload`; `segreteria-lig` che pubblica un evento PIE → 403; ripubblicare → 409 `40901`; `GET /events/managed` per admin (tutto) e segreteria (solo PIE, bozze comprese)
 
 ### Implementazione per US1
 
 - [ ] T020 [P] [US1] Creare i DTO in `main/v1/dto/`: `EventRequestDTO` (campi modificabili, con Bean Validation: `title` max 200, `description` max 5000, `zone` max 100, `province` `^[A-Z]{2}$`, `seats` > 0, `fee` ≥ 0 con due decimali, `typeCode` e `level` obbligatori, `version` per il PUT), `EventDTO` (dati pubblici + `status`, `availability`, `enrolledCount`, `version`, `cancellationReason`), `VersionDTO` (`version` obbligatorio), `RequirementsDTO`, `ObligationDTO`, `ContactsDTO`, `ContactDTO` come classi Lombok
 - [ ] T021 [P] [US1] Creare `main/v1/mapper/EventMapper.java` (MapStruct, `INSTANCE`): `toEntity(EventRequestDTO)`, `update(EventRequestDTO, @MappingTarget Event)`, `toDto(Event)` con `status` e `availability` passati dal service
 - [ ] T022 [P] [US1] Creare `main/service/EventCodeGenerator.java`: `next(Region|null, int anno)` con `MongoTemplate.findAndModify` su `counters` (`$inc seq`, upsert, `returnNew`), chiave `PIE-2027` o `NAZ-2027`, formato `%s-%d-%03d` (R5)
-- [ ] T023 [US1] Creare `main/service/EventValidator.java`: `validateForPublish(Event, EventType)` raccoglie TUTTI gli errori (titolo, località, date presenti; tipo attivo; partenza ≤ rientro; apertura < chiusura ≤ partenza; posti > 0; quota ≥ 0; regione obbligatoria salvo NATIONAL; zona obbligatoria se e solo se ZONE; `minAge` ≤ `maxAge`) e lancia 422 `42201` con l'elenco (FR-007)
+- [ ] T023 [US1] Creare `main/service/EventValidator.java`: `validateForPublish(Event, EventType)` raccoglie TUTTI gli errori (titolo, località, date presenti; tipo esistente, anche se disattivato dopo la creazione della bozza; partenza ≤ rientro; apertura < chiusura ≤ partenza; posti > 0; quota ≥ 0; regione obbligatoria salvo NATIONAL; zona obbligatoria se e solo se ZONE; `minAge` ≤ `maxAge`) e lancia 422 `42201` con l'elenco (FR-007)
 - [ ] T024 [US1] Creare `main/service/EventService.java` con `create`, `publish`, `findManaged`, `findById`: controllo `EventAccessPolicy` prima di ogni scrittura, tipo attivo, default dal tipo, `computeInstants` a ogni salvataggio, `createdBy` = `sub`, chiamate Mongo dentro `CircuitBreakerService`
 - [ ] T025 [US1] Creare `main/v1/controller/EventController.java` con `POST /api/v1/events`, `POST /api/v1/events/{id}/publish`, `GET /api/v1/events/managed` (`@SecurityAccess(entitlement = EVENTO_GESTIONE)`), risposte nell'envelope, annotazioni OpenAPI come nel contratto
 
@@ -85,7 +85,7 @@ description: "Task della feature 002 catalogo eventi"
 
 ### Test per US2 (prima del codice)
 
-- [ ] T026 [US2] Scrivere `test/v1/controller/EventCatalogTest.java`: ricerca senza token; filtri `region`, `category`, `type`, `availability`, `status`, `startFrom`/`startTo`, `q` (case-insensitive, caratteri speciali escapati); bozze e annullati esclusi salvo `status=CANCELLED`; ordinamento `startDate`, `title`, `type`; pagina `content/page/size/totalElements/totalPages`; `size` 101 → 422; dettaglio pubblicato e annullato visibili; dettaglio bozza → 404 senza token e per la segreteria LIG, 200 per la segreteria PIE; id inesistente → 404; token non valido → 401
+- [ ] T026 [US2] Scrivere `test/v1/controller/EventCatalogTest.java`: ricerca senza token; filtri `region`, `category`, `type`, `availability`, `status`, `startFrom`/`startTo`, `q` (case-insensitive, caratteri speciali escapati); bozze e annullati esclusi salvo `status=CANCELLED`; ordinamento `startDate`, `title`, `type`; pagina `content/page/size/totalElements/totalPages`; `size` 101, pagina negativa, ordinamento sconosciuto e data non valida → 422 con il parametro nel `payload`; ricerca senza risultati e pagina oltre l'ultima → 200 con elenco vuoto e totale reale; dettaglio pubblicato e annullato visibili; dettaglio bozza → 404 senza token e per la segreteria LIG, 200 per la segreteria PIE; id inesistente → 404; token non valido → 401
 - [ ] T027 [P] [US2] Creare `test/v1/controller/RegionControllerTest.java`: `GET /api/v1/regions` pubblico, 20 regioni con `code` e `name`
 
 ### Implementazione per US2
@@ -164,8 +164,9 @@ description: "Task della feature 002 catalogo eventi"
 
 - [ ] T045 [P] Verificare in `test/v1/controller/OpenApiDocsTest.java` che `/api-docs` contenga i 14 percorsi del contratto
 - [ ] T046 [P] Estendere `test/v1/controller/EnvelopeTest.java` con le risposte di errore del catalogo (401, 403, 404, 409, 422): i quattro campi dell'envelope sempre presenti (SC-006)
-- [ ] T047 Eseguire `./gradlew build --max-workers=1` e lo scenario completo di [quickstart.md](quickstart.md) con `test-src/env/test.env`
-- [ ] T048 Aggiornare `AGENTS.md` (decisioni dell'implementazione) e `docs/tesi/diario-capitolo-3.txt` (voce dell'implementazione)
+- [ ] T047 [P] Aggiungere a `test/v1/controller/EventCatalogTest.java` una prova di carico leggera: 1.000 eventi pubblicati, prima pagina filtrata in meno di 1 secondo (SC-004), e una prova con MongoDB fermo → 503 `50300` nell'envelope (caso limite)
+- [ ] T048 Eseguire `./gradlew build --max-workers=1` e lo scenario completo di [quickstart.md](quickstart.md) con `test-src/env/test.env`
+- [ ] T049 Aggiornare `AGENTS.md` (decisioni dell'implementazione) e `docs/tesi/diario-capitolo-3.txt` (voce dell'implementazione)
 
 ---
 

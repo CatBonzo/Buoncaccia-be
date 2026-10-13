@@ -592,6 +592,23 @@ Problemi: la domanda sulla regione è stata posta tre volte prima di essere chia
   troppo tecnica (claim, token); con un esempio concreto del token Mahima ha risposto con una sua soluzione.
 Spunto: comunicazione umano-agente, l'agente deve tradurre le domande tecniche nel linguaggio del dominio.
 
+[2026-10-13] Tasks e analyze della fase 2
+Cosa: speckit-tasks ha prodotto 49 task in 8 fasi (setup, base comune, una fase per ciascuna delle 5 storie,
+  rifinitura), ognuno con il file da toccare e i test prima del codice. Poi speckit-analyze ha confrontato spec,
+  piano e task e ha trovato quattro punti, corretti subito nei documenti.
+Chi: Claude, con i comandi Spec-Kit; nessuna decisione nuova chiesta a Mahima.
+Paradigma: SDD, il passo "analyze" è un controllo incrociato fra documenti prima di scrivere codice.
+  Esempio per la tesi: FR-007 chiedeva "tipo evento attivo" alla pubblicazione, mentre un caso limite della stessa
+  spec diceva che una bozza resta pubblicabile se il tipo viene disattivato dopo. Senza analyze la contraddizione
+  sarebbe finita nel codice e scoperta solo nei test (o mai).
+Artefatti: specs/002-catalogo-eventi/tasks.md; correzioni a spec.md (FR-007), data-model.md, research.md (R8).
+Problemi: (1) la contraddizione su FR-007, risolta a favore del caso limite, più specifico e coerente con FR-003
+  ("non usabile per NUOVI eventi"); (2) nome della categoria diverso fra research (FORMAZIONE_CAPI) e modello
+  dati (LEADER_TRAINING), allineato all'inglese; (3) casi limite della ricerca (pagina oltre l'ultima, parametri
+  non validi) senza un test; (4) SC-004 (1.000 eventi in meno di 1 s) senza un task. Aggiunti i test.
+Spunto: i documenti scritti dall'agente hanno contraddizioni come quelli scritti da persone; il valore della
+  pipeline SDD sta anche nei controlli automatici fra un documento e l'altro.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

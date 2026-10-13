@@ -49,7 +49,7 @@ Ogni voce: decisione, motivazione, alternative scartate. Nessun punto resta aper
 
 ## R8. Tipi evento iniziali
 
-- **Decisione**: nel profilo `mocked` un `ApplicationRunner` del package `mock` crea, se mancano, tre tipi: `CFM_EG` (Campo di formazione metodologica E/G, categoria FORMAZIONE_CAPI), `ROSS` (Route di orientamento al servizio, categoria RS), `CFA` (Campo di formazione associativa, categoria FORMAZIONE_CAPI), con requisiti e adempimenti predefiniti plausibili. Fuori dal mock li crea l'amministrazione con le API.
+- **Decisione**: nel profilo `mocked` un `ApplicationRunner` del package `mock` crea, se mancano, tre tipi: `CFM_EG` (Campo di formazione metodologica E/G, categoria LEADER_TRAINING), `ROSS` (Route di orientamento al servizio, categoria RS), `CFA` (Campo di formazione associativa, categoria LEADER_TRAINING), con requisiti e adempimenti predefiniti plausibili. Fuori dal mock li crea l'amministrazione con le API.
 - **Motivazione**: assunzione della spec ("catalogo iniziale caricato con i dati di prova del profilo mock"); serve per provare subito dal browser.
 - **Alternative**: migrazione dati sempre attiva (mescolerebbe dati di prova e reali).
 
