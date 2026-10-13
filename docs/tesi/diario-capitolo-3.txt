@@ -532,6 +532,16 @@ Artefatti: .run/*.run.xml, test-src/env/*.env, README, AGENTS.md.
 Problemi: nessuno.
 Spunto: separare i dati di sviluppo da quelli delle prove a mano evita di "sporcare" il database su cui si lavora.
 
+[2026-10-13] Log di @Slf4j visibili in console
+Cosa: in application.yml il package it.buonacaccia passa da INFO a DEBUG (le librerie restano a INFO) e la console
+  ha un formato corto con orario, livello colorato e classe.
+Chi: Mahima voleva vedere i log nel terminale e aveva provato a modificare application.yml senza riuscirci;
+  Claude ha cambiato il livello e provato l'avvio: compaiono i log di UserService, MockIdentityService, UserController.
+Paradigma: l'osservabilità come requisito di sviluppo, non solo di produzione.
+Artefatti: src/main/resources/application.yml, AGENTS.md.
+Problemi: la maggior parte dei log del progetto era a livello debug, sotto la soglia INFO.
+Spunto: livello per package invece che globale, per non annegare nei log delle librerie.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

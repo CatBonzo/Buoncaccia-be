@@ -50,14 +50,17 @@ resilience4j:
         ignore-exceptions:
           - org.springframework.dao.DuplicateKeyException
 
-# Log: console e file logs/buonacaccia.log (ignorato da git).
+# Log: console (terminale di IntelliJ) e file logs/buonacaccia.log (ignorato da git).
+# I log di @Slf4j (log.info, log.debug...) nel package it.buonacaccia escono dal livello DEBUG in su;
+# per vederne meno basta mettere INFO. Le librerie (Spring, Mongo) restano a INFO.
 logging:
   level:
     root: INFO
-    it.buonacaccia: INFO
+    it.buonacaccia: DEBUG
   file:
     name: logs/buonacaccia.log
   pattern:
+    console: "%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # Documentazione OpenAPI generata (springdoc) e Swagger UI.
