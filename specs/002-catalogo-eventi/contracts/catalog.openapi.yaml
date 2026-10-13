@@ -1,0 +1,488 @@
+openapi: 3.1.0
+info:
+  title: Buona Caccia – Catalogo eventi
+  version: 1.0.0
+  description: |
+    Contratto della feature 002-catalogo-eventi. Ogni risposta usa l'envelope
+    `errorCode` / `errorMessage` / `errorDomain` / `payload` (errorCode 0 = successo),
+    con status HTTP significativo (Q14). Per gli errori 422 `payload` contiene
+    l'elenco dei campi da correggere (research R7).
+    Date di evento come date senza ora (giorni nell'ora italiana); istanti in UTC.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: regions
+    description: Lista fissa delle regioni AGESCI
+  - name: event-types
+    description: Tipi evento (gestione riservata all'amministrazione)
+  - name: events
+    description: Catalogo pubblico e gestione degli eventi
+
+paths:
+  /api/v1/regions:
+    get:
+      tags: [regions]
+      operationId: listRegions
+      summary: Regioni AGESCI
+      security: []
+      responses:
+        '200':
+          description: Regioni
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties:
+                      payload: { type: array, items: { $ref: '#/components/schemas/Region' } }
+              example: { errorCode: 0, errorMessage: null, errorDomain: null, payload: [{ code: PIE, name: Piemonte }, { code: LIG, name: Liguria }] }
+
+  /api/v1/event-types:
+    get:
+      tags: [event-types]
+      operationId: listEventTypes
+      summary: Tipi evento attivi (con includeInactive=true anche i disattivati, solo per l'amministrazione)
+      security: [{}, { bearerAuth: [] }]
+      parameters:
+        - { name: includeInactive, in: query, schema: { type: boolean, default: false } }
+      responses:
+        '200':
+          description: Tipi evento
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties:
+                      payload: { type: array, items: { $ref: '#/components/schemas/EventType' } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [event-types]
+      operationId: createEventType
+      summary: Crea un tipo evento (entitlement tipoevento:gestione)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventTypeRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/EventTypeOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/event-types/{code}:
+    parameters:
+      - { name: code, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [event-types]
+      operationId: getEventType
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/EventTypeOk' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [event-types]
+      operationId: updateEventType
+      summary: Modifica nome, categoria, default e candidatura (il codice non cambia)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventTypeRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/EventTypeOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/event-types/{code}/deactivate:
+    post:
+      tags: [event-types]
+      operationId: deactivateEventType
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { $ref: '#/components/responses/EventTypeOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/events:
+    get:
+      tags: [events]
+      operationId: searchEvents
+      summary: Ricerca pubblica degli eventi pubblicati (FR-019)
+      security: []
+      parameters:
+        - { name: region, in: query, schema: { $ref: '#/components/schemas/RegionCode' } }
+        - { name: category, in: query, schema: { $ref: '#/components/schemas/EventCategory' } }
+        - { name: type, in: query, description: Codice del tipo evento, schema: { type: string } }
+        - { name: availability, in: query, schema: { $ref: '#/components/schemas/Availability' } }
+        - { name: status, in: query, description: "Stato effettivo; CANCELLED solo se indicato qui", schema: { $ref: '#/components/schemas/EventStatus' } }
+        - { name: startFrom, in: query, schema: { type: string, format: date } }
+        - { name: startTo, in: query, schema: { type: string, format: date } }
+        - { name: q, in: query, description: Testo contenuto nel titolo, schema: { type: string, maxLength: 100 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - name: sort
+          in: query
+          schema: { type: string, enum: ['startDate,asc', 'startDate,desc', 'title,asc', 'title,desc', 'type,asc', 'type,desc'], default: 'startDate,asc' }
+      responses:
+        '200':
+          description: Pagina di eventi
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties:
+                      payload: { $ref: '#/components/schemas/EventPage' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    post:
+      tags: [events]
+      operationId: createEvent
+      summary: Crea un evento in bozza (entitlement evento:gestione, regione della segreteria)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/EventOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/events/managed:
+    get:
+      tags: [events]
+      operationId: listManagedEvents
+      summary: Eventi gestibili dal chiamante in tutti gli stati, bozze comprese (FR-009)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/EventStatus' } }
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: Pagina di eventi
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties:
+                      payload: { $ref: '#/components/schemas/EventPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/events/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [events]
+      operationId: getEvent
+      summary: Dettaglio (pubblico; una bozza solo per chi la gestisce, altrimenti 404)
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/EventOk' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [events]
+      operationId: updateEvent
+      summary: Modifica (bozza tutti i campi; pubblicato solo i campi consentiti, FR-016)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/EventRequest'
+                - type: object
+                  required: [version]
+                  properties:
+                    version: { type: integer, description: Versione letta; se superata 409 40903 }
+      responses:
+        '200': { $ref: '#/components/responses/EventOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/events/{id}/publish:
+    post:
+      tags: [events]
+      operationId: publishEvent
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VersionRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/EventOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/events/{id}/close-registrations:
+    post:
+      tags: [events]
+      operationId: closeRegistrations
+      summary: Chiusura anticipata delle iscrizioni (FR-015)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VersionRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/EventOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/events/{id}/cancel:
+    post:
+      tags: [events]
+      operationId: cancelEvent
+      summary: Annullamento motivato (FR-017)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, version]
+              properties:
+                reason: { type: string, minLength: 1, maxLength: 500 }
+                version: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/EventOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  responses:
+    EventOk:
+      description: Evento
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { $ref: '#/components/schemas/Event' }
+    EventTypeOk:
+      description: Tipo evento
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { $ref: '#/components/schemas/EventType' }
+    Unauthorized:
+      description: Token assente o non valido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40100, errorMessage: "Autenticazione richiesta: token assente o non valido.", errorDomain: AUTH, payload: null }
+    Forbidden:
+      description: Entitlement mancante, oppure evento di un'altra regione o nazionale per una segreteria (FR-010)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40300, errorMessage: "Permesso mancante per questa operazione.", errorDomain: AUTH, payload: null }
+    NotFound:
+      description: Risorsa inesistente (o bozza non visibile)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40400, errorMessage: "Risorsa non trovata.", errorDomain: SYSTEM, payload: null }
+    Conflict:
+      description: "40901 transizione non consentita; 40902 codice duplicato; 40903 versione superata; 40904 campo non modificabile dopo la pubblicazione"
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40903, errorMessage: "L'evento è stato modificato da qualcun altro: ricarica e riprova.", errorDomain: CATALOG, payload: null }
+    UnprocessableEntity:
+      description: "42200 input non valido; 42201 invarianti di pubblicazione non rispettati. payload = campi da correggere"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { type: array, items: { $ref: '#/components/schemas/FieldError' } }
+          example:
+            errorCode: 42201
+            errorMessage: "L'evento non si può pubblicare: correggi i campi indicati."
+            errorDomain: CATALOG
+            payload:
+              - { field: endDate, message: "Il rientro non può precedere la partenza." }
+              - { field: seats, message: "I posti devono essere più di zero." }
+
+  schemas:
+    Envelope:
+      type: object
+      required: [errorCode, errorMessage, errorDomain, payload]
+      properties:
+        errorCode: { type: integer, description: "0 = successo; altrimenti SSSNN con SSS = status HTTP" }
+        errorMessage: { type: [string, 'null'] }
+        errorDomain: { type: [string, 'null'], enum: [AUTH, IDENTITY, CATALOG, SYSTEM, null] }
+        payload: {}
+
+    ErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - properties:
+            payload: { type: 'null' }
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field: { type: string }
+        message: { type: string }
+
+    RegionCode:
+      type: string
+      enum: [ABR, BAS, CAL, CAM, EMR, FVG, LAZ, LIG, LOM, MAR, MOL, PIE, PUG, SAR, SIC, TOS, TAA, UMB, VDA, VEN]
+    Region:
+      type: object
+      properties:
+        code: { $ref: '#/components/schemas/RegionCode' }
+        name: { type: string }
+    EventCategory: { type: string, enum: [LC, EG, RS, LEADER_TRAINING, ASSOCIATION] }
+    EventLevel: { type: string, enum: [NATIONAL, REGIONAL, ZONE] }
+    EventStatus:
+      type: string
+      enum: [DRAFT, PUBLISHED, REGISTRATION_OPEN, REGISTRATION_CLOSED, IN_PROGRESS, COMPLETED, CANCELLED]
+    Availability: { type: string, enum: [NOT_YET_OPEN, OPEN, LIMITED, HEAVY_OVERBOOKING, CLOSED] }
+    EnrollmentMode: { type: string, enum: [SELF, BY_LEADER, BOTH] }
+
+    Requirements:
+      type: object
+      properties:
+        minAge: { type: [integer, 'null'], minimum: 0 }
+        maxAge: { type: [integer, 'null'], minimum: 0 }
+        branches: { type: array, items: { type: string, enum: [LC, EG, RS, CO] } }
+        memberTypes: { type: array, items: { type: string, enum: [YOUTH, LEADER] } }
+        oneActivePerType: { type: boolean }
+        maxPerGroup: { type: [integer, 'null'], minimum: 1 }
+    Obligation:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [LEADER_VALIDATION, UNIT_LEADER_AUTHORIZATION, GROUP_LEADER_AUTHORIZATION, PAYMENT, DOCUMENT, ELECTRONIC_FORM] }
+        description: { type: [string, 'null'], maxLength: 300 }
+    Contact:
+      type: object
+      properties:
+        name: { type: [string, 'null'] }
+        email: { type: [string, 'null'], format: email }
+        phone: { type: [string, 'null'] }
+    Contacts:
+      type: object
+      properties:
+        methodological: { $ref: '#/components/schemas/Contact' }
+        administrative: { $ref: '#/components/schemas/Contact' }
+
+    EventTypeRequest:
+      type: object
+      required: [code, name, category]
+      properties:
+        code: { type: string, pattern: '^[A-Z0-9_]{2,20}$', description: Ignorato in modifica }
+        name: { type: string, maxLength: 120 }
+        category: { $ref: '#/components/schemas/EventCategory' }
+        defaultRequirements: { $ref: '#/components/schemas/Requirements' }
+        defaultObligations: { type: array, items: { $ref: '#/components/schemas/Obligation' } }
+        application: { type: boolean, default: false }
+    EventType:
+      allOf:
+        - $ref: '#/components/schemas/EventTypeRequest'
+        - type: object
+          properties:
+            active: { type: boolean }
+
+    EventRequest:
+      type: object
+      required: [typeCode, level]
+      description: In bozza tutti i campi tranne typeCode e level sono facoltativi; alla pubblicazione valgono gli invarianti di FR-007
+      properties:
+        typeCode: { type: string }
+        title: { type: [string, 'null'], maxLength: 200 }
+        description: { type: [string, 'null'], maxLength: 5000 }
+        level: { $ref: '#/components/schemas/EventLevel' }
+        region: { oneOf: [{ $ref: '#/components/schemas/RegionCode' }, { type: 'null' }] }
+        zone: { type: [string, 'null'], maxLength: 100 }
+        location: { type: [string, 'null'], maxLength: 200 }
+        province: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+        startDate: { type: [string, 'null'], format: date }
+        endDate: { type: [string, 'null'], format: date }
+        registrationOpenDate: { type: [string, 'null'], format: date }
+        registrationCloseDate: { type: [string, 'null'], format: date }
+        seats: { type: [integer, 'null'], minimum: 1 }
+        fee: { type: [number, 'null'], minimum: 0, multipleOf: 0.01 }
+        enrollmentMode: { oneOf: [{ $ref: '#/components/schemas/EnrollmentMode' }, { type: 'null' }] }
+        requirements: { $ref: '#/components/schemas/Requirements' }
+        obligations: { type: array, items: { $ref: '#/components/schemas/Obligation' } }
+        contacts: { $ref: '#/components/schemas/Contacts' }
+
+    VersionRequest:
+      type: object
+      required: [version]
+      properties:
+        version: { type: integer }
+
+    Event:
+      allOf:
+        - $ref: '#/components/schemas/EventRequest'
+        - type: object
+          required: [id, code, status, availability, enrolledCount, version]
+          properties:
+            id: { type: string }
+            code: { type: string, example: PIE-2027-001 }
+            typeName: { type: string }
+            category: { $ref: '#/components/schemas/EventCategory' }
+            status: { $ref: '#/components/schemas/EventStatus' }
+            availability: { $ref: '#/components/schemas/Availability' }
+            enrolledCount: { type: integer, description: Sempre 0 fino alla fase 3 }
+            cancellationReason: { type: [string, 'null'] }
+            version: { type: integer }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    EventPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content: { type: array, items: { $ref: '#/components/schemas/Event' } }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }

@@ -578,6 +578,20 @@ Problemi: la tabella delle feature della spec di progetto mette strutture/anagra
   (003), il Planner v2 no: seguito il planner, regioni come lista fissa.
 Spunto: come la spec di feature "ritaglia" la spec di progetto (FR di progetto citati tra parentesi) e la traccia.
 
+[2026-10-13] Clarify e plan della fase 2
+Cosa: Mahima ha scelto che la regione della segreteria stia in isMemberOf (agesci:PIE:segreteria); la spec è
+  chiusa senza marcatori. Poi speckit-plan: research con 11 decisioni (R1-R11), modello dati, contratto OpenAPI
+  con 14 endpoint, quickstart con 14 scenari a mano.
+Chi: le decisioni di dominio sono di Mahima (Q11, isMemberOf, default confermati); le scelte tecniche sono proposte
+  da Claude e registrate in AGENTS.md con la motivazione.
+Paradigma: SDD, il "plan" traduce il "cosa" in "come". Esempio forte per la tesi: invece di un job che aggiorna lo
+  stato ogni minuto, lo stato si calcola dall'ora: un requisito (FR-014 "sempre coerente") ha guidato una scelta
+  architetturale più semplice.
+Artefatti: specs/002-catalogo-eventi/{plan,research,data-model,quickstart}.md, contracts/catalog.openapi.yaml.
+Problemi: la domanda sulla regione è stata posta tre volte prima di essere chiara: la prima formulazione era
+  troppo tecnica (claim, token); con un esempio concreto del token Mahima ha risposto con una sua soluzione.
+Spunto: comunicazione umano-agente, l'agente deve tradurre le domande tecniche nel linguaggio del dominio.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
