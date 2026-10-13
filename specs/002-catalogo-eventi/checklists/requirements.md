@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,6 +31,6 @@
 
 ## Notes
 
-- One open marker in FR-010: which token information carries the secretariat's region. Asked to Mahima on 2026-10-13.
+- FR-010 marker resolved 2026-10-13: region read from `isMemberOf` as `agesci:<SIGLA>:segreteria` (Mahima's choice). All items pass.
 - Entitlement and claim names (`agesci:entitlement:...`) are domain vocabulary from the project spec, not implementation details.
 - HTTP status codes in FR-023 follow the decision Q14 of feature 001 and the project envelope; kept as domain contract.

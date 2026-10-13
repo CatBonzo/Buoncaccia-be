@@ -13,6 +13,8 @@
 ### Session 2026-10-13
 
 - Q11 (spec di progetto): la segreteria regionale può gestire eventi di qualunque regione? → A: no, solo quelli della propria regione; decisa da Mahima (vedi FR-010).
+- Da quale informazione del token si ricava la regione della segreteria? → A: dall'appartenenza `isMemberOf`, con la sigla della regione al posto di "regione": `agesci:PIE:segreteria`; scelta di Mahima (vedi FR-010). La residenza di chi è censito non conta.
+- Default proposti e confermati da Mahima: eventi nazionali gestiti dall'amministrazione; regioni come lista fissa e zona come testo; campi bloccati dopo la pubblicazione come in FR-016.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -139,7 +141,7 @@ Dopo la pubblicazione la segreteria può correggere solo alcuni dati dell'evento
 
 **Autorizzazioni territoriali (Q11)**
 
-- **FR-010**: La segreteria regionale MUST poter creare, modificare, pubblicare, chiudere e annullare solo eventi della propria regione (livello regionale o zona). L'amministrazione MUST poter gestire eventi di qualsiasi regione e di livello nazionale. La regione della segreteria MUST essere letta dal token: [NEEDS CLARIFICATION: da quale informazione del token si ricava la regione della segreteria? (es. un claim dedicato `region`, oppure l'appartenenza `isMemberOf`)]. Una segreteria senza regione nel token MUST NOT poter gestire alcun evento.
+- **FR-010**: La segreteria regionale MUST poter creare, modificare, pubblicare, chiudere e annullare solo eventi della propria regione (livello regionale o zona). L'amministrazione MUST poter gestire eventi di qualsiasi regione e di livello nazionale. La regione della segreteria MUST essere letta dall'appartenenza `isMemberOf` del token, nella forma `agesci:<SIGLA_REGIONE>:segreteria` (es. `agesci:PIE:segreteria`), dove la sigla è quella della lista fissa delle regioni (FR-022). Una segreteria senza un'appartenenza di questa forma, o con una sigla sconosciuta, MUST NOT poter gestire alcun evento.
 - **FR-011**: Il vincolo di FR-010 MUST riguardare solo la gestione degli eventi: la consultazione del catalogo e, nelle fasi successive, le iscrizioni MUST restare senza vincolo territoriale (BR-15).
 
 **Stati e tempi**
@@ -193,6 +195,6 @@ Dopo la pubblicazione la segreteria può correggere solo alcuni dati dell'evento
 - Il codice leggibile dell'evento è generato dal sistema (es. regione, anno e progressivo); il formato si decide nel `plan`.
 - Il catalogo iniziale dei tipi evento (es. CFM_EG, ROSS, CFA) è caricato con i dati di prova del profilo mock.
 - Le regioni sono la lista fissa delle regioni AGESCI (l'elenco esatto si fissa nel `plan`); la zona è un testo libero.
-- Gli utenti di prova del mock vanno estesi con almeno una seconda segreteria di un'altra regione per provare il vincolo di Q11.
+- Gli utenti di prova del mock vanno estesi con almeno una seconda segreteria di un'altra regione per provare il vincolo di Q11; l'`isMemberOf` della segreteria esistente diventa `agesci:PIE:segreteria`.
 - Fuori da questa feature: iscrizioni e conteggio reale degli iscritti (fase 3), assegnazione dello staff (FR-020 di progetto), notifiche di modifica e annullamento (fase 4), rimborsi, strutture e sincronizzazione con il censimento, regione preferita dell'utente (FR-008 di progetto), configurazione regionale dei pagamenti.
 - Riferimenti alle risorse API (Appendice A della spec di progetto): il contratto OpenAPI si definisce nel `plan`.
