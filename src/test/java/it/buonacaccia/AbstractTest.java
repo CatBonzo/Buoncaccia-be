@@ -17,7 +17,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Base dei test di integrazione, come l'AbstractTest di ScoutShopper-be: crea il database
- * (MongoDB in Testcontainers, stessa immagine di compose.yaml, uno solo per tutta la suite),
+ * (MongoDB in Testcontainers, stessa immagine di docker-compose.yaml, uno solo per tutta la suite),
  * avvia l'applicazione vera su porta casuale con il profilo {@code mocked} e offre un client
  * HTTP che restituisce status e corpo JSON.
  */

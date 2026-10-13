@@ -542,6 +542,16 @@ Artefatti: src/main/resources/application.yml, AGENTS.md.
 Problemi: la maggior parte dei log del progetto era a livello debug, sotto la soglia INFO.
 Spunto: livello per package invece che globale, per non annegare nei log delle librerie.
 
+[2026-10-13] Log: livello da variabile d'ambiente e formato standard
+Cosa: Mahima ha introdotto LOGGING_LEVEL negli env e rinominato compose.yaml in docker-compose.yaml. Con la sua
+  prima versione anche root andava a debug: oltre 3000 righe all'avvio, quasi tutte interne di Spring. Claude ha
+  lasciato root a info, legato solo it.buonacaccia a LOGGING_LEVEL e tolto il formato console personalizzato.
+Chi: Mahima ("non voglio vedere tutto di tutto", con un esempio del formato che vuole); Claude ha misurato e corretto.
+Paradigma: iterazione rapida umano-agente su un dettaglio di esperienza dello sviluppatore; misura prima di cambiare.
+Artefatti: application.yml, test-src/env/*.env, docker-compose.yaml, AGENTS.md.
+Problemi: una variabile usata per due livelli diversi (root e package) mescola log utili e rumore.
+Spunto: configurazione per ambiente tramite variabili, con default sicuri nel file versionato.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

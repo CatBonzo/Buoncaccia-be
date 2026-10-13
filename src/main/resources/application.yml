@@ -7,7 +7,7 @@ spring:
   data:
     mongodb:
       auto-index-creation: true
-  # Collegamento a MongoDB (container di compose.yaml): SPRING_MONGODB_URI in test-src/env/test.env.
+  # Collegamento a MongoDB (container di docker-compose.yaml): SPRING_MONGODB_URI in test-src/env/test.env.
   security:
     oauth2:
       resourceserver:
@@ -50,17 +50,16 @@ resilience4j:
         ignore-exceptions:
           - org.springframework.dao.DuplicateKeyException
 
-# Log: console (terminale di IntelliJ) e file logs/buonacaccia.log (ignorato da git).
-# I log di @Slf4j (log.info, log.debug...) nel package it.buonacaccia escono dal livello DEBUG in su;
-# per vederne meno basta mettere INFO. Le librerie (Spring, Mongo) restano a INFO.
+# Log: console (formato standard di Spring Boot) e file logs/buonacaccia.log (ignorato da git).
+# Le librerie (Spring, Mongo, Kafka) restano sempre a INFO; solo i log di @Slf4j del package
+# it.buonacaccia seguono LOGGING_LEVEL (negli env è debug; senza variabile, info).
 logging:
   level:
-    root: ${LOGGING_LEVEL:info}
-    it.buonacaccia: ${LOGGING_LEVEL:debug}
+    root: info
+    it.buonacaccia: ${LOGGING_LEVEL:info}
   file:
     name: logs/buonacaccia.log
   pattern:
-    console: "%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # Documentazione OpenAPI generata (springdoc) e Swagger UI.
