@@ -24,10 +24,10 @@ description: "Task della feature 004 notifiche e-mail"
 
 **Scopo**: dipendenze, configurazione e infrastruttura di test.
 
-- [ ] T001 In `build.gradle` aggiungere `spring-boot-starter-kafka` e `spring-boot-starter-mail`; nei test `org.testcontainers:testcontainers-kafka` e `org.awaitility:awaitility` (versioni dal BOM di Boot)
-- [ ] T002 In `src/main/resources/application.yml` aggiungere `spring.kafka` (serializzatori JSON, `group-id: buonacaccia-notifications`, `auto-offset-reset: earliest`, `acks: all`), `spring.mail` senza host di default, e `buonacaccia.notifications` (`from: noreply@buonacaccia.local`, `link-base-url: http://localhost:4200/autorizza`, `relay-delay: PT1S`, `retry.initial-interval: 1s`, `retry.multiplier: 2`, `retry.max-attempts: 4`); verificare che `test-src/env/mocked.env` e `test.env` abbiano `SPRING_KAFKA_BOOTSTRAP_SERVERS` e `SPRING_MAIL_HOST/PORT`
-- [ ] T003 [P] In `test/AbstractTest.java` avviare una volta per la suite `KafkaContainer` (`apache/kafka:4.3.1`) e un `GenericContainer` Mailpit (`axllent/mailpit:v1.31.5`, porte 1025 e 8025) con `@ServiceConnection` per Kafka e `@DynamicPropertySource` per `spring.mail.host/port`; proprietà di test `buonacaccia.notifications.relay-delay=PT0.2S`, `retry.initial-interval=100ms`
-- [ ] T004 [P] Creare `test/MailpitClient.java`: `deleteAll()`, `messagesTo(email)`, `awaitMessagesTo(email, n)` (Awaitility, 10 s), `text(id)` sull'API REST di Mailpit (`/api/v1/messages`, `/api/v1/message/{id}`, `DELETE /api/v1/messages`); pulire la casella in `@BeforeEach` di `AbstractTest`
+- [x] T001 In `build.gradle` aggiungere `spring-boot-starter-kafka` e `spring-boot-starter-mail`; nei test `org.testcontainers:testcontainers-kafka` e `org.awaitility:awaitility` (versioni dal BOM di Boot)
+- [x] T002 In `src/main/resources/application.yml` aggiungere `spring.kafka` (serializzatori JSON, `group-id: buonacaccia-notifications`, `auto-offset-reset: earliest`, `acks: all`), `spring.mail` senza host di default, e `buonacaccia.notifications` (`from: noreply@buonacaccia.local`, `link-base-url: http://localhost:4200/autorizza`, `relay-delay: PT1S`, `retry.initial-interval: 1s`, `retry.multiplier: 2`, `retry.max-attempts: 4`); verificare che `test-src/env/mocked.env` e `test.env` abbiano `SPRING_KAFKA_BOOTSTRAP_SERVERS` e `SPRING_MAIL_HOST/PORT`
+- [x] T003 [P] In `test/AbstractTest.java` avviare una volta per la suite `KafkaContainer` (`apache/kafka:4.3.1`) e un `GenericContainer` Mailpit (`axllent/mailpit:v1.31.5`, porte 1025 e 8025) con `@ServiceConnection` per Kafka e `@DynamicPropertySource` per `spring.mail.host/port`; proprietà di test `buonacaccia.notifications.relay-delay=PT0.2S`, `retry.initial-interval=100ms`
+- [x] T004 [P] Creare `test/MailpitClient.java`: `deleteAll()`, `messagesTo(email)`, `awaitMessagesTo(email, n)` (Awaitility, 10 s), `text(id)` sull'API REST di Mailpit (`/api/v1/messages`, `/api/v1/message/{id}`, `DELETE /api/v1/messages`); pulire la casella in `@BeforeEach` di `AbstractTest`
 
 ---
 
@@ -35,19 +35,19 @@ description: "Task della feature 004 notifiche e-mail"
 
 **Scopo**: outbox, relay, consumer, registro: il percorso completo di un evento di dominio (R1–R5).
 
-- [ ] T005 Creare `main/config/mongo/MongoTransactionConfig.java` con `MongoTransactionManager` e `TransactionTemplate` (R2)
-- [ ] T006 [P] Creare `main/model/DomainEventType.java` (10 valori di data-model.md), `main/model/NotificationStatus.java` (`PENDING`, `SENT`, `FAILED`, `NO_ADDRESS`, `NO_RECIPIENT`), `main/model/NotificationTemplate.java` (11 valori), `main/model/RecipientRole.java`
-- [ ] T007 [P] Creare `main/notification/DomainEvent.java` (record con `EnrollmentSnapshot` ed `EventSnapshot` come in data-model.md)
-- [ ] T008 Creare `main/model/OutboxEvent.java` (`@Document("outbox")`, indice `{status:1, createdAt:1}`, TTL 7 giorni su `publishedAt`) e `main/repository/OutboxRepository.java`
-- [ ] T009 Creare `main/model/Notification.java` (`@Document("notifications")`, indice unico `{domainEventId, recipientId, template}`, indici `{enrollmentId, createdAt}` e `status`) e `main/repository/NotificationRepository.java`
-- [ ] T010 Creare `main/notification/DomainEventRecorder.java`: costruisce gli snapshot da `Enrollment` + `Event` (con `waitingRank` contato tra le iscrizioni in attesa con `arrivalOrder` minore, `pendingObligations` = adempimenti `TODO`) e inserisce `OutboxEvent` `PENDING`; da chiamare solo dentro una transazione
-- [ ] T011 Creare `main/config/KafkaConfig.java`: topic `buonacaccia.domain-events` (3 partizioni) e `buonacaccia.domain-events.DLT`, `DefaultErrorHandler` con `ExponentialBackOff` dalle proprietà e `DeadLetterPublishingRecoverer`, preceduto da `main/notification/DeadLetterRecoverer.java` che segna `FAILED` le notifiche `PENDING` dell'evento (R5)
-- [ ] T012 Creare `main/notification/OutboxRelay.java`: `@Scheduled(fixedDelayString = relay-delay)`, al più 100 `PENDING` per `createdAt`, `send(topic, aggregateId, payload).get(5 s)`, poi `PUBLISHED`; al primo errore incrementa `attempts`, salva `lastError` e si ferma fino al giro dopo; `pause()`/`resume()` per i test (R1, R11)
-- [ ] T013 Creare `main/notification/MailComposer.java` (oggetto e testo per modello, date `dd/MM/yyyy` e ore `HH:mm` in Europe/Rome, R7) e `main/notification/RecipientResolver.java` (R6), con `main/repository/UserRepository.java` + `findByCensusUnitIdAndCensusMemberType` e `findByCensusGroupIdAndCensusGroupLeaderTrue`
-- [ ] T014 Creare `main/notification/NotificationDispatcher.java` (destinatari → notifica `PENDING` con chiave unica → invio con `JavaMailSender` → `SENT`; duplicato già chiuso = salta; `NO_ADDRESS`, `NO_RECIPIENT`) e `main/notification/DomainEventListener.java` (`@KafkaListener` sul topic, delega al dispatcher)
-- [ ] T015 In `main/service/EnrollmentService.java` far passare tutti i salvataggi da `save(enrollment, List<DomainEvent> events)` dentro `TransactionTemplate`; `insert` dell'iscrizione nuova idem. Gli eventi si aggiungono storia per storia
-- [ ] T016 [P] In `main/config/error/ErrorCode.java` aggiungere `LINK_NOT_VALID(40420, 404, "NOTIFICATION", "Il link non è valido o non lo è più.")` e `DECISION_NOT_POSSIBLE(40920, 409, "NOTIFICATION", "L'autorizzazione non è più da dare.")`
-- [ ] T017 [P] Test unitario `test/notification/MailComposerTest.java` (un caso per modello: oggetto con numero o codice, date italiane) e `test/notification/RecipientResolverTest.java` (partecipante, presentatore diverso, capi unità esclusa la persona stessa, capo gruppo)
+- [x] T005 Creare `main/config/mongo/MongoTransactionConfig.java` con `MongoTransactionManager` e `TransactionTemplate` (R2)
+- [x] T006 [P] Creare `main/model/DomainEventType.java` (10 valori di data-model.md), `main/model/NotificationStatus.java` (`PENDING`, `SENT`, `FAILED`, `NO_ADDRESS`, `NO_RECIPIENT`), `main/model/NotificationTemplate.java` (11 valori), `main/model/RecipientRole.java`
+- [x] T007 [P] Creare `main/notification/DomainEvent.java` (record con `EnrollmentSnapshot` ed `EventSnapshot` come in data-model.md)
+- [x] T008 Creare `main/model/OutboxEvent.java` (`@Document("outbox")`, indice `{status:1, createdAt:1}`, TTL 7 giorni su `publishedAt`) e `main/repository/OutboxRepository.java`
+- [x] T009 Creare `main/model/Notification.java` (`@Document("notifications")`, indice unico `{domainEventId, recipientId, template}`, indici `{enrollmentId, createdAt}` e `status`) e `main/repository/NotificationRepository.java`
+- [x] T010 Creare `main/notification/DomainEventRecorder.java`: costruisce gli snapshot da `Enrollment` + `Event` (con `waitingRank` contato tra le iscrizioni in attesa con `arrivalOrder` minore, `pendingObligations` = adempimenti `TODO`) e inserisce `OutboxEvent` `PENDING`; da chiamare solo dentro una transazione
+- [x] T011 Creare `main/config/KafkaConfig.java`: topic `buonacaccia.domain-events` (3 partizioni) e `buonacaccia.domain-events.DLT`, `DefaultErrorHandler` con `ExponentialBackOff` dalle proprietà e `DeadLetterPublishingRecoverer`, preceduto da `main/notification/DeadLetterRecoverer.java` che segna `FAILED` le notifiche `PENDING` dell'evento (R5)
+- [x] T012 Creare `main/notification/OutboxRelay.java`: `@Scheduled(fixedDelayString = relay-delay)`, al più 100 `PENDING` per `createdAt`, `send(topic, aggregateId, payload).get(5 s)`, poi `PUBLISHED`; al primo errore incrementa `attempts`, salva `lastError` e si ferma fino al giro dopo; `pause()`/`resume()` per i test (R1, R11)
+- [x] T013 Creare `main/notification/MailComposer.java` (oggetto e testo per modello, date `dd/MM/yyyy` e ore `HH:mm` in Europe/Rome, R7) e `main/notification/RecipientResolver.java` (R6), con `main/repository/UserRepository.java` + `findByCensusUnitIdAndCensusMemberType` e `findByCensusGroupIdAndCensusGroupLeaderTrue`
+- [x] T014 Creare `main/notification/NotificationDispatcher.java` (destinatari → notifica `PENDING` con chiave unica → invio con `JavaMailSender` → `SENT`; duplicato già chiuso = salta; `NO_ADDRESS`, `NO_RECIPIENT`) e `main/notification/DomainEventListener.java` (`@KafkaListener` sul topic, delega al dispatcher)
+- [x] T015 In `main/service/EnrollmentService.java` far passare tutti i salvataggi da `save(enrollment, List<DomainEvent> events)` dentro `TransactionTemplate`; `insert` dell'iscrizione nuova idem. Gli eventi si aggiungono storia per storia
+- [x] T016 [P] In `main/config/error/ErrorCode.java` aggiungere `LINK_NOT_VALID(40420, 404, "NOTIFICATION", "Il link non è valido o non lo è più.")` e `DECISION_NOT_POSSIBLE(40920, 409, "NOTIFICATION", "L'autorizzazione non è più da dare.")`
+- [x] T017 [P] Test unitario `test/notification/MailComposerTest.java` (un caso per modello: oggetto con numero o codice, date italiane) e `test/notification/RecipientResolverTest.java` (partecipante, presentatore diverso, capi unità esclusa la persona stessa, capo gruppo)
 
 **Checkpoint**: un evento scritto in outbox arriva al consumer e diventa una notifica.
 
@@ -61,13 +61,13 @@ description: "Task della feature 004 notifiche e-mail"
 
 ### Test (prima del codice)
 
-- [ ] T018 [US1] `test/v1/controller/EnrollmentConfirmationMailTest.java`: nei posti (una e-mail, "nei posti", adempimenti, scadenza); in attesa ("in attesa", posizione in lista, niente pagamento); tramite capo (due e-mail, modelli `ENROLLMENT_CONFIRMATION` e `PRESENTER_NOTICE`); partecipante senza e-mail (nessuna e-mail, notifica `NO_ADDRESS`)
+- [x] T018 [US1] `test/v1/controller/EnrollmentConfirmationMailTest.java`: nei posti (una e-mail, "nei posti", adempimenti, scadenza); in attesa ("in attesa", posizione in lista, niente pagamento); tramite capo (due e-mail, modelli `ENROLLMENT_CONFIRMATION` e `PRESENTER_NOTICE`); partecipante senza e-mail (nessuna e-mail, notifica `NO_ADDRESS`)
 
 ### Implementazione
 
-- [ ] T019 [US1] In `EnrollmentService.enroll` registrare `ENROLLMENT_REGISTERED` nella transazione dell'inserimento
-- [ ] T020 [US1] In `NotificationDispatcher`/`MailComposer` gestire `ENROLLMENT_REGISTERED` → `ENROLLMENT_CONFIRMATION` al partecipante, `PRESENTER_NOTICE` al presentatore
-- [ ] T021 [US1] Aggiungere a `src/main/resources/mocked-identity.yml` un utente senza e-mail se non esiste già (per il caso `NO_ADDRESS` anche nelle prove manuali) e aggiornare i test che contano gli utenti mock
+- [x] T019 [US1] In `EnrollmentService.enroll` registrare `ENROLLMENT_REGISTERED` nella transazione dell'inserimento
+- [x] T020 [US1] In `NotificationDispatcher`/`MailComposer` gestire `ENROLLMENT_REGISTERED` → `ENROLLMENT_CONFIRMATION` al partecipante, `PRESENTER_NOTICE` al presentatore
+- [x] T021 [US1] ~~Aggiungere un utente senza e-mail ai mock~~ Non serve: il test toglie l'e-mail a `scolta` direttamente nel database e la rimette alla fine, così gli utenti di prova restano 12
 
 **Checkpoint**: US1 verde da sola.
 

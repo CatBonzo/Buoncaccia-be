@@ -8,6 +8,23 @@ spring:
     mongodb:
       auto-index-creation: true
   # Collegamento a MongoDB (container di docker-compose.yaml): SPRING_MONGODB_URI in test-src/env/test.env.
+  # Kafka (ADR-003, fase 4): indirizzo in SPRING_KAFKA_BOOTSTRAP_SERVERS (test-src/env/).
+  # Chiave e valore sono stringhe: il JSON del DomainEvent lo scrive e lo legge l'applicazione.
+  kafka:
+    producer:
+      acks: all
+      # Con Kafka fermo il relay deve arrendersi presto e riprovare al giro dopo (research R1),
+      # non restare bloccato i 60 s predefiniti.
+      properties:
+        max.block.ms: 5000
+        request.timeout.ms: 3000
+        delivery.timeout.ms: 5000
+    consumer:
+      group-id: buonacaccia-notifications
+      auto-offset-reset: earliest
+  # Posta in uscita: in locale Mailpit (SPRING_MAIL_HOST/PORT in test-src/env/), interfaccia su http://localhost:8025.
+  mail:
+    default-encoding: UTF-8
   security:
     oauth2:
       resourceserver:
@@ -76,3 +93,15 @@ springdoc:
     tags-sorter: alpha
     persist-authorization: true
   default-produces-media-type: application/json
+
+# Notifiche e-mail (feature 004): mittente, indirizzo del frontend per il link di autorizzazione,
+# giro del relay outbox → Kafka e ritentativi dell'invio prima del dead letter (research R1, R5, R8).
+buonacaccia:
+  notifications:
+    from: noreply@buonacaccia.local
+    link-base-url: ${BUONACACCIA_LINK_BASE_URL:http://localhost:4200/autorizza}
+    relay-delay: PT1S
+    retry:
+      initial-interval: 1s
+      multiplier: 2
+      max-attempts: 4

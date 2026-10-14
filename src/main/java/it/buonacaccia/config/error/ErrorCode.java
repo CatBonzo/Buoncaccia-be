@@ -19,6 +19,8 @@ public enum ErrorCode {
     ENROLLMENT_STATE_CONFLICT(40910, 409, "ENROLLMENT", "Operazione non consentita nello stato attuale dell'iscrizione."),
     ALREADY_ENROLLED(40911, 409, "ENROLLMENT", "Il socio ha già un'iscrizione attiva a questo evento."),
     REGISTRATIONS_NOT_OPEN(40912, 409, "ENROLLMENT", "Le iscrizioni a questo evento non sono aperte."),
+    LINK_NOT_VALID(40420, 404, "NOTIFICATION", "Il link non è valido o non lo è più."),
+    DECISION_NOT_POSSIBLE(40920, 409, "NOTIFICATION", "L'autorizzazione non è più da dare."),
     INVALID_INPUT(42200, 422, "SYSTEM", "Richiesta non valida."),
     PUBLISH_INVARIANTS(42201, 422, "CATALOG", "L'evento non si può pubblicare: correggi i campi indicati."),
     NOT_ELIGIBLE(42210, 422, "ENROLLMENT", "Il socio non ha i requisiti per questo evento."),
