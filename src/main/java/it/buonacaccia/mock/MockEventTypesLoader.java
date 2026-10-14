@@ -70,6 +70,18 @@ public class MockEventTypesLoader implements ApplicationRunner {
                         .application(false).active(true).createdAt(now).updatedAt(now)
                         .build(),
                 EventType.builder()
+                        .code("SPEC_EG")
+                        .name("Campo di specialità E/G")
+                        .category(EventCategory.EG)
+                        .defaultRequirements(Requirements.builder()
+                                .minAge(12).maxAge(16).branches(List.of(Branch.EG)).memberTypes(List.of(MemberType.YOUTH))
+                                .maxPerGroup(6).build())
+                        .defaultObligations(List.of(
+                                obligation(ObligationType.LEADER_VALIDATION, "Validazione del capo reparto"),
+                                obligation(ObligationType.PAYMENT, "Quota di partecipazione")))
+                        .application(false).active(true).createdAt(now).updatedAt(now)
+                        .build(),
+                EventType.builder()
                         .code("CFA")
                         .name("Campo di formazione associativa")
                         .category(EventCategory.LEADER_TRAINING)

@@ -25,12 +25,14 @@ public final class CallerContext {
     private static final String MEMBERSHIP_PREFIX = "agesci:";
     private static final String MEMBERSHIP_SUFFIX = ":segreteria";
 
-    private static final CallerContext ANONYMOUS = new CallerContext(null, false, null);
+    private static final CallerContext ANONYMOUS = new CallerContext(null, false, null, List.of());
 
     private final String subject;
     private final boolean admin;
     /** Regione della segreteria; {@code null} se manca o la sigla è sconosciuta. */
     private final Region region;
+    /** Entitlement del token: servono alle regole che dipendono anche dalla risorsa (feature 003). */
+    private final List<String> entitlements;
 
     public static CallerContext anonymous() {
         return ANONYMOUS;
@@ -42,11 +44,17 @@ public final class CallerContext {
         }
         List<String> roles = jwt.getClaimAsStringList(SecurityGuardService.ROLE_CLAIM);
         boolean admin = roles != null && roles.contains(Roles.AMMINISTRATORE);
-        return new CallerContext(jwt.getSubject(), admin, regionOf(jwt).orElse(null));
+        List<String> entitlements = jwt.getClaimAsStringList(SecurityGuardService.ENTITLEMENT_CLAIM);
+        return new CallerContext(jwt.getSubject(), admin, regionOf(jwt).orElse(null),
+                entitlements == null ? List.of() : List.copyOf(entitlements));
     }
 
     public boolean isAuthenticated() {
         return subject != null;
+    }
+
+    public boolean hasEntitlement(String entitlement) {
+        return entitlements.contains(entitlement);
     }
 
     public Optional<Region> region() {

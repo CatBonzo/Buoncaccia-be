@@ -29,5 +29,7 @@ public class Census {
     private MemberType memberType;
     private CensusStatus status;
     private Integer year;
+    /** Capo gruppo del proprio {@code groupId}: autorizza le iscrizioni dei soci del gruppo. */
+    private boolean groupLeader;
     private Instant lastSyncAt;
 }

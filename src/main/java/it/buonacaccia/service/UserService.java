@@ -36,6 +36,7 @@ public class UserService {
         existing.setEmail(candidate.getEmail());
         existing.setFirstName(candidate.getFirstName());
         existing.setLastName(candidate.getLastName());
+        existing.setBirthDate(candidate.getBirthDate());
         existing.setCensus(candidate.getCensus());
         existing.setRoles(candidate.getRoles());
         existing.setEntitlements(candidate.getEntitlements());

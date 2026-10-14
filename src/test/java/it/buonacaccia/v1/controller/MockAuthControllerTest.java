@@ -13,7 +13,7 @@ import tools.jackson.databind.JsonNode;
 class MockAuthControllerTest extends AbstractTest {
 
     @Test
-    void findAllReturnsTheFourMockUsersWithIssuerAndToken() {
+    void findAllReturnsEveryMockUserWithIssuerAndToken() {
         Result result = get("/api/v1/mock/auth/findAll");
 
         assertThat(result.status()).isEqualTo(200);
@@ -28,7 +28,8 @@ class MockAuthControllerTest extends AbstractTest {
             assertThat(user.get("authentication").get("role").size()).isPositive();
         }
         assertThat(usernames).containsExactlyInAnyOrder("amministratore", "segreteria", "socio", "esterno",
-                "segreteria-lig");
+                "segreteria-lig", "esploratore", "lupetto", "rover", "rover-lig", "capogruppo",
+                "socio-non-in-regola", "scolta");
     }
 
     @Test

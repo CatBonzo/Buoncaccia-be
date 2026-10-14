@@ -14,9 +14,9 @@ class MockIdentityServiceTest {
     @Test
     void duplicateAgesciUuidIsRejected() {
         Authentication auth = new Authentication("agesci:socio:false", List.of("agesci:socio:user"), List.of());
-        MockedUser first = new MockedUser("dup", null, "Uno", "uno", "Uno", "Uno", null, auth, null);
-        MockedUser second = new MockedUser("dup", null, "Due", "due", "Due", "Due", null, auth, null);
-        MockIdentityService service = new MockIdentityService(null, null, null);
+        MockedUser first = new MockedUser("dup", null, "Uno", "uno", "Uno", "Uno", null, null, auth, null);
+        MockedUser second = new MockedUser("dup", null, "Due", "due", "Due", "Due", null, null, auth, null);
+        MockIdentityService service = new MockIdentityService(null, null, null, null);
 
         assertThatThrownBy(() -> service.load(List.of(first, second)))
                 .isInstanceOf(IllegalStateException.class)
