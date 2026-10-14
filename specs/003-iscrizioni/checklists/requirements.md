@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Un solo marcatore aperto: FR-017, pagamento per chi è in lista d'attesa (FR-038 di progetto, "da decidere" nella checklist della spec v2.0). Chiesto a Mahima il 14/10.
+- FR-017 (pagamento per chi è in lista d'attesa, FR-038 di progetto) scritto con l'opzione consigliata "alla promozione"; chiesto a Mahima il 14/10, da confermare.

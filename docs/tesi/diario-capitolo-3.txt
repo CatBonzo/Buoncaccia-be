@@ -627,6 +627,22 @@ Problemi: (1) Jackson 3 rifiuta un booleano primitivo assente nel JSON: i DTO us
 Spunto: anche dopo analyze, scrivere i test fa emergere ambiguità che i documenti non mostrano (caso 2): il
   ciclo spec → test → codice corregge la spec a ritroso.
 
+[2026-10-14] Merge della fase 2, due decisioni e spec della fase 3
+Cosa: Mahima ha unito la PR #2 in feature. Ha deciso Q12 (vale BR-10: rimborso solo con ritiro almeno 7 giorni
+  prima della partenza) e ha tenuto le sigle di tre lettere per le regioni. Poi speckit-specify per la fase 3:
+  iscrizioni e lista d'attesa, 5 user story, 25 requisiti, 6 criteri di successo.
+Chi: decisioni di Mahima; spec di Claude dalla spec di progetto v2.0.
+Paradigma: SDD. La contraddizione US-10/BR-10, segnata nella checklist della spec di progetto, si risolve prima di
+  scrivere la feature che la usa: la decisione entra nella sezione Clarifications della spec di feature.
+Artefatti: specs/003-iscrizioni/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: (1) per le sigle Mahima ha chiesto prima "quelle ufficiali": AGESCI non ne pubblica; l'unico standard è
+  ISO 3166-2 (IT-21 Piemonte). Messi a confronto i due formati, ha scelto di restare sulle tre lettere. La prova con
+  ISO, fatta su un ramo locale, è stata scartata senza pubblicarla. (2) Il pagamento per chi è in lista d'attesa
+  (FR-038 di progetto) era "da decidere": proposta l'opzione "alla promozione" con una card di scelta, e il lavoro
+  è andato avanti su quella in attesa della risposta.
+Spunto: "ufficiale" non sempre esiste: l'agente deve verificare le fonti prima di adottare uno standard e mostrare
+  il costo della scelta (leggibilità) invece di applicarla alla cieca.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

@@ -126,11 +126,15 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-13 | Nei DTO i booleani facoltativi sono `Boolean`, non `boolean` | Jackson 3 (Boot 4) costruisce i DTO col costruttore completo di `@AllArgsConstructor` e rifiuta un campo primitivo assente (`FAIL_ON_NULL_FOR_PRIMITIVES`) |
 | 2026-10-13 | Nei test di integrazione l'ora è un `MutableClock` importato da `AbstractTest`; torna all'ora vera dopo ogni test | Un solo contesto Spring per tutta la suite (più veloce) e prove sugli orari (US3) senza attese |
 | 2026-10-13 | I tipi disattivati si vedono con `GET /event-types?includeInactive=true`, solo con l'entitlement `tipoevento:gestione` | Il catalogo pubblico mostra solo i tipi usabili; l'amministrazione deve poter ritrovare quelli spenti |
+| 2026-10-14 | Q12 risolta: vale BR-10, il rimborso spetta se il ritiro avviene almeno 7 giorni prima della partenza (data di partenza esclusa); i 3 giorni di US-10 sono sbagliati | Decisione di Mahima; serve alla fase 3 per calcolare il diritto al rimborso al ritiro |
+| 2026-10-14 | Sigle delle regioni: restano quelle di tre lettere (PIE, LIG…), anche in `isMemberOf` e nel codice evento | AGESCI non pubblica sigle proprie; Mahima ha preferito queste ai codici ufficiali ISO 3166-2 (IT-21), meno leggibili |
+| 2026-10-14 | Spec della 003: iscrizioni e lista d'attesa insieme (fase 3 del Planner v2); pagamenti, notifiche, documenti e candidature restano fuori | Il planner unisce le feature 004 e 005 della spec di progetto: la lista d'attesa nasce con l'ordine di arrivo |
+| 2026-10-14 | Proposta (da confermare): chi è in lista d'attesa paga solo alla promozione, con una nuova scadenza di 9 giorni | FR-038 di progetto era "da decidere"; nessuno paga per un posto che forse non avrà |
 
 ## 5. Domande aperte
 
 - ~~Q11: una segreteria può gestire eventi di qualunque regione?~~ Decisa il 13/10: solo la propria regione.
-- Q12: rimborso con ritiro tardivo, US-10 o BR-10? (non serve nell'MVP)
+- ~~Q12: rimborso con ritiro tardivo, US-10 o BR-10?~~ Risolta il 14/10: BR-10.
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
 - Spec di progetto da allineare alla feature 001: nomi dei campi del censimento in inglese, radice `mocked-identity.users`, profilo `mocked`.
 - Spec e planner descrivono ancora i microservizi (par. 2.8, Appendice B, Planner v2): vanno allineati all'applicazione unica.
