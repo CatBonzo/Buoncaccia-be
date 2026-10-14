@@ -565,6 +565,68 @@ Problemi: la decisione Q11 reintroduce un vincolo territoriale, ma solo come rel
   non come "perimetro" generale; resta da decidere da quale claim del token arriva la regione.
 Spunto: come una scelta di dominio rimandata ("per l'MVP va bene così") torni prima della feature che la tocca.
 
+[2026-10-13] Merge della fase 1 e spec della fase 2 (catalogo eventi)
+Cosa: Mahima ha fatto il merge della PR #1 in feature. Claude ha creato il branch 002-catalogo-eventi e scritto con
+  speckit-specify la spec: 5 user story (creare e pubblicare, catalogo pubblico, apertura/chiusura automatica,
+  tipi evento, modifica e annullamento), 23 requisiti, 6 criteri di successo. Una sola domanda aperta: da quale
+  informazione del token si ricava la regione della segreteria (serve per Q11).
+Chi: il merge e le decisioni (Q11, versioni) sono di Mahima; la spec è di Claude, partendo dalla spec di progetto v2.0.
+Paradigma: SDD, il passo "specify" separato dal "plan": cosa e perché, senza tecnologia; i default scelti
+  dall'agente sono dichiarati nelle Assumptions invece di trasformarsi in domande.
+Artefatti: specs/002-catalogo-eventi/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: la tabella delle feature della spec di progetto mette strutture/anagrafica (002) prima del catalogo
+  (003), il Planner v2 no: seguito il planner, regioni come lista fissa.
+Spunto: come la spec di feature "ritaglia" la spec di progetto (FR di progetto citati tra parentesi) e la traccia.
+
+[2026-10-13] Clarify e plan della fase 2
+Cosa: Mahima ha scelto che la regione della segreteria stia in isMemberOf (agesci:PIE:segreteria); la spec è
+  chiusa senza marcatori. Poi speckit-plan: research con 11 decisioni (R1-R11), modello dati, contratto OpenAPI
+  con 14 endpoint, quickstart con 14 scenari a mano.
+Chi: le decisioni di dominio sono di Mahima (Q11, isMemberOf, default confermati); le scelte tecniche sono proposte
+  da Claude e registrate in AGENTS.md con la motivazione.
+Paradigma: SDD, il "plan" traduce il "cosa" in "come". Esempio forte per la tesi: invece di un job che aggiorna lo
+  stato ogni minuto, lo stato si calcola dall'ora: un requisito (FR-014 "sempre coerente") ha guidato una scelta
+  architetturale più semplice.
+Artefatti: specs/002-catalogo-eventi/{plan,research,data-model,quickstart}.md, contracts/catalog.openapi.yaml.
+Problemi: la domanda sulla regione è stata posta tre volte prima di essere chiara: la prima formulazione era
+  troppo tecnica (claim, token); con un esempio concreto del token Mahima ha risposto con una sua soluzione.
+Spunto: comunicazione umano-agente, l'agente deve tradurre le domande tecniche nel linguaggio del dominio.
+
+[2026-10-13] Tasks e analyze della fase 2
+Cosa: speckit-tasks ha prodotto 49 task in 8 fasi (setup, base comune, una fase per ciascuna delle 5 storie,
+  rifinitura), ognuno con il file da toccare e i test prima del codice. Poi speckit-analyze ha confrontato spec,
+  piano e task e ha trovato quattro punti, corretti subito nei documenti.
+Chi: Claude, con i comandi Spec-Kit; nessuna decisione nuova chiesta a Mahima.
+Paradigma: SDD, il passo "analyze" è un controllo incrociato fra documenti prima di scrivere codice.
+  Esempio per la tesi: FR-007 chiedeva "tipo evento attivo" alla pubblicazione, mentre un caso limite della stessa
+  spec diceva che una bozza resta pubblicabile se il tipo viene disattivato dopo. Senza analyze la contraddizione
+  sarebbe finita nel codice e scoperta solo nei test (o mai).
+Artefatti: specs/002-catalogo-eventi/tasks.md; correzioni a spec.md (FR-007), data-model.md, research.md (R8).
+Problemi: (1) la contraddizione su FR-007, risolta a favore del caso limite, più specifico e coerente con FR-003
+  ("non usabile per NUOVI eventi"); (2) nome della categoria diverso fra research (FORMAZIONE_CAPI) e modello
+  dati (LEADER_TRAINING), allineato all'inglese; (3) casi limite della ricerca (pagina oltre l'ultima, parametri
+  non validi) senza un test; (4) SC-004 (1.000 eventi in meno di 1 s) senza un task. Aggiunti i test.
+Spunto: i documenti scritti dall'agente hanno contraddizioni come quelli scritti da persone; il valore della
+  pipeline SDD sta anche nei controlli automatici fra un documento e l'altro.
+
+[2026-10-13] Implementazione della fase 2 (catalogo eventi)
+Cosa: implementati i 49 task: regioni, tipi evento, eventi (crea, modifica, pubblica, chiudi, annulla), ricerca
+  pubblica con filtri e pagine, dettaglio, "i miei eventi". Regione della segreteria da isMemberOf; stato
+  calcolato dall'ora italiana senza job. 93 test verdi (erano 35), compresa una prova con 1.000 eventi.
+Chi: Claude, seguendo tasks.md; nessuna nuova decisione chiesta a Mahima.
+Paradigma: test-first per storia. I test di integrazione delle 5 storie sono stati scritti prima del codice e
+  lanciati rossi (24 su 24 per creazione e modifica); poi il codice fino al verde. Un orologio sostituibile
+  (MutableClock) permette di provare "alle 08:59:59 è chiuso, alle 09:00 è aperto" senza aspettare.
+Artefatti: 40 file Java nuovi o toccati (model, repository, service, guard, v1), mocked-identity.yml (segreteria
+  PIE e LIG), test in src/test, data-model.md corretto, AGENTS.md.
+Problemi: (1) Jackson 3 rifiuta un booleano primitivo assente nel JSON: i DTO usano Boolean; trovato grazie al
+  log dell'errore 422. (2) La tabella degli stati del piano lasciava le iscrizioni aperte a evento già iniziato
+  se la chiusura era il giorno della partenza: emerso scrivendo il test, corretto nel codice e nel data model.
+  (3) Il test "database non raggiungibile" per il catalogo non è stato aggiunto: fermerebbe il database condiviso
+  dagli altri test; il 503 resta coperto dal test del circuit breaker della fase 1.
+Spunto: anche dopo analyze, scrivere i test fa emergere ambiguità che i documenti non mostrano (caso 2): il
+  ciclo spec → test → codice corregge la spec a ritroso.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

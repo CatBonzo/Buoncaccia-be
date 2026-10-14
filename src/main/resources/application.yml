@@ -49,6 +49,7 @@ resilience4j:
         event-consumer-buffer-size: 10
         ignore-exceptions:
           - org.springframework.dao.DuplicateKeyException
+          - org.springframework.dao.OptimisticLockingFailureException
 
 # Log: console (formato standard di Spring Boot) e file logs/buonacaccia.log (ignorato da git).
 # Le librerie (Spring, Mongo, Kafka) restano sempre a INFO; solo i log di @Slf4j del package

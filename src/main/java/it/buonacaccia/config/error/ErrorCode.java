@@ -11,7 +11,12 @@ public enum ErrorCode {
     NOT_FOUND(40400, 404, "SYSTEM", "Risorsa non trovata."),
     METHOD_NOT_ALLOWED(40500, 405, "SYSTEM", "Metodo HTTP non supportato per questa risorsa."),
     CONFLICT(40900, 409, "SYSTEM", "Conflitto con lo stato attuale della risorsa."),
+    STATE_CONFLICT(40901, 409, "CATALOG", "Operazione non consentita nello stato attuale dell'evento."),
+    EVENT_TYPE_EXISTS(40902, 409, "CATALOG", "Esiste già un tipo evento con questo codice."),
+    STALE_VERSION(40903, 409, "CATALOG", "L'evento è stato modificato da qualcun altro: ricarica e riprova."),
+    FIELD_LOCKED(40904, 409, "CATALOG", "Campo non modificabile dopo la pubblicazione."),
     INVALID_INPUT(42200, 422, "SYSTEM", "Richiesta non valida."),
+    PUBLISH_INVARIANTS(42201, 422, "CATALOG", "L'evento non si può pubblicare: correggi i campi indicati."),
     INTERNAL_ERROR(50000, 500, "SYSTEM", "Errore interno. Riprova più tardi."),
     SERVICE_UNAVAILABLE(50300, 503, "SYSTEM", "Servizio temporaneamente non disponibile. Riprova tra poco.");
 

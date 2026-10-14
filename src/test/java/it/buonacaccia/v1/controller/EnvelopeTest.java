@@ -33,6 +33,16 @@ class EnvelopeTest extends AbstractTest {
         assertThat(result.body().toString()).doesNotContain("dettaglio interno", "IllegalStateException", "at it.");
     }
 
+    @Test
+    void validationErrorKeepsTheEnvelopeAndListsFields() {
+        Result result = get("/api/v1/events?size=0&sort=boh");
+
+        assertThat(result.status()).isEqualTo(422);
+        assertEnvelope(result.body(), 42200);
+        assertThat(result.body().get("payload").isArray()).isTrue();
+        assertThat(result.body().get("payload").get(0).has("field")).isTrue();
+    }
+
     private static void assertEnvelope(JsonNode body, int errorCode) {
         assertThat(body.has("errorCode")).isTrue();
         assertThat(body.has("errorMessage")).isTrue();

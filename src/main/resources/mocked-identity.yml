@@ -32,13 +32,14 @@ mocked-identity:
 
     - agesciUUID: 7c1e2a2e-0002-4a6b-9a01-000000000002
       buonaCacciaUUID: user-002
-      label: "Segreteria regionale"
+      label: "Segreteria Piemonte"
       username: segreteria
       firstName: "Sergio"
       lastName: "Segretario"
       email: segreteria@buonacaccia.local
       authentication:
-        isMemberOf: agesci:socio:false
+        # Regione gestita: sigla tra "agesci:" e ":segreteria" (FR-010, Q11).
+        isMemberOf: agesci:PIE:segreteria
         role:
           - agesci:regione:segreteria
         entitlement:
@@ -79,3 +80,19 @@ mocked-identity:
           - agesci:socio:user
         entitlement:
           - agesci:entitlement:iscrizione:self
+
+    - agesciUUID: 7c1e2a2e-0005-4a6b-9a01-000000000005
+      buonaCacciaUUID: user-005
+      label: "Segreteria Liguria"
+      username: segreteria-lig
+      firstName: "Livia"
+      lastName: "Ligure"
+      email: segreteria-lig@buonacaccia.local
+      authentication:
+        isMemberOf: agesci:LIG:segreteria
+        role:
+          - agesci:regione:segreteria
+        entitlement:
+          - agesci:entitlement:evento:gestione
+          - agesci:entitlement:iscrizione:gestione
+          - agesci:entitlement:pagamento:registrazione
