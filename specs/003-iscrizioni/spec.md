@@ -93,7 +93,7 @@ Il socio o il suo presentatore ritira l'iscrizione prima della partenza. Il sist
 
 ### User Story 5 - Elenchi e annullamento dell'evento (Priority: P3)
 
-Il socio vede l'elenco delle proprie iscrizioni; il capo quello delle iscrizioni che ha presentato; la segreteria l'elenco degli iscritti di un evento della propria regione, filtrabile per stato e posizione. Se la segreteria annulla un evento, tutte le iscrizioni attive diventano ANNULLATE con diritto al rimborso. Il catalogo mostra il numero reale di iscritti e l'indicatore di disponibilità.
+Il socio vede l'elenco delle proprie iscrizioni; il capo quello delle iscrizioni che ha presentato; la segreteria l'elenco degli iscritti di un evento della propria regione, filtrabile per stato e posizione. Se la segreteria annulla un evento, tutte le iscrizioni attive diventano ANNULLATE, con diritto al rimborso per chi era nei posti. Il catalogo mostra il numero reale di iscritti e l'indicatore di disponibilità.
 
 **Why this priority**: utile e atteso dal frontend, ma l'iscrizione funziona anche senza.
 
@@ -103,7 +103,7 @@ Il socio vede l'elenco delle proprie iscrizioni; il capo quello delle iscrizioni
 
 1. **Given** un socio con iscrizioni a 3 eventi, **When** apre "le mie iscrizioni", **Then** vede le 3 iscrizioni con evento, stato e posizione.
 2. **Given** la segreteria del Piemonte, **When** apre l'elenco iscritti di un evento del Piemonte, **Then** vede tutti gli iscritti con stato, posizione e adempimenti; per un evento della Liguria l'accesso è negato.
-3. **Given** un evento con 5 iscrizioni attive, **When** la segreteria lo annulla, **Then** le 5 iscrizioni diventano ANNULLATE con motivo "evento annullato" e diritto al rimborso.
+3. **Given** un evento con 5 iscrizioni attive, **When** la segreteria lo annulla, **Then** le 5 iscrizioni diventano ANNULLATE con motivo "evento annullato" e diritto al rimborso per quelle nei posti (quota maggiore di 0).
 4. **Given** un evento con 30 posti e 28 iscrizioni attive, **When** un visitatore ne apre il dettaglio, **Then** vede 28 iscritti e l'indicatore LIMITATE.
 
 ---
