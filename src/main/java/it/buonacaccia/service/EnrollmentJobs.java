@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * Lavori pianificati delle iscrizioni (research R8 della 003), ogni 5 minuti con l'ora del
  * {@code Clock}: scadenze (FR-012, entro 15 minuti) e lista d'attesa alla partenza (FR-016). Con una
- * sola istanza dell'applicazione non serve un lock distribuito; i test chiamano i metodi direttamente.
+ * sola istanza dell'applicazione non serve un lock distribuito; dalla 004 anche i promemoria; i test chiamano i metodi direttamente.
  */
 @Slf4j
 @Component
@@ -22,6 +22,7 @@ public class EnrollmentJobs {
     public void run() {
         expireOverdue();
         cancelWaitingAtStart();
+        sendReminders();
     }
 
     public int expireOverdue() {
@@ -30,5 +31,10 @@ public class EnrollmentJobs {
 
     public int cancelWaitingAtStart() {
         return enrollmentService.cancelWaitingAtStart();
+    }
+
+    /** Promemoria di scadenza a 3 e 1 giorno (feature 004, research R9). */
+    public int sendReminders() {
+        return enrollmentService.sendReminders();
     }
 }

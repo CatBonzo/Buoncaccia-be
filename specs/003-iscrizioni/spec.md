@@ -14,7 +14,7 @@
 
 - Q12 (spec di progetto): finestra del rimborso, 3 giorni (US-10) o 7 giorni (BR-10)? → A: vale BR-10, almeno 7 giorni prima della partenza, data di partenza esclusa; decisa da Mahima (vedi FR-019). Il criterio di US-10 con 3 giorni è sbagliato e va corretto nella spec di progetto.
 - Sigle delle regioni: restano quelle di tre lettere della fase 2 (PIE, LIG…); decisa da Mahima il 14/10.
-- Chi è in lista d'attesa paga subito o alla promozione (FR-038 di progetto)? → A (proposta, da confermare): alla promozione, con una nuova scadenza di 9 giorni (vedi FR-017).
+- Chi è in lista d'attesa paga subito o alla promozione (FR-038 di progetto)? → A (confermata da Mahima il 14/10): alla promozione, con una nuova scadenza di 9 giorni (vedi FR-017).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -148,7 +148,7 @@ Il socio vede l'elenco delle proprie iscrizioni; il capo quello delle iscrizioni
 - **FR-014**: Quando la segreteria aumenta i posti di un evento, il sistema MUST promuovere tanti iscritti in attesa quanti sono i posti in più (FR-037 di progetto); una riduzione dei posti sotto il numero di iscrizioni nei posti MUST essere rifiutata come conflitto.
 - **FR-015**: La pagina di stato MUST mostrare la posizione in lista d'attesa (1 = il prossimo a essere promosso) (FR-035 di progetto).
 - **FR-016**: Le iscrizioni ancora in attesa alla data di partenza MUST diventare ANNULLATE con motivo "posti esauriti".
-- **FR-017**: Un'iscrizione in attesa MUST NOT avere l'adempimento di pagamento: deve completare entro la scadenza gli altri adempimenti. Alla promozione il sistema MUST aggiungere il pagamento (se la quota è maggiore di 0), riportare l'iscrizione a REGISTRATA se era COMPLETA e fissare una nuova scadenza a 9 giorni dalla promozione (FR-038 di progetto; opzione consigliata, in attesa della conferma di Mahima del 14/10).
+- **FR-017**: Un'iscrizione in attesa MUST NOT avere l'adempimento di pagamento: deve completare entro la scadenza gli altri adempimenti. Alla promozione il sistema MUST aggiungere il pagamento (se la quota è maggiore di 0), riportare l'iscrizione a REGISTRATA se era COMPLETA e fissare una nuova scadenza a 9 giorni dalla promozione (FR-038 di progetto; confermato da Mahima il 14/10).
 
 ### Ritiro e annullamento
 

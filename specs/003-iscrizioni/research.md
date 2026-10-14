@@ -2,7 +2,7 @@
 
 **Feature**: `003-iscrizioni` | **Data**: 2026-10-14 | **Plan**: [plan.md](plan.md)
 
-Ogni voce riporta la decisione, la motivazione e le alternative scartate. Nessun punto resta aperto; FR-017 segue l'opzione consigliata ("pagamento alla promozione"), in attesa della conferma di Mahima. La base tecnica è la stessa delle feature 001 e 002.
+Ogni voce riporta la decisione, la motivazione e le alternative scartate. Nessun punto resta aperto; FR-017 ("pagamento alla promozione") è stato confermato da Mahima il 14/10. La base tecnica è la stessa delle feature 001 e 002.
 
 ## R1. Capienza dell'evento: documento separato con aggiornamenti atomici condizionati
 

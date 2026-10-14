@@ -1,0 +1,8 @@
+package it.buonacaccia.model;
+
+/** Fatti che producono un evento di dominio sul topic Kafka (feature 004, data-model). */
+public enum DomainEventType {
+    ENROLLMENT_REGISTERED, AUTHORIZATION_REQUESTED, ENROLLMENT_COMPLETED, ENROLLMENT_EXPIRED,
+    ENROLLMENT_WITHDRAWN, ENROLLMENT_PROMOTED, ENROLLMENT_REJECTED, ENROLLMENT_CANCELLED,
+    DEADLINE_REMINDER, EVENT_CHANGED
+}

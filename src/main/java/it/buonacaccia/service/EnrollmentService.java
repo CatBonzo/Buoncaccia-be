@@ -1,22 +1,27 @@
 package it.buonacaccia.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import it.buonacaccia.config.ClockConfig;
 import it.buonacaccia.config.error.BuonaCacciaException;
 import it.buonacaccia.config.error.ErrorCode;
 import it.buonacaccia.config.mongo.CircuitBreakerService;
 import it.buonacaccia.model.ClosingReason;
+import it.buonacaccia.model.DomainEventType;
 import it.buonacaccia.model.Enrollment;
 import it.buonacaccia.model.EnrollmentObligation;
 import it.buonacaccia.model.EnrollmentStatus;
@@ -30,6 +35,8 @@ import it.buonacaccia.model.SeatPosition;
 import it.buonacaccia.model.User;
 import it.buonacaccia.repository.EnrollmentRepository;
 import it.buonacaccia.repository.EventRepository;
+import it.buonacaccia.repository.NotificationRepository;
+import it.buonacaccia.notification.DomainEventRecorder;
 import it.buonacaccia.repository.UserRepository;
 import it.buonacaccia.service.EventCapacityService.Reservation;
 import it.buonacaccia.service.guard.CallerContext;
@@ -40,7 +47,9 @@ import it.buonacaccia.v1.dto.EnrollmentObligationDTO;
 import it.buonacaccia.v1.dto.EnrollmentPageDTO;
 import it.buonacaccia.v1.dto.EnrollmentRequestDTO;
 import it.buonacaccia.v1.dto.FieldErrorDTO;
+import it.buonacaccia.v1.dto.NotificationDTO;
 import it.buonacaccia.v1.mapper.EnrollmentMapper;
+import it.buonacaccia.v1.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -53,12 +62,14 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Iscrizioni e lista d'attesa (feature 003): iscrizione autonoma o del capo, pagina di stato,
  * autorizzazioni e adempimenti, ritiro, scadenze, promozioni, elenchi e annullamento con l'evento.
  * Posti e ordine di arrivo li assegna {@link EventCapacityService}; ogni uscita di un'iscrizione
- * nei posti promuove il primo in attesa (BR-08).
+ * nei posti promuove il primo in attesa (BR-08). Dalla feature 004 ogni cambio di stato si salva
+ * insieme al suo evento di dominio, nella stessa transazione ({@link #save(Enrollment, Event, DomainEventType)}).
  */
 @Slf4j
 @Service
@@ -78,6 +89,9 @@ public class EnrollmentService {
     private final EventAccessPolicy eventAccessPolicy;
     private final EnrollmentAccessPolicy accessPolicy;
     private final CircuitBreakerService circuitBreakerService;
+    private final DomainEventRecorder domainEvents;
+    private final NotificationRepository notificationRepository;
+    private final TransactionTemplate transactionTemplate;
     private final Clock clock;
 
     // ---------- iscrizione ----------
@@ -143,7 +157,12 @@ public class EnrollmentService {
                 .build();
         Enrollment enrollment;
         try {
-            enrollment = mongo(() -> enrollmentRepository.insert(toInsert));
+            enrollment = mongo(() -> transactionTemplate.execute(tx -> {
+                Enrollment inserted = enrollmentRepository.insert(toInsert);
+                domainEvents.enrollment(DomainEventType.ENROLLMENT_REGISTERED, inserted, event);
+                domainEvents.authorizationsRequested(inserted, event);
+                return inserted;
+            }));
         } catch (BuonaCacciaException e) {
             // Due richieste identiche nello stesso istante: vince la prima, la seconda restituisce il posto (R3).
             capacityService.release(eventId, reservation.position());
@@ -224,6 +243,15 @@ public class EnrollmentService {
         return toPage(caller, search(criteria, pageRequest));
     }
 
+    /** Registro degli avvisi dell'iscrizione, per chi gestisce l'evento (FR-007 della 004); per gli altri 404. */
+    public List<NotificationDTO> notifications(CallerContext caller, String id) {
+        Enrollment enrollment = find(id);
+        if (!accessPolicy.canManage(caller, enrollment)) {
+            throw notFound();
+        }
+        return NotificationMapper.INSTANCE.toDto(mongo(() -> notificationRepository.findByEnrollmentIdOrderByCreatedAtAsc(id)));
+    }
+
     // ---------- adempimenti ----------
 
     /** Il capo unità o il capo gruppo del partecipante autorizza (FR-009). */
@@ -231,14 +259,50 @@ public class EnrollmentService {
         Enrollment enrollment = find(id);
         User callerUser = authorizer(caller, enrollment, type);
         Instant now = clock.instant();
+        Event event = eventRepositoryFind(enrollment.getEventId());
+        Enrollment saved = approveBy(enrollment, event, callerUser, type, now);
+        return toDto(caller, callerUser, saved, event, now);
+    }
+
+    /**
+     * Autorizzazione dal link nell'e-mail (FR-019 della 004): stessi controlli e stessi effetti
+     * dell'approvazione dal sito, a nome del capo a cui è stato inviato il link.
+     */
+    public Enrollment approveAsLeader(String id, ObligationType type, String leaderId) {
+        Enrollment enrollment = find(id);
+        User leader = leader(enrollment, type, leaderId);
+        Instant now = clock.instant();
+        return approveBy(enrollment, eventRepositoryFind(enrollment.getEventId()), leader, type, now);
+    }
+
+    /** Diniego dal link nell'e-mail (FR-019 della 004). */
+    public Enrollment rejectAsLeader(String id, ObligationType type, String leaderId, String reason) {
+        Enrollment enrollment = find(id);
+        User leader = leader(enrollment, type, leaderId);
+        Instant now = clock.instant();
+        return rejectBy(enrollment, eventRepositoryFind(enrollment.getEventId()), leader, type, reason, now);
+    }
+
+    private Enrollment approveBy(Enrollment enrollment, Event event, User leader, ObligationType type, Instant now) {
         EnrollmentObligation obligation = todoObligation(enrollment, type);
         obligation.setStatus(ObligationStatus.SATISFIED);
-        obligation.setSatisfiedBy(caller.getSubject());
+        obligation.setSatisfiedBy(leader.getId());
         obligation.setSatisfiedAt(now);
-        completeIfDone(enrollment, now);
-        Enrollment saved = save(enrollment);
-        log.info("Iscrizione {}: {} autorizzata da {}", saved.getNumber(), type, caller.getSubject());
-        return toDto(caller, callerUser, saved, eventRepositoryFind(saved.getEventId()), now);
+        Enrollment saved = save(enrollment, event, completeIfDone(enrollment, now));
+        log.info("Iscrizione {}: {} autorizzata da {}", saved.getNumber(), type, leader.getId());
+        return saved;
+    }
+
+    private Enrollment rejectBy(Enrollment enrollment, Event event, User leader, ObligationType type, String reason,
+                                Instant now) {
+        EnrollmentObligation obligation = todoObligation(enrollment, type);
+        obligation.setStatus(ObligationStatus.REJECTED);
+        obligation.setSatisfiedBy(leader.getId());
+        obligation.setSatisfiedAt(now);
+        obligation.setNote(reason);
+        Enrollment saved = exit(enrollment, event, ClosingReason.REJECTED, reason, null, now);
+        log.info("Iscrizione {}: {} negata da {}", saved.getNumber(), type, leader.getId());
+        return saved;
     }
 
     /** Diniego motivato: l'iscrizione diventa RIFIUTATA e libera il posto (FR-009, FR-013). */
@@ -246,14 +310,8 @@ public class EnrollmentService {
         Enrollment enrollment = find(id);
         User callerUser = authorizer(caller, enrollment, type);
         Instant now = clock.instant();
-        EnrollmentObligation obligation = todoObligation(enrollment, type);
-        obligation.setStatus(ObligationStatus.REJECTED);
-        obligation.setSatisfiedBy(caller.getSubject());
-        obligation.setSatisfiedAt(now);
-        obligation.setNote(reason);
         Event event = eventRepositoryFind(enrollment.getEventId());
-        Enrollment saved = exit(enrollment, event, ClosingReason.REJECTED, reason, null, now);
-        log.info("Iscrizione {}: {} negata da {}", saved.getNumber(), type, caller.getSubject());
+        Enrollment saved = rejectBy(enrollment, event, callerUser, type, reason, now);
         return toDto(caller, callerUser, saved, event, now);
     }
 
@@ -267,10 +325,10 @@ public class EnrollmentService {
         obligation.setSatisfiedBy(caller.getSubject());
         obligation.setSatisfiedAt(now);
         obligation.setNote(note);
-        completeIfDone(enrollment, now);
-        Enrollment saved = save(enrollment);
+        Event event = eventRepositoryFind(enrollment.getEventId());
+        Enrollment saved = save(enrollment, event, completeIfDone(enrollment, now));
         log.info("Iscrizione {}: {} soddisfatto dalla segreteria {}", saved.getNumber(), type, caller.getSubject());
-        return toDto(caller, callerUser(caller), saved, eventRepositoryFind(saved.getEventId()), now);
+        return toDto(caller, callerUser(caller), saved, event, now);
     }
 
     // ---------- uscite ----------
@@ -314,6 +372,68 @@ public class EnrollmentService {
             log.info("Iscrizioni scadute: {}", expired);
         }
         return expired;
+    }
+
+    /**
+     * Promemoria a 3 e a 1 giorno di calendario dalla scadenza, all'ora italiana (FR-010 della 004,
+     * research R9). Ogni promemoria si segna nell'iscrizione con la sua scadenza, nella stessa
+     * transazione dell'evento di dominio: non parte due volte, e dopo una promozione con una nuova
+     * scadenza i promemoria ripartono. Se il giorno prima è già arrivato, il promemoria a 3 giorni
+     * non parte più.
+     */
+    public int sendReminders() {
+        Instant now = clock.instant();
+        Query due = new Query(Criteria.where("status").is(EnrollmentStatus.REGISTERED)
+                .and("deadline").gt(now).lte(now.plus(Duration.ofDays(4))));
+        Map<String, Event> events = new HashMap<>();
+        int sent = 0;
+        for (Enrollment enrollment : mongo(() -> mongoTemplate.find(due, Enrollment.class))) {
+            int days = reminderDue(enrollment.getDeadline(), now, enrollment.getRemindersSent());
+            if (days == 0) {
+                continue;
+            }
+            Event event = events.computeIfAbsent(enrollment.getEventId(), this::eventRepositoryFind);
+            String key = reminderKey(days, enrollment.getDeadline());
+            Update update = new Update().addToSet("remindersSent", key).inc("version", 1);
+            if (days == 1) {
+                update = new Update().addToSet("remindersSent").each(key, reminderKey(3, enrollment.getDeadline()))
+                        .inc("version", 1);
+            }
+            Query notYet = new Query(Criteria.where("id").is(enrollment.getId())
+                    .and("status").is(EnrollmentStatus.REGISTERED).and("remindersSent").ne(key));
+            Update mark = update;
+            boolean recorded = Boolean.TRUE.equals(mongo(() -> transactionTemplate.execute(tx -> {
+                if (mongoTemplate.updateFirst(notYet, mark, Enrollment.class).getModifiedCount() == 0) {
+                    return false;
+                }
+                domainEvents.reminder(enrollment, event, days);
+                return true;
+            })));
+            if (recorded) {
+                sent++;
+                log.debug("Promemoria a {} giorni per l'iscrizione {}", days, enrollment.getNumber());
+            }
+        }
+        if (sent > 0) {
+            log.info("Promemoria di scadenza: {}", sent);
+        }
+        return sent;
+    }
+
+    /** 1 o 3 se è il momento di quel promemoria e non è ancora partito, altrimenti 0. */
+    static int reminderDue(Instant deadline, Instant now, Set<String> sent) {
+        ZonedDateTime local = deadline.atZone(ClockConfig.ROME);
+        if (!now.isBefore(local.minusDays(1).toInstant())) {
+            return sent.contains(reminderKey(1, deadline)) ? 0 : 1;
+        }
+        if (!now.isBefore(local.minusDays(3).toInstant())) {
+            return sent.contains(reminderKey(3, deadline)) ? 0 : 3;
+        }
+        return 0;
+    }
+
+    private static String reminderKey(int days, Instant deadline) {
+        return "D" + days + ":" + deadline;
     }
 
     /** Alla partenza chi è ancora in attesa è ANNULLATO con motivo "posti esauriti" (FR-016). */
@@ -368,7 +488,7 @@ public class EnrollmentService {
             }
             ObligationPlanner.onPromotion(next, event, now);
             next.setUpdatedAt(now);
-            Enrollment saved = save(next);
+            Enrollment saved = save(next, event, DomainEventType.ENROLLMENT_PROMOTED);
             log.info("Iscrizione {} promossa nei posti ({})", saved.getNumber(), saved.getStatus());
         }
     }
@@ -394,7 +514,12 @@ public class EnrollmentService {
         enrollment.setClosingNote(note);
         enrollment.setRefundDue(refundDue != null ? refundDue : Boolean.FALSE);
         enrollment.setUpdatedAt(now);
-        Enrollment saved = save(enrollment);
+        Enrollment saved = save(enrollment, event, switch (reason) {
+            case WITHDRAWN -> DomainEventType.ENROLLMENT_WITHDRAWN;
+            case EXPIRED -> DomainEventType.ENROLLMENT_EXPIRED;
+            case REJECTED -> DomainEventType.ENROLLMENT_REJECTED;
+            case EVENT_CANCELLED, SEATS_EXHAUSTED -> DomainEventType.ENROLLMENT_CANCELLED;
+        });
         capacityService.release(enrollment.getEventId(), position);
         if (position == SeatPosition.IN_SEATS && event != null) {
             promoteWaiting(event);
@@ -413,21 +538,37 @@ public class EnrollmentService {
         }
     }
 
+    /** Annulla insieme le iscrizioni attive di una posizione e scrive un evento di dominio per ciascuna (FR-013 della 004). */
     private long cancelAll(Event event, SeatPosition position, boolean refundDue, Instant now) {
         Query query = new Query(Criteria.where("eventId").is(event.getId()).and("active").is(true).and("position").is(position));
         Update update = new Update().set("status", EnrollmentStatus.CANCELLED).set("active", false).set("closedAt", now)
                 .set("closingReason", ClosingReason.EVENT_CANCELLED).set("closingNote", event.getCancellationReason())
                 .set("refundDue", refundDue).set("updatedAt", now).inc("version", 1);
-        return mongo(() -> mongoTemplate.updateMulti(query, update, Enrollment.class)).getModifiedCount();
+        return mongo(() -> transactionTemplate.execute(tx -> {
+            List<Enrollment> active = mongoTemplate.find(query, Enrollment.class);
+            long modified = mongoTemplate.updateMulti(query, update, Enrollment.class).getModifiedCount();
+            for (Enrollment enrollment : active) {
+                enrollment.setStatus(EnrollmentStatus.CANCELLED);
+                enrollment.setActive(false);
+                enrollment.setClosingReason(ClosingReason.EVENT_CANCELLED);
+                enrollment.setClosingNote(event.getCancellationReason());
+                enrollment.setRefundDue(refundDue);
+                domainEvents.enrollment(DomainEventType.ENROLLMENT_CANCELLED, enrollment, event);
+            }
+            return modified;
+        }));
     }
 
-    private static void completeIfDone(Enrollment enrollment, Instant now) {
+    /** @return {@code ENROLLMENT_COMPLETED} se l'iscrizione è appena diventata completa, altrimenti null */
+    private static DomainEventType completeIfDone(Enrollment enrollment, Instant now) {
+        enrollment.setUpdatedAt(now);
         if (enrollment.getStatus() == EnrollmentStatus.REGISTERED
                 && ObligationPlanner.statusFor(enrollment.getObligations()) == EnrollmentStatus.COMPLETED) {
             enrollment.setStatus(EnrollmentStatus.COMPLETED);
             enrollment.setCompletedAt(now);
+            return DomainEventType.ENROLLMENT_COMPLETED;
         }
-        enrollment.setUpdatedAt(now);
+        return null;
     }
 
     /** Chi chiama deve poter dare quell'autorizzazione; chi non vede l'iscrizione riceve 404. */
@@ -439,6 +580,15 @@ public class EnrollmentService {
                     : notFound();
         }
         return callerUser;
+    }
+
+    /** Il capo del link: deve poter ancora dare quell'autorizzazione (es. non ha cambiato unità). */
+    private User leader(Enrollment enrollment, ObligationType type, String leaderId) {
+        User leader = mongo(() -> userRepository.findById(leaderId)).orElse(null);
+        if (!accessPolicy.canAuthorize(leader, enrollment, type)) {
+            throw stateConflict("Questa autorizzazione non spetta più a questo capo.");
+        }
+        return leader;
     }
 
     private static EnrollmentObligation todoObligation(Enrollment enrollment, ObligationType type) {
@@ -479,8 +629,15 @@ public class EnrollmentService {
         return mongo(() -> enrollmentRepository.findById(id)).orElseThrow(EnrollmentService::notFound);
     }
 
-    private Enrollment save(Enrollment enrollment) {
-        return mongo(() -> enrollmentRepository.save(enrollment));
+    /** Salva l'iscrizione e, se {@code type} non è null, il suo evento di dominio nella stessa transazione (R2 della 004). */
+    private Enrollment save(Enrollment enrollment, Event event, DomainEventType type) {
+        return mongo(() -> transactionTemplate.execute(tx -> {
+            Enrollment saved = enrollmentRepository.save(enrollment);
+            if (type != null && event != null) {
+                domainEvents.enrollment(type, saved, event);
+            }
+            return saved;
+        }));
     }
 
     private User callerUser(CallerContext caller) {

@@ -1,5 +1,7 @@
 package it.buonacaccia.v1.controller;
 
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.buonacaccia.guard.SecurityAccess;
@@ -11,6 +13,7 @@ import it.buonacaccia.v1.dto.ApiResponse;
 import it.buonacaccia.v1.dto.EnrollmentDTO;
 import it.buonacaccia.v1.dto.EnrollmentPageDTO;
 import it.buonacaccia.v1.dto.NoteDTO;
+import it.buonacaccia.v1.dto.NotificationDTO;
 import it.buonacaccia.v1.dto.ReasonDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +67,13 @@ public class EnrollmentController {
     @Operation(summary = "Pagina di stato dell'iscrizione (FR-021)")
     public ApiResponse<EnrollmentDTO> get(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         return ApiResponse.ok(enrollmentService.get(CallerContext.from(jwt), id));
+    }
+
+    @GetMapping("/{id}/notifications")
+    @SecurityAccess(entitlement = Entitlements.ISCRIZIONE_GESTIONE)
+    @Operation(summary = "Registro degli avvisi dell'iscrizione, per chi gestisce l'evento (FR-007 della 004)")
+    public ApiResponse<List<NotificationDTO>> notifications(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        return ApiResponse.ok(enrollmentService.notifications(CallerContext.from(jwt), id));
     }
 
     @PostMapping("/{id}/withdraw")

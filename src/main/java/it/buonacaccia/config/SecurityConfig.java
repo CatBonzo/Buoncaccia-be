@@ -26,6 +26,8 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_PATHS = {
             "/api/v1/mock/**",
+            // Link di autorizzazione dei capi (feature 004): la credenziale è il token nel percorso.
+            "/api/v1/authorization-links/**",
             "/actuator/health",
             "/actuator/info",
             "/api-docs/**",

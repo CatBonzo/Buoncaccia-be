@@ -683,6 +683,64 @@ Spunto: scrivere prima i test delle regole pure (senza database) ha reso il rest
   storia 1 verdi al primo giro. Il controllo spec-piano-task prima del codice costa poco e trova errori di logica
   che i test non vedrebbero, perché i test seguono la spec.
 
+[2026-10-14] Merge della fase 3 e due decisioni per la fase 4
+Cosa: Mahima ha unito la PR #3 (fase 3) in feature. Prima di partire con la fase 4 (notifiche) ha deciso: Kafka
+  resta, anche con l'applicazione unica; chi è in lista d'attesa paga solo alla promozione (conferma di FR-017,
+  già implementato così).
+Chi: decisioni di Mahima; registrazione in AGENTS.md, spec 003 e spec di progetto da parte di Claude.
+Paradigma: SDD. La proposta implementata "in attesa di conferma" era tracciata come tale in spec, AGENTS.md e PR:
+  la conferma chiude la voce senza toccare il codice.
+Artefatti: AGENTS.md, specs/003-iscrizioni/spec.md e research.md, spec di progetto v2.0 (checklist).
+Problemi: Claude aveva consigliato eventi interni di Spring al posto di Kafka (meno infrastruttura); Mahima ha
+  preferito restare sull'ADR-003. Scelta legittima per la tesi: mostra un'architettura a eventi con un broker vero.
+Spunto: l'agente propone e motiva, la persona decide; il registro delle decisioni conserva anche l'alternativa
+  scartata, che in sede di tesi è materiale di discussione.
+
+[2026-10-14] Spec della fase 4: notifiche e-mail
+Cosa: scritta con /speckit-specify la spec 004-notifiche: sei storie (conferma di iscrizione, autorizzazione dei
+  capi dal link nell'e-mail, promemoria a 3 e 1 giorno, avvisi a ogni cambio di stato, avvisi su modifica e
+  annullamento dell'evento, nessuna e-mail persa né doppia), 20 requisiti, 5 criteri di successo.
+Chi: Claude dalla spec di progetto (FR-028, FR-056…059, §2.6.4, NFR-06) e dalle decisioni di Mahima del 14/10.
+Paradigma: SDD. La spec dice cosa deve succedere (un avviso per destinatario, mai perso, mai doppio), non come:
+  outbox, Kafka e consumer idempotente compaiono solo nelle ipotesi e arriveranno nel piano.
+Artefatti: specs/004-notifiche/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: FR-028 di progetto prevede il link firmato per la validazione del presentatore, ma nella fase 3 quella
+  validazione è già automatica quando il capo iscrive il ragazzo. Scelta di default: il link serve ai capi che
+  devono autorizzare. Dichiarata nelle Clarifications, così Mahima può cambiarla prima del piano.
+Spunto: la spec di progetto, scritta prima delle fasi, a volte non regge davanti a ciò che è stato costruito;
+  la spec di feature è il punto in cui si riallinea, e lo dichiara invece di correggere in silenzio.
+
+[2026-10-14] Fase 4 a metà: notifiche affidabili, link ai capi, promemoria
+Cosa: implementate con i test prima quattro storie su sei della 004: conferma di iscrizione (US1), link monouso
+  per i capi (US2), nessuna e-mail persa né doppia con registro consultabile (US6), promemoria a 3 e 1 giorno (US3).
+  Percorso: cambio di stato + evento di dominio nella stessa transazione MongoDB (outbox), relay verso Kafka,
+  consumer idempotente con chiave unica sulla notifica, ritentativi e dead letter, invio su Mailpit.
+  Restano gli avvisi sui cambi di stato (US4) e sulle modifiche dell'evento (US5). Lavoro fermato su richiesta
+  di Mahima; branch 004-notifiche aggiornato, PR non ancora aperta.
+Chi: Claude; interruzione decisa da Mahima.
+Paradigma: TDD con infrastruttura vera (Testcontainers con Kafka e Mailpit); SDD per le scelte (research R1-R12).
+Artefatti: package notification, collezioni outbox, notifications, authorization_links; test
+  EnrollmentConfirmationMailTest, AuthorizationLinkTest, NotificationReliabilityTest, ReminderMailTest.
+Problemi: Testcontainers 2 avvia MongoDB senza replica set e le transazioni falliscono ("retryable writes"):
+  serve .withReplicaSet(). Docker Hub ha limitato i download: l'immagine di Mailpit è stata presa da ghcr.io.
+Spunto: provare "nessun evento perso" richiede di simulare i guasti (relay in pausa, SMTP su una porta chiusa)
+  senza fermare i container condivisi: il test diventa parte del progetto dell'affidabilità.
+
+[2026-10-14] Fase 4 completata: avvisi sui cambi di stato e sull'evento
+Cosa: ripreso il lavoro dopo la pausa chiesta da Mahima e chiuse le ultime due storie: e-mail a ogni cambio di
+  stato dell'iscrizione (promozione con pagamento, ritiro con o senza rimborso, rifiuto con motivo, completamento,
+  scadenza, annullamento per posti esauriti, anche al presentatore) e avvisi a tutti gli iscritti quando cambiano
+  date o luogo o l'evento è annullato. Aggiunti i test unitari dei testi e dei destinatari. Registrate in
+  AGENTS.md le decisioni R1-R12.
+Chi: Claude.
+Paradigma: TDD. I test della US4 sono passati al primo colpo senza codice nuovo: gli eventi di dominio erano già
+  scritti nel punto unico di salvataggio dell'iscrizione. È l'effetto di aver centralizzato la scrittura.
+Artefatti: EnrollmentChangeMailTest, EventChangeMailTest, MailComposerTest, RecipientResolverTest, EventService.
+Problemi: in tasks.md un task di test unitari era stato spuntato prima di scriverli; scoperto in chiusura e
+  corretto, con una nota esplicita in tasks.md invece di nasconderlo.
+Spunto: la checklist dei task è utile solo se onesta; il controllo finale tra task spuntati e file presenti
+  andrebbe fatto sempre prima della PR (è ciò che /speckit-converge automatizza).
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

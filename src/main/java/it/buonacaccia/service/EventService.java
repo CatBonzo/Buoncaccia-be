@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -24,6 +25,7 @@ import it.buonacaccia.model.EventLifecycle;
 import it.buonacaccia.model.EventStatus;
 import it.buonacaccia.model.EventType;
 import it.buonacaccia.model.Region;
+import it.buonacaccia.notification.DomainEventRecorder;
 import it.buonacaccia.repository.EventRepository;
 import it.buonacaccia.repository.EventSearchRepository;
 import it.buonacaccia.service.guard.CallerContext;
@@ -41,6 +43,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Eventi: creazione, modifica, pubblicazione, chiusura anticipata, annullamento, ricerca e
@@ -74,6 +77,8 @@ public class EventService {
     private final EventCapacityService capacityService;
     private final EnrollmentService enrollmentService;
     private final CircuitBreakerService circuitBreakerService;
+    private final DomainEventRecorder domainEvents;
+    private final TransactionTemplate transactionTemplate;
     private final Clock clock;
 
     // ---------- gestione ----------
@@ -106,6 +111,7 @@ public class EventService {
         Instant now = clock.instant();
         EventStatus status = statusResolver.status(event, now);
         Integer previousSeats = null;
+        List<String> changed = List.of();
 
         if (status == EventStatus.DRAFT) {
             String previousType = event.getTypeCode();
@@ -125,15 +131,20 @@ public class EventService {
                 throw new BuonaCacciaException(ErrorCode.FIELD_LOCKED,
                         "Il campo registrationCloseDate non è modificabile: la chiusura è già passata.");
             }
+            LocalDate previousStart = event.getStartDate();
+            LocalDate previousEnd = event.getEndDate();
+            String previousLocation = event.getLocation();
             applyEditableFields(event, request);
+            changed = changedForParticipants(event, previousStart, previousEnd, previousLocation);
             validator.checkInvariants(event, eventTypeService.find(event.getTypeCode()).isPresent());
         } else {
             throw stateConflict("Un evento " + status + " non si può modificare.");
         }
         event.setUpdatedAt(now);
         statusResolver.computeInstants(event);
+        List<String> changes = changed;
         Event saved = previousSeats == null || previousSeats.equals(event.getSeats())
-                ? save(event) : saveWithNewSeats(event, previousSeats);
+                ? save(event, changes) : saveWithNewSeats(event, previousSeats, changes);
         log.info("Evento {} modificato da {}", event.getCode(), caller.getSubject());
         return toDto(saved);
     }
@@ -278,15 +289,46 @@ public class EventService {
     }
 
     /**
+     * Salva l'evento e, se date o luogo sono cambiati, l'evento di dominio {@code EVENT_CHANGED} nella
+     * stessa transazione (FR-012 della 004, research R10).
+     */
+    private Event save(Event event, List<String> changedFields) {
+        if (changedFields.isEmpty()) {
+            return save(event);
+        }
+        return mongo(() -> transactionTemplate.execute(tx -> {
+            Event saved = eventRepository.save(event);
+            domainEvents.eventChanged(saved, changedFields);
+            return saved;
+        }));
+    }
+
+    /** Campi che cambiano i piani di chi partecipa: date e luogo (FR-012 della 004). */
+    private static List<String> changedForParticipants(Event event, LocalDate previousStart, LocalDate previousEnd,
+                                                       String previousLocation) {
+        List<String> changed = new ArrayList<>();
+        if (!Objects.equals(previousStart, event.getStartDate())) {
+            changed.add("startDate");
+        }
+        if (!Objects.equals(previousEnd, event.getEndDate())) {
+            changed.add("endDate");
+        }
+        if (!Objects.equals(previousLocation, event.getLocation())) {
+            changed.add("location");
+        }
+        return changed;
+    }
+
+    /**
      * Cambio dei posti di un evento pubblicato (FR-014 della 003, research R10): prima la capienza,
      * che rifiuta posti sotto gli iscritti nei posti; se poi il salvataggio fallisce la si riporta
      * indietro. Con più posti si promuovono i primi in attesa.
      */
-    private Event saveWithNewSeats(Event event, int previousSeats) {
+    private Event saveWithNewSeats(Event event, int previousSeats, List<String> changedFields) {
         capacityService.updateSeats(event.getId(), event.getSeats());
         Event saved;
         try {
-            saved = save(event);
+            saved = save(event, changedFields);
         } catch (BuonaCacciaException e) {
             capacityService.updateSeats(event.getId(), previousSeats);
             throw e;
