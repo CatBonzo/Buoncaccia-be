@@ -1,0 +1,179 @@
+openapi: 3.1.0
+info:
+  title: Buona Caccia – Notifiche e link di autorizzazione
+  version: 1.0.0
+  description: |
+    Contratto della feature 004-notifiche. Stesso envelope delle feature 001–003
+    (`errorCode` / `errorMessage` / `errorDomain` / `payload`, errorCode 0 = successo)
+    con status HTTP significativo. Le API del link sono pubbliche: il token nel percorso è la credenziale.
+    Un link inesistente, usato, scaduto o di un'iscrizione non più attiva risponde sempre 404 `40420`
+    con lo stesso messaggio (FR-018). Istanti in UTC, date senza ora nell'ora italiana.
+    Il messaggio Kafka `DomainEvent` è descritto in data-model.md.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: authorization-links
+    description: Autorizzazioni dei capi dal link ricevuto per e-mail
+  - name: notifications
+    description: Registro degli avvisi inviati
+
+paths:
+  /api/v1/authorization-links/{token}:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string, minLength: 43, maxLength: 43 } }
+    get:
+      tags: [authorization-links]
+      operationId: getAuthorizationLink
+      summary: Mostra l'iscrizione e la domanda, senza cambiare nulla (FR-016)
+      security: []
+      responses:
+        '200':
+          description: Link valido
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/AuthorizationLink' } }
+        '404': { $ref: '#/components/responses/LinkNotValid' }
+  /api/v1/authorization-links/{token}/approve:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [authorization-links]
+      operationId: approveFromLink
+      summary: Il capo autorizza; stesso effetto dell'approvazione dal sito (FR-019)
+      security: []
+      responses:
+        '200':
+          description: Autorizzazione registrata; il link non vale più
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/LinkOutcome' } }
+        '404': { $ref: '#/components/responses/LinkNotValid' }
+        '409': { $ref: '#/components/responses/DecisionNotPossible' }
+  /api/v1/authorization-links/{token}/reject:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [authorization-links]
+      operationId: rejectFromLink
+      summary: Il capo nega con un motivo; l'iscrizione è rifiutata
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LinkDecision' }
+      responses:
+        '200':
+          description: Diniego registrato; il link non vale più
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/LinkOutcome' } }
+        '404': { $ref: '#/components/responses/LinkNotValid' }
+        '409': { $ref: '#/components/responses/DecisionNotPossible' }
+        '422': { description: Motivo mancante (42200) }
+  /api/v1/enrollments/{id}/notifications:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [notifications]
+      operationId: listEnrollmentNotifications
+      summary: Registro degli avvisi di un'iscrizione (FR-007)
+      description: Entitlement `iscrizione:gestione` con la regola territoriale della fase 2 (chi gestisce l'evento). Ordinati per data.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Avvisi dell'iscrizione
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties:
+                      payload:
+                        type: array
+                        items: { $ref: '#/components/schemas/Notification' }
+        '401': { description: Token mancante o non valido }
+        '403': { description: Entitlement mancante }
+        '404': { description: Iscrizione inesistente o fuori dalla propria regione }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    LinkNotValid:
+      description: Link non valido o non più valido (40420, dominio NOTIFICATION)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Envelope' }
+          example: { errorCode: 40420, errorMessage: "Il link non è valido o non lo è più.", errorDomain: NOTIFICATION, payload: null }
+    DecisionNotPossible:
+      description: Il link era valido ma l'autorizzazione non è più da dare (40920, dominio NOTIFICATION)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Envelope' }
+  schemas:
+    Envelope:
+      type: object
+      required: [errorCode, errorMessage, errorDomain]
+      properties:
+        errorCode: { type: integer }
+        errorMessage: { type: string }
+        errorDomain: { type: string }
+        payload: {}
+    AuthorizationLink:
+      type: object
+      required: [enrollmentNumber, eventCode, eventTitle, startDate, endDate, participantName, obligationType, deadline]
+      properties:
+        enrollmentNumber: { type: string, examples: ["PIE-2026-0001-0003"] }
+        eventCode: { type: string }
+        eventTitle: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        location: { type: string }
+        participantName: { type: string }
+        presenterName: { type: string }
+        obligationType: { type: string, enum: [UNIT_LEADER_AUTHORIZATION, GROUP_LEADER_AUTHORIZATION] }
+        leaderName: { type: string, description: Il capo a cui è stato inviato il link }
+        deadline: { type: string, format: date-time }
+    LinkDecision:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 500 }
+    LinkOutcome:
+      type: object
+      required: [enrollmentNumber, decision, enrollmentStatus]
+      properties:
+        enrollmentNumber: { type: string }
+        decision: { type: string, enum: [APPROVED, REJECTED] }
+        enrollmentStatus: { type: string, enum: [REGISTERED, COMPLETED, REJECTED] }
+    Notification:
+      type: object
+      required: [id, template, recipientRole, status, createdAt]
+      properties:
+        id: { type: string }
+        template:
+          type: string
+          enum: [ENROLLMENT_CONFIRMATION, PRESENTER_NOTICE, AUTHORIZATION_REQUEST, DEADLINE_REMINDER,
+                 ENROLLMENT_COMPLETED, ENROLLMENT_EXPIRED, ENROLLMENT_WITHDRAWN, ENROLLMENT_PROMOTED,
+                 ENROLLMENT_REJECTED, ENROLLMENT_CANCELLED, EVENT_CHANGED]
+        domainEventType: { type: string }
+        recipientId: { type: string }
+        recipientRole: { type: string, enum: [PARTICIPANT, PRESENTER, UNIT_LEADER, GROUP_LEADER] }
+        email: { type: [string, "null"] }
+        subject: { type: string }
+        status: { type: string, enum: [PENDING, SENT, FAILED, NO_ADDRESS, NO_RECIPIENT] }
+        attempts: { type: integer }
+        lastError: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        sentAt: { type: [string, "null"], format: date-time }
