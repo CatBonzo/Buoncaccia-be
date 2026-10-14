@@ -696,6 +696,20 @@ Problemi: Claude aveva consigliato eventi interni di Spring al posto di Kafka (m
 Spunto: l'agente propone e motiva, la persona decide; il registro delle decisioni conserva anche l'alternativa
   scartata, che in sede di tesi è materiale di discussione.
 
+[2026-10-14] Spec della fase 4: notifiche e-mail
+Cosa: scritta con /speckit-specify la spec 004-notifiche: sei storie (conferma di iscrizione, autorizzazione dei
+  capi dal link nell'e-mail, promemoria a 3 e 1 giorno, avvisi a ogni cambio di stato, avvisi su modifica e
+  annullamento dell'evento, nessuna e-mail persa né doppia), 20 requisiti, 5 criteri di successo.
+Chi: Claude dalla spec di progetto (FR-028, FR-056…059, §2.6.4, NFR-06) e dalle decisioni di Mahima del 14/10.
+Paradigma: SDD. La spec dice cosa deve succedere (un avviso per destinatario, mai perso, mai doppio), non come:
+  outbox, Kafka e consumer idempotente compaiono solo nelle ipotesi e arriveranno nel piano.
+Artefatti: specs/004-notifiche/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: FR-028 di progetto prevede il link firmato per la validazione del presentatore, ma nella fase 3 quella
+  validazione è già automatica quando il capo iscrive il ragazzo. Scelta di default: il link serve ai capi che
+  devono autorizzare. Dichiarata nelle Clarifications, così Mahima può cambiarla prima del piano.
+Spunto: la spec di progetto, scritta prima delle fasi, a volte non regge davanti a ciò che è stato costruito;
+  la spec di feature è il punto in cui si riallinea, e lo dichiara invece di correggere in silenzio.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
