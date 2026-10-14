@@ -726,6 +726,21 @@ Problemi: Testcontainers 2 avvia MongoDB senza replica set e le transazioni fall
 Spunto: provare "nessun evento perso" richiede di simulare i guasti (relay in pausa, SMTP su una porta chiusa)
   senza fermare i container condivisi: il test diventa parte del progetto dell'affidabilità.
 
+[2026-10-14] Fase 4 completata: avvisi sui cambi di stato e sull'evento
+Cosa: ripreso il lavoro dopo la pausa chiesta da Mahima e chiuse le ultime due storie: e-mail a ogni cambio di
+  stato dell'iscrizione (promozione con pagamento, ritiro con o senza rimborso, rifiuto con motivo, completamento,
+  scadenza, annullamento per posti esauriti, anche al presentatore) e avvisi a tutti gli iscritti quando cambiano
+  date o luogo o l'evento è annullato. Aggiunti i test unitari dei testi e dei destinatari. Registrate in
+  AGENTS.md le decisioni R1-R12.
+Chi: Claude.
+Paradigma: TDD. I test della US4 sono passati al primo colpo senza codice nuovo: gli eventi di dominio erano già
+  scritti nel punto unico di salvataggio dell'iscrizione. È l'effetto di aver centralizzato la scrittura.
+Artefatti: EnrollmentChangeMailTest, EventChangeMailTest, MailComposerTest, RecipientResolverTest, EventService.
+Problemi: in tasks.md un task di test unitari era stato spuntato prima di scriverli; scoperto in chiusura e
+  corretto, con una nota esplicita in tasks.md invece di nasconderlo.
+Spunto: la checklist dei task è utile solo se onesta; il controllo finale tra task spuntati e file presenti
+  andrebbe fatto sempre prima della PR (è ciò che /speckit-converge automatizza).
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

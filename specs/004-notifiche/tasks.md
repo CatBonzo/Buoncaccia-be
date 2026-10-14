@@ -128,12 +128,12 @@ description: "Task della feature 004 notifiche e-mail"
 
 ### Test (prima del codice)
 
-- [ ] T035 [US4] `test/v1/controller/EnrollmentChangeMailTest.java`: promozione (nei posti, pagamento se quota > 0, nuova scadenza); ritiro con e senza rimborso; rifiuto con motivo; completamento; scadenza; annullamento per posti esauriti alla partenza; il presentatore riceve le stesse e-mail
+- [x] T035 [US4] `test/v1/controller/EnrollmentChangeMailTest.java`: promozione (nei posti, pagamento se quota > 0, nuova scadenza); ritiro con e senza rimborso; rifiuto con motivo; completamento; scadenza; annullamento per posti esauriti alla partenza; il presentatore riceve le stesse e-mail
 
 ### Implementazione
 
-- [ ] T036 [US4] In `EnrollmentService` registrare `ENROLLMENT_COMPLETED` (in `completeIfDone` quando cambia lo stato), `ENROLLMENT_EXPIRED`, `ENROLLMENT_WITHDRAWN`, `ENROLLMENT_PROMOTED`, `ENROLLMENT_REJECTED`, `ENROLLMENT_CANCELLED` nei rispettivi salvataggi (`exit`, `tryExit`, `cancelAll`, `promoteWaiting`)
-- [ ] T037 [US4] Nel dispatcher e nel composer i sei modelli corrispondenti, al partecipante e al presentatore
+- [x] T036 [US4] In `EnrollmentService` registrare `ENROLLMENT_COMPLETED` (in `completeIfDone` quando cambia lo stato), `ENROLLMENT_EXPIRED`, `ENROLLMENT_WITHDRAWN`, `ENROLLMENT_PROMOTED`, `ENROLLMENT_REJECTED`, `ENROLLMENT_CANCELLED` nei rispettivi salvataggi (`exit`, `tryExit`, `cancelAll`, `promoteWaiting`)
+- [x] T037 [US4] Nel dispatcher e nel composer i sei modelli corrispondenti, al partecipante e al presentatore
 
 ---
 
@@ -141,20 +141,20 @@ description: "Task della feature 004 notifiche e-mail"
 
 ### Test (prima del codice)
 
-- [ ] T038 [US5] `test/v1/controller/EventChangeMailTest.java`: tre iscritti, cambio di luogo → tre e-mail con il nuovo luogo; cambio di date idem; cambio solo di descrizione o posti → nessuna e-mail; annullamento → un'e-mail di annullamento per iscritto attivo con motivo e rimborso
+- [x] T038 [US5] `test/v1/controller/EventChangeMailTest.java`: tre iscritti, cambio di luogo → tre e-mail con il nuovo luogo; cambio di date idem; cambio solo di descrizione o posti → nessuna e-mail; annullamento → un'e-mail di annullamento per iscritto attivo con motivo e rimborso
 
 ### Implementazione
 
-- [ ] T039 [US5] In `main/service/EventService.java` confrontare `startDate`, `endDate`, `location` in `update` e, per un evento non bozza con cambi, registrare `EVENT_CHANGED` nella stessa transazione del salvataggio
-- [ ] T040 [US5] Nel dispatcher `EVENT_CHANGED` → `EVENT_CHANGED` a ogni partecipante delle iscrizioni attive (R6); per l'annullamento verificare che `cancelForEvent` produca già `ENROLLMENT_CANCELLED` con `EVENT_CANCELLED` (T036)
+- [x] T039 [US5] In `main/service/EventService.java` confrontare `startDate`, `endDate`, `location` in `update` e, per un evento non bozza con cambi, registrare `EVENT_CHANGED` nella stessa transazione del salvataggio
+- [x] T040 [US5] Nel dispatcher `EVENT_CHANGED` → `EVENT_CHANGED` a ogni partecipante delle iscrizioni attive (R6); per l'annullamento verificare che `cancelForEvent` produca già `ENROLLMENT_CANCELLED` con `EVENT_CANCELLED` (T036)
 
 ---
 
 ## Phase 9: Polish
 
-- [ ] T041 [P] Aggiornare `specs/004-notifiche/quickstart.md` con quanto verificato a mano e `AGENTS.md` (decisioni R1–R12 con il perché)
-- [ ] T042 [P] Aggiornare il diario `docs/tesi/diario-capitolo-3.txt`
-- [ ] T043 `./gradlew build --max-workers=1` verde; rivedere i log a `debug` di una iscrizione (relay, consumer, invio) che siano leggibili
+- [x] T041 [P] Aggiornare `specs/004-notifiche/quickstart.md` con quanto verificato a mano e `AGENTS.md` (decisioni R1–R12 con il perché)
+- [x] T042 [P] Aggiornare il diario `docs/tesi/diario-capitolo-3.txt`
+- [x] T043 `./gradlew build --max-workers=1` verde; rivedere i log a `debug` di una iscrizione (relay, consumer, invio) che siano leggibili
 
 ---
 
@@ -179,3 +179,5 @@ MVP = Setup + Foundational + US1: una conferma di iscrizione che arriva in Mailp
 - T026: `AUTHORIZATION_REQUESTED` si scrive solo all'iscrizione. Le autorizzazioni nascono già alla registrazione anche per chi è in attesa (`ObligationPlanner.initial`); alla promozione si aggiunge solo il pagamento, quindi non c'è un'altra richiesta da mandare.
 - T028: il diniego dal link riusa `ReasonDTO` della fase 3 (stesso vincolo `@NotBlank @Size(max=500)`) invece di un `LinkDecisionDTO` nuovo.
 - T003: `MongoDBContainer` di Testcontainers 2 parte standalone; con le transazioni della 004 serve `.withReplicaSet()`, come il replica set di docker-compose.
+- T017: i test unitari `MailComposerTest` e `RecipientResolverTest` sono stati scritti dopo il resto (la casella era stata spuntata in anticipo con la fase Foundational); i test di integrazione delle storie coprivano già gli stessi comportamenti.
+- T036–T037: gli eventi di dominio dei cambi di stato erano già scritti dentro i salvataggi di `EnrollmentService` (T015), quindi i test della US4 sono passati senza codice nuovo.
