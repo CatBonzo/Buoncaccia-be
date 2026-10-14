@@ -79,16 +79,16 @@ description: "Task della feature 004 notifiche e-mail"
 
 ### Test (prima del codice)
 
-- [ ] T022 [P] [US2] Test unitario `test/notification/AuthorizationLinkValidityTest.java`: valido; usato; iscrizione non attiva; adempimento già soddisfatto; scadenza passata
-- [ ] T023 [US2] `test/v1/controller/AuthorizationLinkTest.java`: e-mail con link a ogni capo dell'unità; GET non cambia nulla; approve soddisfa l'adempimento e il secondo uso dà 404 `40420`; reject senza motivo 422, con motivo iscrizione `REJECTED`; token alterato 404; autorizzazione data dal sito → link 404; due capi: dopo il primo il link del secondo è 404; il capo che è anche partecipante non riceve il link
+- [x] T022 [P] [US2] Test unitario `test/notification/AuthorizationLinkValidityTest.java`: valido; usato; iscrizione non attiva; adempimento già soddisfatto; scadenza passata
+- [x] T023 [US2] `test/v1/controller/AuthorizationLinkTest.java`: e-mail con link a ogni capo dell'unità; GET non cambia nulla; approve soddisfa l'adempimento e il secondo uso dà 404 `40420`; reject senza motivo 422, con motivo iscrizione `REJECTED`; token alterato 404; autorizzazione data dal sito → link 404; due capi: dopo il primo il link del secondo è 404; il capo che è anche partecipante non riceve il link
 
 ### Implementazione
 
-- [ ] T024 [US2] Creare `main/model/AuthorizationLink.java` (`@Document("authorization_links")`, `tokenHash` unico, `{domainEventId, leaderId}` unico) e `main/repository/AuthorizationLinkRepository.java` con `markUsed(id, decision, now)` condizionato su `usedAt: null`
-- [ ] T025 [US2] Creare `main/notification/AuthorizationLinkService.java`: `create(event, leader)` (token `SecureRandom` 32 byte Base64 URL, SHA-256 salvato), `read(token)`, `approve(token)`, `reject(token, reason)`; 404 `40420` per ogni link non valido, 409 `40920` se la decisione non è più possibile
-- [ ] T026 [US2] In `EnrollmentService` aggiungere `approveAsLeader(enrollmentId, type, leaderId)` e `rejectAsLeader(...)` che riusano la logica di `approve`/`reject` (stessi controlli `canAuthorize`, stessi eventi); in `enroll` e `promoteWaiting` registrare un `AUTHORIZATION_REQUESTED` per ogni autorizzazione `TODO`
-- [ ] T027 [US2] Nel dispatcher gestire `AUTHORIZATION_REQUESTED` → `AUTHORIZATION_REQUEST` a ogni capo (link creato prima dell'invio, idempotente su `{domainEventId, leaderId}`), `NO_RECIPIENT` se nessuno
-- [ ] T028 [US2] Creare `main/v1/dto/AuthorizationLinkDTO.java`, `LinkDecisionDTO.java` (`@NotBlank @Size(max=500) reason`), `LinkOutcomeDTO.java` e `main/v1/controller/AuthorizationLinkController.java`; in `main/config/SecurityConfig.java` rendere pubblico `/api/v1/authorization-links/**`
+- [x] T024 [US2] Creare `main/model/AuthorizationLink.java` (`@Document("authorization_links")`, `tokenHash` unico, `{domainEventId, leaderId}` unico) e `main/repository/AuthorizationLinkRepository.java` con `markUsed(id, decision, now)` condizionato su `usedAt: null`
+- [x] T025 [US2] Creare `main/notification/AuthorizationLinkService.java`: `create(event, leader)` (token `SecureRandom` 32 byte Base64 URL, SHA-256 salvato), `read(token)`, `approve(token)`, `reject(token, reason)`; 404 `40420` per ogni link non valido, 409 `40920` se la decisione non è più possibile
+- [x] T026 [US2] In `EnrollmentService` aggiungere `approveAsLeader(enrollmentId, type, leaderId)` e `rejectAsLeader(...)` che riusano la logica di `approve`/`reject` (stessi controlli `canAuthorize`, stessi eventi); in `enroll` e `promoteWaiting` registrare un `AUTHORIZATION_REQUESTED` per ogni autorizzazione `TODO`
+- [x] T027 [US2] Nel dispatcher gestire `AUTHORIZATION_REQUESTED` → `AUTHORIZATION_REQUEST` a ogni capo (link creato prima dell'invio, idempotente su `{domainEventId, leaderId}`), `NO_RECIPIENT` se nessuno
+- [x] T028 [US2] Creare `main/v1/dto/AuthorizationLinkDTO.java`, `LinkDecisionDTO.java` (`@NotBlank @Size(max=500) reason`), `LinkOutcomeDTO.java` e `main/v1/controller/AuthorizationLinkController.java`; in `main/config/SecurityConfig.java` rendere pubblico `/api/v1/authorization-links/**`
 
 **Checkpoint**: US1 e US2 verdi.
 
@@ -172,3 +172,10 @@ description: "Task della feature 004 notifiche e-mail"
 ## Strategia
 
 MVP = Setup + Foundational + US1: una conferma di iscrizione che arriva in Mailpit passando da outbox e Kafka. Poi US2 (il valore più alto per le segreterie), US6 (la garanzia), quindi US3–US5.
+
+## Note di implementazione
+
+- T021: nessun utente nuovo nei mock; il test del caso `NO_ADDRESS` toglie l'e-mail a `scolta` nel database e la rimette alla fine.
+- T026: `AUTHORIZATION_REQUESTED` si scrive solo all'iscrizione. Le autorizzazioni nascono già alla registrazione anche per chi è in attesa (`ObligationPlanner.initial`); alla promozione si aggiunge solo il pagamento, quindi non c'è un'altra richiesta da mandare.
+- T028: il diniego dal link riusa `ReasonDTO` della fase 3 (stesso vincolo `@NotBlank @Size(max=500)`) invece di un `LinkDecisionDTO` nuovo.
+- T003: `MongoDBContainer` di Testcontainers 2 parte standalone; con le transazioni della 004 serve `.withReplicaSet()`, come il replica set di docker-compose.
