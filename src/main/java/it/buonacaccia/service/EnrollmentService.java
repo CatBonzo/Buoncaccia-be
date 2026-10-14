@@ -1,18 +1,22 @@
 package it.buonacaccia.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import it.buonacaccia.config.ClockConfig;
 import it.buonacaccia.config.error.BuonaCacciaException;
 import it.buonacaccia.config.error.ErrorCode;
 import it.buonacaccia.config.mongo.CircuitBreakerService;
@@ -368,6 +372,68 @@ public class EnrollmentService {
             log.info("Iscrizioni scadute: {}", expired);
         }
         return expired;
+    }
+
+    /**
+     * Promemoria a 3 e a 1 giorno di calendario dalla scadenza, all'ora italiana (FR-010 della 004,
+     * research R9). Ogni promemoria si segna nell'iscrizione con la sua scadenza, nella stessa
+     * transazione dell'evento di dominio: non parte due volte, e dopo una promozione con una nuova
+     * scadenza i promemoria ripartono. Se il giorno prima è già arrivato, il promemoria a 3 giorni
+     * non parte più.
+     */
+    public int sendReminders() {
+        Instant now = clock.instant();
+        Query due = new Query(Criteria.where("status").is(EnrollmentStatus.REGISTERED)
+                .and("deadline").gt(now).lte(now.plus(Duration.ofDays(4))));
+        Map<String, Event> events = new HashMap<>();
+        int sent = 0;
+        for (Enrollment enrollment : mongo(() -> mongoTemplate.find(due, Enrollment.class))) {
+            int days = reminderDue(enrollment.getDeadline(), now, enrollment.getRemindersSent());
+            if (days == 0) {
+                continue;
+            }
+            Event event = events.computeIfAbsent(enrollment.getEventId(), this::eventRepositoryFind);
+            String key = reminderKey(days, enrollment.getDeadline());
+            Update update = new Update().addToSet("remindersSent", key).inc("version", 1);
+            if (days == 1) {
+                update = new Update().addToSet("remindersSent").each(key, reminderKey(3, enrollment.getDeadline()))
+                        .inc("version", 1);
+            }
+            Query notYet = new Query(Criteria.where("id").is(enrollment.getId())
+                    .and("status").is(EnrollmentStatus.REGISTERED).and("remindersSent").ne(key));
+            Update mark = update;
+            boolean recorded = Boolean.TRUE.equals(mongo(() -> transactionTemplate.execute(tx -> {
+                if (mongoTemplate.updateFirst(notYet, mark, Enrollment.class).getModifiedCount() == 0) {
+                    return false;
+                }
+                domainEvents.reminder(enrollment, event, days);
+                return true;
+            })));
+            if (recorded) {
+                sent++;
+                log.debug("Promemoria a {} giorni per l'iscrizione {}", days, enrollment.getNumber());
+            }
+        }
+        if (sent > 0) {
+            log.info("Promemoria di scadenza: {}", sent);
+        }
+        return sent;
+    }
+
+    /** 1 o 3 se è il momento di quel promemoria e non è ancora partito, altrimenti 0. */
+    static int reminderDue(Instant deadline, Instant now, Set<String> sent) {
+        ZonedDateTime local = deadline.atZone(ClockConfig.ROME);
+        if (!now.isBefore(local.minusDays(1).toInstant())) {
+            return sent.contains(reminderKey(1, deadline)) ? 0 : 1;
+        }
+        if (!now.isBefore(local.minusDays(3).toInstant())) {
+            return sent.contains(reminderKey(3, deadline)) ? 0 : 3;
+        }
+        return 0;
+    }
+
+    private static String reminderKey(int days, Instant deadline) {
+        return "D" + days + ":" + deadline;
     }
 
     /** Alla partenza chi è ancora in attesa è ANNULLATO con motivo "posti esauriti" (FR-016). */

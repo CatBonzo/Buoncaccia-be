@@ -710,6 +710,22 @@ Problemi: FR-028 di progetto prevede il link firmato per la validazione del pres
 Spunto: la spec di progetto, scritta prima delle fasi, a volte non regge davanti a ciò che è stato costruito;
   la spec di feature è il punto in cui si riallinea, e lo dichiara invece di correggere in silenzio.
 
+[2026-10-14] Fase 4 a metà: notifiche affidabili, link ai capi, promemoria
+Cosa: implementate con i test prima quattro storie su sei della 004: conferma di iscrizione (US1), link monouso
+  per i capi (US2), nessuna e-mail persa né doppia con registro consultabile (US6), promemoria a 3 e 1 giorno (US3).
+  Percorso: cambio di stato + evento di dominio nella stessa transazione MongoDB (outbox), relay verso Kafka,
+  consumer idempotente con chiave unica sulla notifica, ritentativi e dead letter, invio su Mailpit.
+  Restano gli avvisi sui cambi di stato (US4) e sulle modifiche dell'evento (US5). Lavoro fermato su richiesta
+  di Mahima; branch 004-notifiche aggiornato, PR non ancora aperta.
+Chi: Claude; interruzione decisa da Mahima.
+Paradigma: TDD con infrastruttura vera (Testcontainers con Kafka e Mailpit); SDD per le scelte (research R1-R12).
+Artefatti: package notification, collezioni outbox, notifications, authorization_links; test
+  EnrollmentConfirmationMailTest, AuthorizationLinkTest, NotificationReliabilityTest, ReminderMailTest.
+Problemi: Testcontainers 2 avvia MongoDB senza replica set e le transazioni falliscono ("retryable writes"):
+  serve .withReplicaSet(). Docker Hub ha limitato i download: l'immagine di Mailpit è stata presa da ghcr.io.
+Spunto: provare "nessun evento perso" richiede di simulare i guasti (relay in pausa, SMTP su una porta chiusa)
+  senza fermare i container condivisi: il test diventa parte del progetto dell'affidabilità.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

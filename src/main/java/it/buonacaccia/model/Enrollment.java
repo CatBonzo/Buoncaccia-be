@@ -2,7 +2,9 @@ package it.buonacaccia.model;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -76,6 +78,10 @@ public class Enrollment {
     private String closingNote;
     /** Diritto al rimborso (BR-10): null finché l'iscrizione è attiva. */
     private Boolean refundDue;
+
+    /** Promemoria già inviati, come {@code D3:<scadenza>} e {@code D1:<scadenza>} (research R9 della 004). */
+    @Builder.Default
+    private Set<String> remindersSent = new HashSet<>();
 
     @Version
     private Long version;

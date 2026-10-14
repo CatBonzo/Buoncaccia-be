@@ -115,12 +115,12 @@ description: "Task della feature 004 notifiche e-mail"
 
 ### Test (prima del codice)
 
-- [ ] T032 [US3] `test/v1/controller/ReminderMailTest.java` con `MutableClock`: D3 a 3 giorni, D1 a 1 giorno, mai due volte; nessun promemoria per iscrizione completa, ritirata, scaduta; dopo la promozione i promemoria seguono la nuova scadenza; iscrizione a meno di un giorno riceve solo il D1
+- [x] T032 [US3] `test/v1/controller/ReminderMailTest.java` con `MutableClock`: D3 a 3 giorni, D1 a 1 giorno, mai due volte; nessun promemoria per iscrizione completa, ritirata, scaduta; dopo la promozione i promemoria seguono la nuova scadenza; iscrizione a meno di un giorno riceve solo il D1
 
 ### Implementazione
 
-- [ ] T033 [US3] Aggiungere `remindersSent` (`Set<String>`) a `main/model/Enrollment.java`; in `EnrollmentService` `sendReminders()` (R9: update condizionato su `remindersSent` + `DEADLINE_REMINDER` nella stessa transazione); chiamarlo da `main/service/EnrollmentJobs.java`
-- [ ] T034 [US3] Nel dispatcher e nel composer il modello `DEADLINE_REMINDER` con adempimenti mancanti e scadenza
+- [x] T033 [US3] Aggiungere `remindersSent` (`Set<String>`) a `main/model/Enrollment.java`; in `EnrollmentService` `sendReminders()` (R9: update condizionato su `remindersSent` + `DEADLINE_REMINDER` nella stessa transazione); chiamarlo da `main/service/EnrollmentJobs.java`
+- [x] T034 [US3] Nel dispatcher e nel composer il modello `DEADLINE_REMINDER` con adempimenti mancanti e scadenza
 
 ---
 
