@@ -328,7 +328,7 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorEnvelope' }
-          example: { errorCode: 40903, errorMessage: "L'evento è stato modificato da qualcun altro: ricarica e riprova.", errorDomain: CATALOG, payload: null }
+          example: { errorCode: 40903, errorMessage: "La risorsa è stata modificata da qualcun altro: ricarica e riprova.", errorDomain: SYSTEM, payload: null }
     UnprocessableEntity:
       description: "42200 input non valido; 42201 invarianti di pubblicazione non rispettati. payload = campi da correggere"
       content:

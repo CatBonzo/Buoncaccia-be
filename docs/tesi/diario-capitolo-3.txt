@@ -627,6 +627,62 @@ Problemi: (1) Jackson 3 rifiuta un booleano primitivo assente nel JSON: i DTO us
 Spunto: anche dopo analyze, scrivere i test fa emergere ambiguità che i documenti non mostrano (caso 2): il
   ciclo spec → test → codice corregge la spec a ritroso.
 
+[2026-10-14] Merge della fase 2, due decisioni e spec della fase 3
+Cosa: Mahima ha unito la PR #2 in feature. Ha deciso Q12 (vale BR-10: rimborso solo con ritiro almeno 7 giorni
+  prima della partenza) e ha tenuto le sigle di tre lettere per le regioni. Poi speckit-specify per la fase 3:
+  iscrizioni e lista d'attesa, 5 user story, 25 requisiti, 6 criteri di successo.
+Chi: decisioni di Mahima; spec di Claude dalla spec di progetto v2.0.
+Paradigma: SDD. La contraddizione US-10/BR-10, segnata nella checklist della spec di progetto, si risolve prima di
+  scrivere la feature che la usa: la decisione entra nella sezione Clarifications della spec di feature.
+Artefatti: specs/003-iscrizioni/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: (1) per le sigle Mahima ha chiesto prima "quelle ufficiali": AGESCI non ne pubblica; l'unico standard è
+  ISO 3166-2 (IT-21 Piemonte). Messi a confronto i due formati, ha scelto di restare sulle tre lettere. La prova con
+  ISO, fatta su un ramo locale, è stata scartata senza pubblicarla. (2) Il pagamento per chi è in lista d'attesa
+  (FR-038 di progetto) era "da decidere": proposta l'opzione "alla promozione" con una card di scelta, e il lavoro
+  è andato avanti su quella in attesa della risposta.
+Spunto: "ufficiale" non sempre esiste: l'agente deve verificare le fonti prima di adottare uno standard e mostrare
+  il costo della scelta (leggibilità) invece di applicarla alla cieca.
+
+[2026-10-14] Piano tecnico della fase 3
+Cosa: speckit-plan per le iscrizioni: research.md (11 decisioni), data-model.md, contratto OpenAPI con 10
+  endpoint, quickstart con 18 scenari a mano e 7 utenti di prova nuovi.
+Chi: Claude, sulla base tecnica delle fasi 1 e 2.
+Paradigma: SDD. Il requisito non funzionale SC-002 (200 iscrizioni contemporanee, ordine di arrivo senza buchi)
+  decide l'architettura dei dati prima di scrivere codice: è il punto in cui la spec guida il design.
+Artefatti: specs/003-iscrizioni/plan.md, research.md, data-model.md, contracts/enrollments.openapi.yaml,
+  quickstart.md, AGENTS.md.
+Problemi: (1) Dove tenere i contatori dei posti. Sull'evento no: l'evento ha la versione ottimistica e la
+  segreteria lo salva per intero, quindi una modifica cancellerebbe gli incrementi delle iscrizioni (o ogni
+  iscrizione farebbe fallire la segreteria). Soluzione: un documento di capienza separato aggiornato solo con
+  operazioni atomiche condizionate; alternative scartate: transazioni (conflitti sul picco delle 09:00) e
+  conteggio a ogni richiesta (doppi posti). (2) Il campo enrolledCount della fase 2 diventa ridondante: esce
+  dall'evento e il catalogo lo legge dalla capienza. (3) maxPerGroup resta esatto solo "quasi sempre": limite
+  dichiarato in AGENTS.md invece di complicare il design.
+Spunto: la costituzione (principio IV, semplicità) ha pesato due volte: niente transazioni e niente ShedLock.
+  Scrivere nel piano anche i limiti accettati rende la scelta discutibile in sede di tesi, non nascosta.
+
+[2026-10-14] Task e implementazione della fase 3
+Cosa: speckit-tasks (38 task in 8 fasi), un controllo di coerenza fra spec, piano e task, poi implementazione
+  test-first delle 5 storie: capienza atomica, iscrizione autonoma e del capo, pagina di stato, autorizzazioni,
+  adempimenti della segreteria, scadenze e lista d'attesa con un job, ritiro con rimborso, elenchi, annullamento a
+  cascata. Build verde con 145 test.
+Chi: Claude; nessuna nuova decisione chiesta a Mahima oltre al pagamento in attesa (ancora da confermare).
+Paradigma: TDD dentro SDD. Ordine seguito: test di concorrenza della capienza, test unitari delle regole
+  (requisiti, adempimenti, rimborso), test di integrazione per storia, poi il codice. Il test con 200 iscrizioni
+  in parallelo è la prova diretta del criterio SC-002 della spec.
+Artefatti: specs/003-iscrizioni/tasks.md; model Enrollment, EventCapacity e quattro enum; EventCapacityRepository
+  e Service, EnrollmentEligibility, ObligationPlanner, RefundRule, EnrollmentService, EnrollmentJobs,
+  EnrollmentAccessPolicy; due controller; 9 classi di test nuove; mocked-identity.yml con 7 utenti in più.
+Problemi: (1) Il controllo di coerenza ha trovato una contraddizione: FR-020 dava il rimborso a tutti gli annullati,
+  ma chi è in attesa non ha pagato (FR-017). Spec corretta prima del codice. (2) Il primo test dei tempi falliva per
+  i nanosecondi: MongoDB salva i millisecondi, il test ora li tronca. (3) Il codice 40903 era "dell'evento": reso
+  generico perché le iscrizioni hanno la stessa versione ottimistica. (4) Spostare enrolledCount fuori dall'evento
+  ha toccato la ricerca della fase 2: il filtro di disponibilità ora passa dagli id della capienza; i test della
+  fase 2 sono rimasti verdi senza modifiche, prova che il contratto non è cambiato.
+Spunto: scrivere prima i test delle regole pure (senza database) ha reso il resto quasi meccanico: 12 test della
+  storia 1 verdi al primo giro. Il controllo spec-piano-task prima del codice costa poco e trova errori di logica
+  che i test non vedrebbero, perché i test seguono la spec.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

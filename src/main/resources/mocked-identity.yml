@@ -9,7 +9,9 @@
 #   label             etichetta per il frontend
 #   username, firstName, lastName, email
 #   authentication    claim del token: isMemberOf, role (lista), entitlement (lista)
-#   census            facoltativo: dati di censimento; assente = persona non socia AGESCI
+#   birthDate         facoltativa: serve per l'età alla partenza (requisiti degli eventi)
+#   census            facoltativo: dati di censimento; assente = persona non socia AGESCI.
+#                     year assente = anno corrente; groupLeader true = capo gruppo del groupId
 mocked-identity:
   users:
     - agesciUUID: 7c1e2a2e-0001-4a6b-9a01-000000000001
@@ -60,12 +62,14 @@ mocked-identity:
           - agesci:socio:user
         entitlement:
           - agesci:entitlement:iscrizione:self
+      birthDate: 1990-04-12
       census:
         memberCode: "100003"
+        groupId: PIE-TO-01
+        unitId: PIE-TO-01-EG
         branch: CO
         memberType: LEADER
         status: IN_GOOD_STANDING
-        year: 2026
 
     - agesciUUID: 7c1e2a2e-0004-4a6b-9a01-000000000004
       buonaCacciaUUID: user-004
@@ -96,3 +100,158 @@ mocked-identity:
           - agesci:entitlement:evento:gestione
           - agesci:entitlement:iscrizione:gestione
           - agesci:entitlement:pagamento:registrazione
+
+    - agesciUUID: 7c1e2a2e-0006-4a6b-9a01-000000000006
+      buonaCacciaUUID: user-006
+      label: "Esploratore (E/G, reparto PIE-TO-01-EG)"
+      username: esploratore
+      firstName: "Elia"
+      lastName: "Esploratore"
+      email: esploratore@buonacaccia.local
+      birthDate: 2012-05-10
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100006"
+        groupId: PIE-TO-01
+        unitId: PIE-TO-01-EG
+        branch: EG
+        memberType: YOUTH
+        status: IN_GOOD_STANDING
+
+    - agesciUUID: 7c1e2a2e-0007-4a6b-9a01-000000000007
+      buonaCacciaUUID: user-007
+      label: "Lupetto (L/C, branco PIE-TO-01-LC)"
+      username: lupetto
+      firstName: "Luca"
+      lastName: "Lupetto"
+      email: lupetto@buonacaccia.local
+      birthDate: 2017-09-02
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100007"
+        groupId: PIE-TO-01
+        unitId: PIE-TO-01-LC
+        branch: LC
+        memberType: YOUTH
+        status: IN_GOOD_STANDING
+
+    - agesciUUID: 7c1e2a2e-0008-4a6b-9a01-000000000008
+      buonaCacciaUUID: user-008
+      label: "Rover (R/S, clan PIE-TO-01-RS)"
+      username: rover
+      firstName: "Riccardo"
+      lastName: "Rover"
+      email: rover@buonacaccia.local
+      birthDate: 2009-03-01
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100008"
+        groupId: PIE-TO-01
+        unitId: PIE-TO-01-RS
+        branch: RS
+        memberType: YOUTH
+        status: IN_GOOD_STANDING
+
+    - agesciUUID: 7c1e2a2e-0009-4a6b-9a01-000000000009
+      buonaCacciaUUID: user-009
+      label: "Rover ligure (R/S, clan LIG-GE-03-RS)"
+      username: rover-lig
+      firstName: "Lorenzo"
+      lastName: "Genovese"
+      email: rover-lig@buonacaccia.local
+      birthDate: 2009-11-20
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100009"
+        groupId: LIG-GE-03
+        unitId: LIG-GE-03-RS
+        branch: RS
+        memberType: YOUTH
+        status: IN_GOOD_STANDING
+
+    - agesciUUID: 7c1e2a2e-0010-4a6b-9a01-000000000010
+      buonaCacciaUUID: user-010
+      label: "Capo gruppo PIE-TO-01 e capo clan"
+      username: capogruppo
+      firstName: "Giulia"
+      lastName: "Capogruppo"
+      email: capogruppo@buonacaccia.local
+      birthDate: 1980-01-15
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100010"
+        groupId: PIE-TO-01
+        unitId: PIE-TO-01-RS
+        branch: CO
+        memberType: LEADER
+        status: IN_GOOD_STANDING
+        groupLeader: true
+
+    - agesciUUID: 7c1e2a2e-0011-4a6b-9a01-000000000011
+      buonaCacciaUUID: user-011
+      label: "Socio non in regola"
+      username: socio-non-in-regola
+      firstName: "Nino"
+      lastName: "Nonregola"
+      email: socio-non-in-regola@buonacaccia.local
+      birthDate: 1985-07-07
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100011"
+        groupId: PIE-TO-02
+        unitId: PIE-TO-02-EG
+        branch: CO
+        memberType: LEADER
+        status: NOT_IN_GOOD_STANDING
+
+    - agesciUUID: 7c1e2a2e-0012-4a6b-9a01-000000000012
+      buonaCacciaUUID: user-012
+      label: "Scolta (R/S, clan PIE-TO-01-RS)"
+      username: scolta
+      firstName: "Silvia"
+      lastName: "Scolta"
+      email: scolta@buonacaccia.local
+      birthDate: 2008-06-30
+      authentication:
+        isMemberOf: agesci:socio:true
+        role:
+          - agesci:socio:user
+        entitlement:
+          - agesci:entitlement:iscrizione:self
+      census:
+        memberCode: "100012"
+        groupId: PIE-TO-01
+        unitId: PIE-TO-01-RS
+        branch: RS
+        memberType: YOUTH
+        status: IN_GOOD_STANDING

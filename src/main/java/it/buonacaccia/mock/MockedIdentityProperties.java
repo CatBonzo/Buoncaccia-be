@@ -1,5 +1,6 @@
 package it.buonacaccia.mock;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import it.buonacaccia.model.Branch;
@@ -28,6 +29,7 @@ public record MockedIdentityProperties(@NotEmpty List<@Valid MockedUser> users) 
             @NotBlank String firstName,
             @NotBlank String lastName,
             String email,
+            LocalDate birthDate,
             @NotNull @Valid Authentication authentication,
             @Valid CensusData census) {
     }
@@ -49,6 +51,7 @@ public record MockedIdentityProperties(@NotEmpty List<@Valid MockedUser> users) 
             @NotNull Branch branch,
             @NotNull MemberType memberType,
             @NotNull CensusStatus status,
-            @NotNull Integer year) {
+            Integer year,
+            Boolean groupLeader) {
     }
 }

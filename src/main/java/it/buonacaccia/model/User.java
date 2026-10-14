@@ -1,6 +1,7 @@
 package it.buonacaccia.model;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +39,8 @@ public class User {
     private String email;
     private String firstName;
     private String lastName;
+    /** Per l'età alla data di partenza (BR-06). */
+    private LocalDate birthDate;
     private UserStatus status;
     private Census census;
 

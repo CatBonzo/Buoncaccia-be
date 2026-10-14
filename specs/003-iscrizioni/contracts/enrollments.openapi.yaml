@@ -1,0 +1,368 @@
+openapi: 3.1.0
+info:
+  title: Buona Caccia – Iscrizioni
+  version: 1.0.0
+  description: |
+    Contratto della feature 003-iscrizioni. Stesso envelope delle feature 001 e 002
+    (`errorCode` / `errorMessage` / `errorDomain` / `payload`, errorCode 0 = successo)
+    con status HTTP significativo. Per i 422 `payload` è l'elenco dei motivi (research R6).
+    Tutte le API richiedono il token. Istanti in UTC, date senza ora nell'ora italiana.
+    Un'iscrizione che chi chiama non può vedere risponde 404, come se non esistesse (FR-021).
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+tags:
+  - name: enrollments
+    description: Iscrizioni agli eventi e lista d'attesa
+
+paths:
+  /api/v1/events/{eventId}/enrollments:
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [enrollments]
+      operationId: enroll
+      summary: Iscrive sé stessi (corpo vuoto) o un ragazzo della propria unità (memberCode)
+      description: |
+        Entitlement `iscrizione:self`. Con `memberCode` chi chiama deve essere un capo della stessa
+        unità del ragazzo (403 altrimenti) e diventa presentatore. La regione dell'evento non conta (BR-15).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnrollmentRequest' }
+            examples:
+              self: { value: {} }
+              byLeader: { value: { memberCode: "100006" } }
+      responses:
+        '201': { $ref: '#/components/responses/EnrollmentOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/NotEligible' }
+    get:
+      tags: [enrollments]
+      operationId: listEventEnrollments
+      summary: Iscritti dell'evento, per chi lo gestisce (FR-023)
+      description: Entitlement `iscrizione:gestione` e la regola territoriale della fase 2. Ordinati per ordine di arrivo.
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/EnrollmentStatus' } }
+        - { name: position, in: query, schema: { $ref: '#/components/schemas/SeatPosition' } }
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentPageOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/enrollments/mine:
+    get:
+      tags: [enrollments]
+      operationId: listMyEnrollments
+      summary: Le mie iscrizioni (FR-022), dalla più recente
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentPageOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/enrollments/presented:
+    get:
+      tags: [enrollments]
+      operationId: listPresentedEnrollments
+      summary: Iscrizioni che ho presentato come capo (FR-022)
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentPageOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/enrollments/to-authorize:
+    get:
+      tags: [enrollments]
+      operationId: listEnrollmentsToAuthorize
+      summary: Iscrizioni attive con un'autorizzazione da dare da parte mia (capo unità o capo gruppo)
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentPageOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/enrollments/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [enrollments]
+      operationId: getEnrollment
+      summary: Pagina di stato dell'iscrizione (FR-021)
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/enrollments/{id}/withdraw:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [enrollments]
+      operationId: withdrawEnrollment
+      summary: Ritiro del partecipante o del presentatore prima della partenza (FR-018, FR-019)
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/enrollments/{id}/obligations/{type}/approve:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: type, in: path, required: true, schema: { $ref: '#/components/schemas/AuthorizationType' } }
+    post:
+      tags: [enrollments]
+      operationId: approveObligation
+      summary: Il capo unità o il capo gruppo del partecipante autorizza (FR-009)
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/enrollments/{id}/obligations/{type}/reject:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: type, in: path, required: true, schema: { $ref: '#/components/schemas/AuthorizationType' } }
+    post:
+      tags: [enrollments]
+      operationId: rejectObligation
+      summary: Diniego con motivo; l'iscrizione diventa REJECTED (FR-009)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Reason' }
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+
+  /api/v1/enrollments/{id}/obligations/{type}/satisfy:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: type, in: path, required: true, schema: { $ref: '#/components/schemas/ObligationType' } }
+    post:
+      tags: [enrollments]
+      operationId: satisfyObligation
+      summary: La segreteria che gestisce l'evento segna l'adempimento come soddisfatto (FR-010)
+      description: Entitlement `iscrizione:gestione` e regola territoriale della fase 2.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Note' }
+      responses:
+        '200': { $ref: '#/components/responses/EnrollmentOk' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  responses:
+    EnrollmentOk:
+      description: Iscrizione
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { $ref: '#/components/schemas/Enrollment' }
+    EnrollmentPageOk:
+      description: Pagina di iscrizioni
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { $ref: '#/components/schemas/EnrollmentPage' }
+    Unauthorized:
+      description: Token assente o non valido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40100, errorMessage: "Autenticazione richiesta: token assente o non valido.", errorDomain: AUTH, payload: null }
+    Forbidden:
+      description: Entitlement mancante, ragazzo non della propria unità, autorizzazione non propria, evento di un'altra regione
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40300, errorMessage: "Permesso mancante per questa operazione.", errorDomain: AUTH, payload: null }
+    NotFound:
+      description: Evento, socio o iscrizione inesistente, o iscrizione non visibile a chi chiama
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40400, errorMessage: "Risorsa non trovata.", errorDomain: SYSTEM, payload: null }
+    Conflict:
+      description: |
+        40910 transizione dell'iscrizione non consentita (es. ritiro dopo la partenza, adempimento già soddisfatto);
+        40911 iscrizione già attiva allo stesso evento; 40912 iscrizioni dell'evento non aperte;
+        40903 modificata da qualcun altro
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { errorCode: 40912, errorMessage: "Le iscrizioni a questo evento non sono aperte.", errorDomain: ENROLLMENT, payload: null }
+    NotEligible:
+      description: "42210 requisiti non soddisfatti (payload = tutti i motivi); 42200 input non valido"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { type: array, items: { $ref: '#/components/schemas/FieldError' } }
+          example:
+            errorCode: 42210
+            errorMessage: "Il socio non ha i requisiti per questo evento."
+            errorDomain: ENROLLMENT
+            payload:
+              - { field: age, message: "Alla partenza il socio ha 15 anni: l'evento chiede almeno 16 anni." }
+              - { field: branch, message: "La branca EG non è ammessa: l'evento è per RS." }
+    InvalidInput:
+      description: "42200 input non valido (es. motivo mancante)"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties:
+                  payload: { type: array, items: { $ref: '#/components/schemas/FieldError' } }
+
+  schemas:
+    Envelope:
+      type: object
+      required: [errorCode, errorMessage, errorDomain, payload]
+      properties:
+        errorCode: { type: integer, description: "0 = successo; altrimenti SSSNN con SSS = status HTTP" }
+        errorMessage: { type: [string, 'null'] }
+        errorDomain: { type: [string, 'null'], enum: [AUTH, IDENTITY, CATALOG, ENROLLMENT, SYSTEM, null] }
+        payload: {}
+
+    ErrorEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - properties:
+            payload: { type: 'null' }
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field: { type: string, description: "age, branch, memberType, census, enrollmentMode, oneActivePerType, maxPerGroup, birthDate" }
+        message: { type: string }
+
+    EnrollmentRequest:
+      type: object
+      properties:
+        memberCode: { type: [string, 'null'], description: "Codice socio del ragazzo; assente = iscrizione di sé stessi" }
+
+    Reason:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 500 }
+
+    Note:
+      type: object
+      properties:
+        note: { type: [string, 'null'], maxLength: 500 }
+
+    EnrollmentStatus:
+      type: string
+      enum: [REGISTERED, COMPLETED, EXPIRED, WITHDRAWN, REJECTED, CANCELLED]
+    SeatPosition:
+      type: string
+      enum: [IN_SEATS, WAITING]
+    ObligationType:
+      type: string
+      enum: [LEADER_VALIDATION, UNIT_LEADER_AUTHORIZATION, GROUP_LEADER_AUTHORIZATION, PAYMENT, DOCUMENT, ELECTRONIC_FORM]
+    AuthorizationType:
+      type: string
+      enum: [UNIT_LEADER_AUTHORIZATION, GROUP_LEADER_AUTHORIZATION]
+    ObligationStatus:
+      type: string
+      enum: [TODO, SATISFIED, REJECTED, NOT_REQUIRED]
+    ClosingReason:
+      type: string
+      enum: [WITHDRAWN, EXPIRED, REJECTED, EVENT_CANCELLED, SEATS_EXHAUSTED]
+
+    EnrollmentObligation:
+      type: object
+      required: [type, status]
+      properties:
+        type: { $ref: '#/components/schemas/ObligationType' }
+        description: { type: [string, 'null'] }
+        status: { $ref: '#/components/schemas/ObligationStatus' }
+        satisfiedAt: { type: [string, 'null'], format: date-time }
+        note: { type: [string, 'null'] }
+
+    Enrollment:
+      type: object
+      required: [id, number, eventId, eventCode, participantId, status, position, arrivalOrder, active, obligations, registeredAt, deadline, availableActions]
+      properties:
+        id: { type: string }
+        number: { type: string, example: PIE-2027-001-0031 }
+        eventId: { type: string }
+        eventCode: { type: string, example: PIE-2027-001 }
+        eventTitle: { type: [string, 'null'] }
+        eventStartDate: { type: [string, 'null'], format: date }
+        participantId: { type: string }
+        participantMemberCode: { type: string }
+        participantName: { type: string }
+        presenterId: { type: [string, 'null'] }
+        presenterName: { type: [string, 'null'] }
+        status: { $ref: '#/components/schemas/EnrollmentStatus' }
+        position: { $ref: '#/components/schemas/SeatPosition' }
+        waitingPosition: { type: [integer, 'null'], description: "1 = il prossimo a essere promosso; null se nei posti o non attiva" }
+        arrivalOrder: { type: integer }
+        active: { type: boolean }
+        obligations: { type: array, items: { $ref: '#/components/schemas/EnrollmentObligation' } }
+        registeredAt: { type: string, format: date-time }
+        deadline: { type: string, format: date-time }
+        promotedAt: { type: [string, 'null'], format: date-time }
+        completedAt: { type: [string, 'null'], format: date-time }
+        closedAt: { type: [string, 'null'], format: date-time }
+        closingReason: { oneOf: [{ $ref: '#/components/schemas/ClosingReason' }, { type: 'null' }] }
+        closingNote: { type: [string, 'null'] }
+        refundDue: { type: [boolean, 'null'], description: "Diritto al rimborso (BR-10); null finché l'iscrizione è attiva" }
+        availableActions:
+          type: array
+          description: Azioni che chi chiama può fare ora
+          items:
+            type: string
+            enum: [WITHDRAW, APPROVE_UNIT_LEADER, REJECT_UNIT_LEADER, APPROVE_GROUP_LEADER, REJECT_GROUP_LEADER, SATISFY]
+        version: { type: integer }
+
+    EnrollmentPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content: { type: array, items: { $ref: '#/components/schemas/Enrollment' } }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }

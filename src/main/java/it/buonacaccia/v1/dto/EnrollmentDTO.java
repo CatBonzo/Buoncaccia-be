@@ -1,0 +1,56 @@
+package it.buonacaccia.v1.dto;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+
+import it.buonacaccia.model.ClosingReason;
+import it.buonacaccia.model.EnrollmentStatus;
+import it.buonacaccia.model.SeatPosition;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+/**
+ * Pagina di stato dell'iscrizione (FR-021). Titolo e data dell'evento, posizione in attesa e azioni
+ * disponibili li calcola il service a ogni lettura.
+ */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@Builder
+public class EnrollmentDTO {
+
+    private String id;
+    private String number;
+    private String eventId;
+    private String eventCode;
+    private String eventTitle;
+    private LocalDate eventStartDate;
+    private String participantId;
+    private String participantMemberCode;
+    private String participantName;
+    private String presenterId;
+    private String presenterName;
+    private EnrollmentStatus status;
+    private SeatPosition position;
+    private Integer waitingPosition;
+    private long arrivalOrder;
+    private boolean active;
+    private List<EnrollmentObligationDTO> obligations;
+    private Instant registeredAt;
+    private Instant deadline;
+    private Instant promotedAt;
+    private Instant completedAt;
+    private Instant closedAt;
+    private ClosingReason closingReason;
+    private String closingNote;
+    private Boolean refundDue;
+    private List<String> availableActions;
+    private Long version;
+}

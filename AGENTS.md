@@ -126,11 +126,28 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-13 | Nei DTO i booleani facoltativi sono `Boolean`, non `boolean` | Jackson 3 (Boot 4) costruisce i DTO col costruttore completo di `@AllArgsConstructor` e rifiuta un campo primitivo assente (`FAIL_ON_NULL_FOR_PRIMITIVES`) |
 | 2026-10-13 | Nei test di integrazione l'ora è un `MutableClock` importato da `AbstractTest`; torna all'ora vera dopo ogni test | Un solo contesto Spring per tutta la suite (più veloce) e prove sugli orari (US3) senza attese |
 | 2026-10-13 | I tipi disattivati si vedono con `GET /event-types?includeInactive=true`, solo con l'entitlement `tipoevento:gestione` | Il catalogo pubblico mostra solo i tipi usabili; l'amministrazione deve poter ritrovare quelli spenti |
+| 2026-10-14 | Q12 risolta: vale BR-10, il rimborso spetta se il ritiro avviene almeno 7 giorni prima della partenza (data di partenza esclusa); i 3 giorni di US-10 sono sbagliati | Decisione di Mahima; serve alla fase 3 per calcolare il diritto al rimborso al ritiro |
+| 2026-10-14 | Sigle delle regioni: restano quelle di tre lettere (PIE, LIG…), anche in `isMemberOf` e nel codice evento | AGESCI non pubblica sigle proprie; Mahima ha preferito queste ai codici ufficiali ISO 3166-2 (IT-21), meno leggibili |
+| 2026-10-14 | Spec della 003: iscrizioni e lista d'attesa insieme (fase 3 del Planner v2); pagamenti, notifiche, documenti e candidature restano fuori | Il planner unisce le feature 004 e 005 della spec di progetto: la lista d'attesa nasce con l'ordine di arrivo |
+| 2026-10-14 | Proposta (da confermare): chi è in lista d'attesa paga solo alla promozione, con una nuova scadenza di 9 giorni | FR-038 di progetto era "da decidere"; nessuno paga per un posto che forse non avrà |
+| 2026-10-14 | Posti e ordine di arrivo in una collezione `event_capacity` (un documento per evento) aggiornata solo con `findAndModify` condizionati; si entra nei posti solo se nessuno è in attesa | Atomico senza transazioni anche con 200 iscrizioni nello stesso istante (SC-002); fuori dall'evento perché l'evento ha `@Version` e la segreteria lo salva per intero |
+| 2026-10-14 | `Event.enrolledCount` tolto dal documento: il numero di iscritti del catalogo si legge da `event_capacity.active` | Una sola fonte del dato, niente copie da tenere allineate; `EventDTO` non cambia forma |
+| 2026-10-14 | Il capo iscrive un ragazzo con il suo codice socio e l'entitlement `iscrizione:self`; la relazione (stessa unità) la controlla il backend | Q15 non prevede un entitlement per il presentatore; è la regola AUTH-2 (relazione con la risorsa) |
+| 2026-10-14 | Nuovi dati di prova: `User.birthDate` e `Census.groupLeader`; nel mock l'anno del censimento è quello corrente se manca | Servono per età alla partenza e autorizzazione del capo gruppo; i dati di prova non devono "scadere" a gennaio |
+| 2026-10-14 | Requisiti non soddisfatti: 422 `42210` (dominio ENROLLMENT) con tutti i motivi in `payload`; conflitti di stato 409 `40910`/`40911`/`40912`; posti sotto gli iscritti 409 `40905` | Stessa forma dei 422 della fase 2; un utente vede tutto quello che manca in un colpo |
+| 2026-10-14 | Scadenze e attesa alla partenza con un job `@Scheduled` ogni 5 minuti, senza ShedLock | A differenza dello stato dell'evento, qui cambiano i dati (posti liberati, promozioni); una sola istanza dell'applicazione |
+| 2026-10-14 | `maxPerGroup` controllato con un conteggio: con due iscrizioni dello stesso gruppo nello stesso istante si può superare di uno | Limite accettato per semplicità; si potrà aggiungere un contatore per gruppo se servirà |
+| 2026-10-14 | Diritto al rimborso solo per chi era nei posti con quota maggiore di 0, anche all'annullamento dell'evento; chi è in attesa non ha pagato | Conseguenza di FR-017 (pagamento alla promozione); spec 003 e research R9 allineate |
+| 2026-10-14 | `40903` (versione superata) diventa generico: dominio `SYSTEM` e messaggio "La risorsa è stata modificata…"; il codice non cambia | Ora vale anche per le iscrizioni; i client della fase 2 guardano il codice, non il dominio |
+| 2026-10-14 | Iscriversi a un evento in bozza risponde 404, non 409 | Coerente con il dettaglio della fase 2: per chi non la gestisce la bozza non esiste |
+| 2026-10-14 | La promozione sceglie il primo in attesa con un solo `findAndModify` ordinato per arrivo, dopo aver preso il posto sulla capienza | Due promozioni in parallelo non scelgono mai la stessa iscrizione; se non c'è nessuno il posto si restituisce |
+| 2026-10-14 | Nuovo tipo evento di prova `SPEC_EG` (campo di specialità E/G, solo tramite capo) e 7 utenti di prova: esploratore, lupetto, rover, rover-lig, scolta, capogruppo, socio-non-in-regola | Servono a provare a mano ogni caso della fase 3 (quickstart), compresi capo presentatore e autorizzazioni |
+| 2026-10-14 | Nei test delle iscrizioni le date degli eventi sono relative a oggi e le iscrizioni si cancellano prima di ogni test | Le iscrizioni passano dall'ora vera (finestra aperta); gli utenti di prova si riusano senza che "uno per tipo" o "massimo per gruppo" leghino i test fra loro |
 
 ## 5. Domande aperte
 
 - ~~Q11: una segreteria può gestire eventi di qualunque regione?~~ Decisa il 13/10: solo la propria regione.
-- Q12: rimborso con ritiro tardivo, US-10 o BR-10? (non serve nell'MVP)
+- ~~Q12: rimborso con ritiro tardivo, US-10 o BR-10?~~ Risolta il 14/10: BR-10.
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
 - Spec di progetto da allineare alla feature 001: nomi dei campi del censimento in inglese, radice `mocked-identity.users`, profilo `mocked`.
 - Spec e planner descrivono ancora i microservizi (par. 2.8, Appendice B, Planner v2): vanno allineati all'applicazione unica.

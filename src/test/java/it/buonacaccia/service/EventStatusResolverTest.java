@@ -71,7 +71,7 @@ class EventStatusResolverTest {
         event.setRegistrationClosedEarlyAt(rome("2027-03-05T10:00"));
 
         assertThat(resolver.status(event, rome("2027-03-05T12:00"))).isEqualTo(EventStatus.REGISTRATION_CLOSED);
-        assertThat(resolver.availability(event, rome("2027-03-05T12:00"))).isEqualTo(Availability.CLOSED);
+        assertThat(resolver.availability(event, 0, rome("2027-03-05T12:00"))).isEqualTo(Availability.CLOSED);
     }
 
     @Test
@@ -86,9 +86,9 @@ class EventStatusResolverTest {
     void availabilityFollowsStatus() {
         Event event = published("2027-03-01", "2027-03-10", "2027-03-20", "2027-03-22");
 
-        assertThat(resolver.availability(event, rome("2027-02-01T12:00"))).isEqualTo(Availability.NOT_YET_OPEN);
-        assertThat(resolver.availability(event, rome("2027-03-05T12:00"))).isEqualTo(Availability.OPEN);
-        assertThat(resolver.availability(event, rome("2027-03-21T12:00"))).isEqualTo(Availability.CLOSED);
+        assertThat(resolver.availability(event, 0, rome("2027-02-01T12:00"))).isEqualTo(Availability.NOT_YET_OPEN);
+        assertThat(resolver.availability(event, 0, rome("2027-03-05T12:00"))).isEqualTo(Availability.OPEN);
+        assertThat(resolver.availability(event, 0, rome("2027-03-21T12:00"))).isEqualTo(Availability.CLOSED);
     }
 
     private Event published(String open, String close, String start, String end) {

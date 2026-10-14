@@ -17,6 +17,7 @@ import it.buonacaccia.config.error.ErrorCode;
 import it.buonacaccia.config.mongo.CircuitBreakerService;
 import it.buonacaccia.model.Availability;
 import it.buonacaccia.model.Event;
+import it.buonacaccia.model.EventCapacity;
 import it.buonacaccia.model.EventCategory;
 import it.buonacaccia.model.EventLevel;
 import it.buonacaccia.model.EventLifecycle;
@@ -70,6 +71,8 @@ public class EventService {
     private final EventStatusResolver statusResolver;
     private final EventValidator validator;
     private final EventAccessPolicy accessPolicy;
+    private final EventCapacityService capacityService;
+    private final EnrollmentService enrollmentService;
     private final CircuitBreakerService circuitBreakerService;
     private final Clock clock;
 
@@ -87,7 +90,6 @@ public class EventService {
         event.setId(UUID.randomUUID().toString());
         event.setCode(eventCodeGenerator.next(event.getRegion(), yearOf(event)));
         event.setLifecycle(EventLifecycle.DRAFT);
-        event.setEnrolledCount(0);
         event.setCreatedBy(caller.getSubject());
         event.setCreatedAt(now);
         event.setUpdatedAt(now);
@@ -103,6 +105,7 @@ public class EventService {
         checkVersion(event, request.getVersion(), true);
         Instant now = clock.instant();
         EventStatus status = statusResolver.status(event, now);
+        Integer previousSeats = null;
 
         if (status == EventStatus.DRAFT) {
             String previousType = event.getTypeCode();
@@ -114,6 +117,7 @@ public class EventService {
                     : activeType(event.getTypeCode());
             applyTypeDefaults(event, type);
         } else if (EDITABLE_AFTER_PUBLISH.contains(status)) {
+            previousSeats = event.getSeats();
             validator.checkLockedFields(event, request);
             if (request.getRegistrationCloseDate() != null
                     && !request.getRegistrationCloseDate().equals(event.getRegistrationCloseDate())
@@ -128,8 +132,10 @@ public class EventService {
         }
         event.setUpdatedAt(now);
         statusResolver.computeInstants(event);
+        Event saved = previousSeats == null || previousSeats.equals(event.getSeats())
+                ? save(event) : saveWithNewSeats(event, previousSeats);
         log.info("Evento {} modificato da {}", event.getCode(), caller.getSubject());
-        return toDto(save(event));
+        return toDto(saved);
     }
 
     /** Pubblica una bozza se rispetta tutti gli invarianti (FR-007). */
@@ -144,8 +150,10 @@ public class EventService {
         event.setLifecycle(EventLifecycle.PUBLISHED);
         event.setUpdatedAt(clock.instant());
         statusResolver.computeInstants(event);
+        Event saved = save(event);
+        capacityService.ensure(saved.getId(), saved.getSeats());
         log.info("Evento {} pubblicato da {}", event.getCode(), caller.getSubject());
-        return toDto(save(event));
+        return toDto(saved);
     }
 
     /** Chiusura anticipata delle iscrizioni, solo se sono aperte (FR-015). */
@@ -177,8 +185,10 @@ public class EventService {
         event.setCancellationReason(request.getReason());
         event.setCancelledAt(now);
         event.setUpdatedAt(now);
+        Event saved = save(event);
+        enrollmentService.cancelForEvent(saved);
         log.info("Evento {} annullato da {}: {}", event.getCode(), caller.getSubject(), request.getReason());
-        return toDto(save(event));
+        return toDto(saved);
     }
 
     /** Eventi gestibili dal chiamante in tutti gli stati, bozze comprese (FR-009). */
@@ -231,7 +241,9 @@ public class EventService {
             conditions.add(Criteria.where("typeCode").is(type));
         }
         if (availability != null) {
-            conditions.add(EventSearchRepository.availability(availability, now));
+            conditions.add(EventSearchRepository.availability(availability, now,
+                    capacityService.idsWithOccupancyAtLeast(EventStatusResolver.LIMITED_FROM_PERCENT),
+                    capacityService.idsWithOccupancyAbove(EventStatusResolver.HEAVY_OVERBOOKING_ABOVE_PERCENT)));
         }
         if (startFrom != null) {
             conditions.add(Criteria.where("startsAt").gte(startFrom.atStartOfDay(ClockConfig.ROME).toInstant()));
@@ -263,6 +275,26 @@ public class EventService {
 
     private Event save(Event event) {
         return mongo(() -> eventRepository.save(event));
+    }
+
+    /**
+     * Cambio dei posti di un evento pubblicato (FR-014 della 003, research R10): prima la capienza,
+     * che rifiuta posti sotto gli iscritti nei posti; se poi il salvataggio fallisce la si riporta
+     * indietro. Con più posti si promuovono i primi in attesa.
+     */
+    private Event saveWithNewSeats(Event event, int previousSeats) {
+        capacityService.updateSeats(event.getId(), event.getSeats());
+        Event saved;
+        try {
+            saved = save(event);
+        } catch (BuonaCacciaException e) {
+            capacityService.updateSeats(event.getId(), previousSeats);
+            throw e;
+        }
+        if (saved.getSeats() > previousSeats) {
+            enrollmentService.promoteWaiting(saved);
+        }
+        return saved;
     }
 
     private Page<Event> search(List<Criteria> conditions, PageRequest pageRequest) {
@@ -365,8 +397,10 @@ public class EventService {
 
     private EventPageDTO toPage(Page<Event> page, Instant now) {
         Map<String, EventType> types = eventTypeService.byCode();
+        Map<String, Integer> enrolled = capacityService.activeCounts(page.getContent().stream().map(Event::getId).toList());
         return EventPageDTO.builder()
-                .content(page.getContent().stream().map(event -> toDto(event, now, types)).toList())
+                .content(page.getContent().stream()
+                        .map(event -> toDto(event, now, types, enrolled.getOrDefault(event.getId(), 0))).toList())
                 .page(page.getNumber())
                 .size(page.getSize())
                 .totalElements(page.getTotalElements())
@@ -375,14 +409,17 @@ public class EventService {
     }
 
     private EventDTO toDto(Event event) {
-        return toDto(event, clock.instant(), eventTypeService.byCode());
+        int enrolled = capacityService.find(event.getId()).map(EventCapacity::getActive).orElse(0);
+        return toDto(event, clock.instant(), eventTypeService.byCode(), enrolled);
     }
 
-    private EventDTO toDto(Event event, Instant now, Map<String, EventType> types) {
+    /** {@code enrolled}: iscrizioni attive lette dalla capienza (research R2 della 003). */
+    private EventDTO toDto(Event event, Instant now, Map<String, EventType> types, int enrolled) {
         EventDTO dto = EventMapper.INSTANCE.toDto(event);
         dto.setStatus(statusResolver.status(event, now));
+        dto.setEnrolledCount(enrolled);
         dto.setAvailability(event.getLifecycle() == EventLifecycle.DRAFT ? Availability.CLOSED
-                : statusResolver.availability(event, now));
+                : statusResolver.availability(event, enrolled, now));
         EventType type = types.get(event.getTypeCode());
         if (type != null) {
             dto.setTypeName(type.getName());

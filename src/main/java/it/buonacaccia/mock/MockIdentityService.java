@@ -1,5 +1,6 @@
 package it.buonacaccia.mock;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
@@ -8,6 +9,7 @@ import java.util.Set;
 
 import java.util.UUID;
 
+import it.buonacaccia.config.ClockConfig;
 import it.buonacaccia.mock.MockedIdentityProperties.CensusData;
 import it.buonacaccia.mock.MockedIdentityProperties.MockedUser;
 import it.buonacaccia.model.Census;
@@ -41,6 +43,7 @@ public class MockIdentityService {
 
     private final UserService userService;
     private final JwtEncoder mockJwtEncoder;
+    private final Clock clock;
     @Value("${buonacaccia.mock-auth.token-validity:P365D}")
     private final Duration tokenValidity;
     private volatile List<IssuedMockUser> issued = List.of();
@@ -76,7 +79,7 @@ public class MockIdentityService {
     }
 
     /** Utente candidato per l'upsert: id dalla voce del file se indicato, altrimenti un UUID nuovo. */
-    private static User toUser(MockedUser entry) {
+    private User toUser(MockedUser entry) {
         Instant now = Instant.now();
         String id = entry.buonaCacciaUUID() != null ? entry.buonaCacciaUUID() : UUID.randomUUID().toString();
         return User.builder()
@@ -86,6 +89,7 @@ public class MockIdentityService {
                 .email(entry.email())
                 .firstName(entry.firstName())
                 .lastName(entry.lastName())
+                .birthDate(entry.birthDate())
                 .status(UserStatus.ACTIVE)
                 .census(toCensus(entry.census()))
                 .roles(entry.authentication().role())
@@ -95,7 +99,8 @@ public class MockIdentityService {
                 .build();
     }
 
-    private static Census toCensus(CensusData data) {
+    /** Senza anno nel file vale l'anno corrente, così i dati di prova restano in regola (research R5 della 003). */
+    private Census toCensus(CensusData data) {
         if (data == null) {
             return null;
         }
@@ -106,7 +111,8 @@ public class MockIdentityService {
                 .branch(data.branch())
                 .memberType(data.memberType())
                 .status(data.status())
-                .year(data.year())
+                .year(data.year() != null ? data.year() : clock.instant().atZone(ClockConfig.ROME).getYear())
+                .groupLeader(Boolean.TRUE.equals(data.groupLeader()))
                 .build();
     }
 
