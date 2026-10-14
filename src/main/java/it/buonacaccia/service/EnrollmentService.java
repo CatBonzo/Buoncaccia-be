@@ -31,6 +31,7 @@ import it.buonacaccia.model.SeatPosition;
 import it.buonacaccia.model.User;
 import it.buonacaccia.repository.EnrollmentRepository;
 import it.buonacaccia.repository.EventRepository;
+import it.buonacaccia.repository.NotificationRepository;
 import it.buonacaccia.notification.DomainEventRecorder;
 import it.buonacaccia.repository.UserRepository;
 import it.buonacaccia.service.EventCapacityService.Reservation;
@@ -42,7 +43,9 @@ import it.buonacaccia.v1.dto.EnrollmentObligationDTO;
 import it.buonacaccia.v1.dto.EnrollmentPageDTO;
 import it.buonacaccia.v1.dto.EnrollmentRequestDTO;
 import it.buonacaccia.v1.dto.FieldErrorDTO;
+import it.buonacaccia.v1.dto.NotificationDTO;
 import it.buonacaccia.v1.mapper.EnrollmentMapper;
+import it.buonacaccia.v1.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -83,6 +86,7 @@ public class EnrollmentService {
     private final EnrollmentAccessPolicy accessPolicy;
     private final CircuitBreakerService circuitBreakerService;
     private final DomainEventRecorder domainEvents;
+    private final NotificationRepository notificationRepository;
     private final TransactionTemplate transactionTemplate;
     private final Clock clock;
 
@@ -233,6 +237,15 @@ public class EnrollmentService {
             criteria.and("position").is(position);
         }
         return toPage(caller, search(criteria, pageRequest));
+    }
+
+    /** Registro degli avvisi dell'iscrizione, per chi gestisce l'evento (FR-007 della 004); per gli altri 404. */
+    public List<NotificationDTO> notifications(CallerContext caller, String id) {
+        Enrollment enrollment = find(id);
+        if (!accessPolicy.canManage(caller, enrollment)) {
+            throw notFound();
+        }
+        return NotificationMapper.INSTANCE.toDto(mongo(() -> notificationRepository.findByEnrollmentIdOrderByCreatedAtAsc(id)));
     }
 
     // ---------- adempimenti ----------

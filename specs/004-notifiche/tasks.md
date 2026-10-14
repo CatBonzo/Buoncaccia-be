@@ -100,12 +100,12 @@ description: "Task della feature 004 notifiche e-mail"
 
 ### Test (prima del codice)
 
-- [ ] T029 [US6] `test/v1/controller/NotificationReliabilityTest.java`: relay in pausa durante 20 iscrizioni → 201 a tutte, nessuna e-mail; ripresa → 20 conferme, una per iscrizione (SC-003); SMTP su porta chiusa → notifica `PENDING` poi `SENT` quando torna entro i tentativi, una sola e-mail; SMTP chiuso oltre i tentativi → `FAILED` e messaggio sul DLT; stesso `DomainEvent` pubblicato due volte → una sola e-mail (SC-002); registro con stato, modello, destinatario
+- [x] T029 [US6] `test/v1/controller/NotificationReliabilityTest.java`: relay in pausa durante 20 iscrizioni → 201 a tutte, nessuna e-mail; ripresa → 20 conferme, una per iscrizione (SC-003); SMTP su porta chiusa → notifica `PENDING` poi `SENT` quando torna entro i tentativi, una sola e-mail; SMTP chiuso oltre i tentativi → `FAILED` e messaggio sul DLT; stesso `DomainEvent` pubblicato due volte → una sola e-mail (SC-002); registro con stato, modello, destinatario
 
 ### Implementazione
 
-- [ ] T030 [US6] Creare `main/v1/dto/NotificationDTO.java`, `main/v1/mapper/NotificationMapper.java` e `GET /api/v1/enrollments/{id}/notifications` in `main/v1/controller/EnrollmentController.java` (entitlement `iscrizione:gestione`, `EnrollmentAccessPolicy.canManage`, altrimenti 404)
-- [ ] T031 [US6] Rifinire `OutboxRelay`, `NotificationDispatcher` e `DeadLetterRecoverer` finché T029 è verde (conteggio `attempts`, `lastError`, ritentativo delle notifiche `PENDING`/`FAILED` alla riconsegna)
+- [x] T030 [US6] Creare `main/v1/dto/NotificationDTO.java`, `main/v1/mapper/NotificationMapper.java` e `GET /api/v1/enrollments/{id}/notifications` in `main/v1/controller/EnrollmentController.java` (entitlement `iscrizione:gestione`, `EnrollmentAccessPolicy.canManage`, altrimenti 404)
+- [x] T031 [US6] Rifinire `OutboxRelay`, `NotificationDispatcher` e `DeadLetterRecoverer` finché T029 è verde (conteggio `attempts`, `lastError`, ritentativo delle notifiche `PENDING`/`FAILED` alla riconsegna)
 
 **Checkpoint**: US1, US2, US6 verdi.
 
