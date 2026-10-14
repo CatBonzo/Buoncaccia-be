@@ -54,10 +54,11 @@ public class EventStatusResolver {
         return EventStatus.REGISTRATION_CLOSED;
     }
 
-    public Availability availability(Event event, Instant now) {
+    /** Indicatore di disponibilità (BR-14) con le iscrizioni attive lette dalla capienza (research R2 della 003). */
+    public Availability availability(Event event, int enrolled, Instant now) {
         return switch (status(event, now)) {
             case PUBLISHED -> Availability.NOT_YET_OPEN;
-            case REGISTRATION_OPEN -> byOccupancy(event.getEnrolledCount(), event.getSeats());
+            case REGISTRATION_OPEN -> byOccupancy(enrolled, event.getSeats());
             default -> Availability.CLOSED;
         };
     }

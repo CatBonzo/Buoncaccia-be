@@ -85,9 +85,6 @@ public class Event {
     /** Fine del giorno di rientro, Europe/Rome. */
     private Instant endsAt;
 
-    /** Sempre 0 finché le iscrizioni non arrivano (fase 3). */
-    private int enrolledCount;
-
     /** Versione per la concorrenza ottimistica (FR-018, research R4). */
     @Version
     private Long version;
