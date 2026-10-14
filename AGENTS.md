@@ -129,7 +129,8 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-14 | Q12 risolta: vale BR-10, il rimborso spetta se il ritiro avviene almeno 7 giorni prima della partenza (data di partenza esclusa); i 3 giorni di US-10 sono sbagliati | Decisione di Mahima; serve alla fase 3 per calcolare il diritto al rimborso al ritiro |
 | 2026-10-14 | Sigle delle regioni: restano quelle di tre lettere (PIE, LIG…), anche in `isMemberOf` e nel codice evento | AGESCI non pubblica sigle proprie; Mahima ha preferito queste ai codici ufficiali ISO 3166-2 (IT-21), meno leggibili |
 | 2026-10-14 | Spec della 003: iscrizioni e lista d'attesa insieme (fase 3 del Planner v2); pagamenti, notifiche, documenti e candidature restano fuori | Il planner unisce le feature 004 e 005 della spec di progetto: la lista d'attesa nasce con l'ordine di arrivo |
-| 2026-10-14 | Proposta (da confermare): chi è in lista d'attesa paga solo alla promozione, con una nuova scadenza di 9 giorni | FR-038 di progetto era "da decidere"; nessuno paga per un posto che forse non avrà |
+| 2026-10-14 | ~~Proposta (da confermare)~~ Confermata da Mahima il 14/10: chi è in lista d'attesa paga solo alla promozione, con una nuova scadenza di 9 giorni | FR-038 di progetto era "da decidere"; chi aspetta deve prima sapere se è entrato in graduatoria |
+| 2026-10-14 | Kafka resta per le notifiche (fase 4), anche con l'applicazione unica | Decisione di Mahima: si tiene l'ADR-003; i nuovi canali di notifica si aggiungono come consumer |
 | 2026-10-14 | Posti e ordine di arrivo in una collezione `event_capacity` (un documento per evento) aggiornata solo con `findAndModify` condizionati; si entra nei posti solo se nessuno è in attesa | Atomico senza transazioni anche con 200 iscrizioni nello stesso istante (SC-002); fuori dall'evento perché l'evento ha `@Version` e la segreteria lo salva per intero |
 | 2026-10-14 | `Event.enrolledCount` tolto dal documento: il numero di iscritti del catalogo si legge da `event_capacity.active` | Una sola fonte del dato, niente copie da tenere allineate; `EventDTO` non cambia forma |
 | 2026-10-14 | Il capo iscrive un ragazzo con il suo codice socio e l'entitlement `iscrizione:self`; la relazione (stessa unità) la controlla il backend | Q15 non prevede un entitlement per il presentatore; è la regola AUTH-2 (relazione con la risorsa) |
@@ -151,5 +152,5 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - Versione di Spring Boot: 4.0 al posto della 3.x della spec.
 - Spec di progetto da allineare alla feature 001: nomi dei campi del censimento in inglese, radice `mocked-identity.users`, profilo `mocked`.
 - Spec e planner descrivono ancora i microservizi (par. 2.8, Appendice B, Planner v2): vanno allineati all'applicazione unica.
-- Kafka per le notifiche (ADR-003): resta utile dentro un'applicazione unica o si passa a eventi interni di Spring? (per ora resta in compose)
+- ~~Kafka per le notifiche (ADR-003): resta utile dentro un'applicazione unica o si passa a eventi interni di Spring?~~ Decisa il 14/10: Kafka resta.
 - A cosa serve `test-src/config/develop.json`? (per ora vuoto)

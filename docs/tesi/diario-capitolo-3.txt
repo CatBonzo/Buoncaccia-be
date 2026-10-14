@@ -683,6 +683,19 @@ Spunto: scrivere prima i test delle regole pure (senza database) ha reso il rest
   storia 1 verdi al primo giro. Il controllo spec-piano-task prima del codice costa poco e trova errori di logica
   che i test non vedrebbero, perché i test seguono la spec.
 
+[2026-10-14] Merge della fase 3 e due decisioni per la fase 4
+Cosa: Mahima ha unito la PR #3 (fase 3) in feature. Prima di partire con la fase 4 (notifiche) ha deciso: Kafka
+  resta, anche con l'applicazione unica; chi è in lista d'attesa paga solo alla promozione (conferma di FR-017,
+  già implementato così).
+Chi: decisioni di Mahima; registrazione in AGENTS.md, spec 003 e spec di progetto da parte di Claude.
+Paradigma: SDD. La proposta implementata "in attesa di conferma" era tracciata come tale in spec, AGENTS.md e PR:
+  la conferma chiude la voce senza toccare il codice.
+Artefatti: AGENTS.md, specs/003-iscrizioni/spec.md e research.md, spec di progetto v2.0 (checklist).
+Problemi: Claude aveva consigliato eventi interni di Spring al posto di Kafka (meno infrastruttura); Mahima ha
+  preferito restare sull'ADR-003. Scelta legittima per la tesi: mostra un'architettura a eventi con un broker vero.
+Spunto: l'agente propone e motiva, la persona decide; il registro delle decisioni conserva anche l'alternativa
+  scartata, che in sede di tesi è materiale di discussione.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
