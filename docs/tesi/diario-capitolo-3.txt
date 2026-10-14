@@ -643,6 +643,24 @@ Problemi: (1) per le sigle Mahima ha chiesto prima "quelle ufficiali": AGESCI no
 Spunto: "ufficiale" non sempre esiste: l'agente deve verificare le fonti prima di adottare uno standard e mostrare
   il costo della scelta (leggibilità) invece di applicarla alla cieca.
 
+[2026-10-14] Piano tecnico della fase 3
+Cosa: speckit-plan per le iscrizioni: research.md (11 decisioni), data-model.md, contratto OpenAPI con 10
+  endpoint, quickstart con 18 scenari a mano e 7 utenti di prova nuovi.
+Chi: Claude, sulla base tecnica delle fasi 1 e 2.
+Paradigma: SDD. Il requisito non funzionale SC-002 (200 iscrizioni contemporanee, ordine di arrivo senza buchi)
+  decide l'architettura dei dati prima di scrivere codice: è il punto in cui la spec guida il design.
+Artefatti: specs/003-iscrizioni/plan.md, research.md, data-model.md, contracts/enrollments.openapi.yaml,
+  quickstart.md, AGENTS.md.
+Problemi: (1) Dove tenere i contatori dei posti. Sull'evento no: l'evento ha la versione ottimistica e la
+  segreteria lo salva per intero, quindi una modifica cancellerebbe gli incrementi delle iscrizioni (o ogni
+  iscrizione farebbe fallire la segreteria). Soluzione: un documento di capienza separato aggiornato solo con
+  operazioni atomiche condizionate; alternative scartate: transazioni (conflitti sul picco delle 09:00) e
+  conteggio a ogni richiesta (doppi posti). (2) Il campo enrolledCount della fase 2 diventa ridondante: esce
+  dall'evento e il catalogo lo legge dalla capienza. (3) maxPerGroup resta esatto solo "quasi sempre": limite
+  dichiarato in AGENTS.md invece di complicare il design.
+Spunto: la costituzione (principio IV, semplicità) ha pesato due volte: niente transazioni e niente ShedLock.
+  Scrivere nel piano anche i limiti accettati rende la scelta discutibile in sede di tesi, non nascosta.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

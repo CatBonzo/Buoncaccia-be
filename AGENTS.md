@@ -130,6 +130,13 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-14 | Sigle delle regioni: restano quelle di tre lettere (PIE, LIG…), anche in `isMemberOf` e nel codice evento | AGESCI non pubblica sigle proprie; Mahima ha preferito queste ai codici ufficiali ISO 3166-2 (IT-21), meno leggibili |
 | 2026-10-14 | Spec della 003: iscrizioni e lista d'attesa insieme (fase 3 del Planner v2); pagamenti, notifiche, documenti e candidature restano fuori | Il planner unisce le feature 004 e 005 della spec di progetto: la lista d'attesa nasce con l'ordine di arrivo |
 | 2026-10-14 | Proposta (da confermare): chi è in lista d'attesa paga solo alla promozione, con una nuova scadenza di 9 giorni | FR-038 di progetto era "da decidere"; nessuno paga per un posto che forse non avrà |
+| 2026-10-14 | Posti e ordine di arrivo in una collezione `event_capacity` (un documento per evento) aggiornata solo con `findAndModify` condizionati; si entra nei posti solo se nessuno è in attesa | Atomico senza transazioni anche con 200 iscrizioni nello stesso istante (SC-002); fuori dall'evento perché l'evento ha `@Version` e la segreteria lo salva per intero |
+| 2026-10-14 | `Event.enrolledCount` tolto dal documento: il numero di iscritti del catalogo si legge da `event_capacity.active` | Una sola fonte del dato, niente copie da tenere allineate; `EventDTO` non cambia forma |
+| 2026-10-14 | Il capo iscrive un ragazzo con il suo codice socio e l'entitlement `iscrizione:self`; la relazione (stessa unità) la controlla il backend | Q15 non prevede un entitlement per il presentatore; è la regola AUTH-2 (relazione con la risorsa) |
+| 2026-10-14 | Nuovi dati di prova: `User.birthDate` e `Census.groupLeader`; nel mock l'anno del censimento è quello corrente se manca | Servono per età alla partenza e autorizzazione del capo gruppo; i dati di prova non devono "scadere" a gennaio |
+| 2026-10-14 | Requisiti non soddisfatti: 422 `42210` (dominio ENROLLMENT) con tutti i motivi in `payload`; conflitti di stato 409 `40910`/`40911`/`40912`; posti sotto gli iscritti 409 `40905` | Stessa forma dei 422 della fase 2; un utente vede tutto quello che manca in un colpo |
+| 2026-10-14 | Scadenze e attesa alla partenza con un job `@Scheduled` ogni 5 minuti, senza ShedLock | A differenza dello stato dell'evento, qui cambiano i dati (posti liberati, promozioni); una sola istanza dell'applicazione |
+| 2026-10-14 | `maxPerGroup` controllato con un conteggio: con due iscrizioni dello stesso gruppo nello stesso istante si può superare di uno | Limite accettato per semplicità; si potrà aggiungere un contatore per gruppo se servirà |
 
 ## 5. Domande aperte
 
