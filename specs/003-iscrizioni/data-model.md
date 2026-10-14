@@ -32,8 +32,7 @@ Viene creata alla pubblicazione con `$setOnInsert`, oppure alla prima iscrizione
 | `id` | string (UUID), `@Id` | Generato |
 | `number` | string | `<codice evento>-<arrivo su 4 cifre>`, es. `PIE-2027-001-0031`, univoco (FR-006) |
 | `eventId`, `eventCode`, `eventTypeCode` | string | Copiati dall'evento: servono agli elenchi e al controllo "uno per tipo" |
-| `eventTitle`, `eventStartDate` | string, LocalDate | Copiati per gli elenchi personali senza join |
-| `eventRegion` | enum `Region` | Solo informativo (BR-15); null per gli eventi nazionali |
+| `eventLevel`, `eventRegion` | enum `EventLevel`, `Region` | Servono alla regola territoriale della segreteria; per la persona la regione non conta (BR-15) |
 | `participantId` | string | Id `User` del partecipante |
 | `participantMemberCode`, `participantName` | string | Copiati dal censimento all'iscrizione |
 | `participantGroupId`, `participantUnitId` | string | Servono a `maxPerGroup` e alle autorizzazioni |
@@ -76,6 +75,8 @@ Viene creata alla pubblicazione con `$setOnInsert`, oppure alla prima iscrizione
 
 Quali adempimenti nascono e in che stato è scritto in research R7.
 
+Si copiano solo i campi dell'evento che dopo la pubblicazione non cambiano (codice, tipo, livello, regione). Titolo, date, quota e posti si leggono dall'evento quando servono, perché la segreteria li può modificare.
+
 ## Enum nuovi
 
 | Enum | Valori |
@@ -109,5 +110,6 @@ Quali adempimenti nascono e in che stato è scritto in research R7.
 
 | Campo | Calcolo |
 | --- | --- |
+| `eventTitle`, `eventStartDate` | Letti dall'evento (una query per pagina) |
 | `waitingPosition` | Solo se `WAITING`: iscrizioni attive in attesa dello stesso evento con `arrivalOrder` minore, + 1 (FR-015) |
 | `availableActions` | Azioni che chi chiama può fare ora: `WITHDRAW`, `APPROVE_UNIT_LEADER`, `REJECT_UNIT_LEADER`, `APPROVE_GROUP_LEADER`, `REJECT_GROUP_LEADER`, `SATISFY` (FR-021) |

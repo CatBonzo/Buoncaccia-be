@@ -114,9 +114,11 @@ Ogni voce riporta la decisione, la motivazione e le alternative scartate. Nessun
 
 - **Decisione**:
   - Il ritiro è ammesso da `REGISTERED` o `COMPLETED` prima di `startsAt` dell'evento, al partecipante o al presentatore.
-  - `refundDue = quota > 0 && giorni(oggiRoma, dataPartenza) >= 7`, dove i giorni sono la differenza di calendario tra la data del ritiro e la data di partenza. Esempio: partenza il 20, ritiro il 13 → 7 giorni → rimborso (BR-10, Q12).
+  - `refundDue = quota > 0 && nei posti && giorni(oggiRoma, dataPartenza) >= 7`, dove i giorni sono la differenza di calendario tra la data del ritiro e la data di partenza. Esempio: partenza il 20, ritiro il 13 → 7 giorni → rimborso (BR-10, Q12).
+  - Chi è ancora in attesa non ha un pagamento (FR-017), quindi non ha diritto al rimborso.
+  - La quota si legge dall'evento al momento del ritiro, perché resta modificabile dopo la pubblicazione.
   - Il rimborso effettivo, e il controllo se il pagamento c'è stato, sono della fase 5.
-  - All'annullamento dell'evento tutte le attive diventano `CANCELLED` con `refundDue = quota > 0`.
+  - All'annullamento dell'evento tutte le attive diventano `CANCELLED`, con `refundDue = quota > 0` per quelle nei posti e `false` per quelle in attesa.
 - **Motivazione**: BR-09, BR-10, FR-019…FR-020.
 
 ## R10. Modifica dei posti dell'evento
@@ -135,5 +137,5 @@ Ogni voce riporta la decisione, la motivazione e le alternative scartate. Nessun
   - `40912` iscrizioni dell'evento non aperte
   - `42210` requisiti non soddisfatti, con l'elenco dei motivi
 
-  Nel dominio CATALOG si aggiunge `40905` posti sotto gli iscritti nei posti. Il messaggio di `40903` diventa generico ("La risorsa è stata modificata da qualcun altro…"), perché ora vale anche per le iscrizioni.
+  Nel dominio CATALOG si aggiunge `40905` posti sotto gli iscritti nei posti. `40903` diventa generico, messaggio "La risorsa è stata modificata da qualcun altro…" e dominio `SYSTEM` come `40900`, perché ora vale anche per le iscrizioni; il codice non cambia, quindi i client della fase 2 non si rompono.
 - **Motivazione**: stessa forma della fase 2 (R7 della 002); codici distinti aiutano il frontend.

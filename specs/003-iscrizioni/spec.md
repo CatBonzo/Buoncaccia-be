@@ -153,8 +153,8 @@ Il socio vede l'elenco delle proprie iscrizioni; il capo quello delle iscrizioni
 ### Ritiro e annullamento
 
 - **FR-018**: Il partecipante o il presentatore MUST poter ritirare un'iscrizione REGISTRATA o COMPLETA prima dell'inizio dell'evento (BR-09, FR-032 di progetto).
-- **FR-019**: Al ritiro il sistema MUST calcolare e salvare il diritto al rimborso: spetta se il ritiro avviene almeno 7 giorni prima della data di partenza, data di partenza esclusa (BR-10, Q12). Il rimborso effettivo è della fase 5.
-- **FR-020**: L'annullamento di un evento MUST rendere ANNULLATE tutte le sue iscrizioni attive con motivo "evento annullato" e diritto al rimborso (FR-021 di progetto).
+- **FR-019**: Al ritiro il sistema MUST calcolare e salvare il diritto al rimborso: spetta se il ritiro avviene almeno 7 giorni prima della data di partenza, data di partenza esclusa (BR-10, Q12), e solo a chi era nei posti con quota maggiore di 0: chi è in attesa non ha pagato (FR-017). Il rimborso effettivo è della fase 5.
+- **FR-020**: L'annullamento di un evento MUST rendere ANNULLATE tutte le sue iscrizioni attive con motivo "evento annullato" e diritto al rimborso per quelle nei posti con quota maggiore di 0 (FR-021 di progetto).
 
 ### Consultazione
 

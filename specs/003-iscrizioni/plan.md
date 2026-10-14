@@ -26,7 +26,7 @@ Il backend aggiunge l'iscrizione agli eventi pubblicati: un socio R/S o capo si 
 
 **Constraints**: ora italiana per scadenze, età e rimborso; contratto `/api/v1` senza rotture rispetto a 001 e 002 (il campo `enrolledCount` di `EventDTO` resta, ora valorizzato); una sola istanza dell'applicazione; solo uso locale
 
-**Scale/Scope**: 2 collezioni nuove, 10 endpoint nuovi, 1 job, 7 utenti di prova in più
+**Scale/Scope**: 2 collezioni nuove, 10 endpoint nuovi, 1 job, 7 utenti di prova e 1 tipo evento di prova (`SPEC_EG`) in più
 
 ## Constitution Check
 
@@ -70,7 +70,8 @@ src/main/java/it/buonacaccia/
 │   ├── SecurityConfig.java              # le nuove API richiedono il token
 │   └── error/ErrorCode.java             # + dominio ENROLLMENT (40910, 40911, 40912, 42210), CATALOG 40905
 ├── mock/
-│   ├── MockedIdentityProperties.java    # + birthDate, groupId, unitId, groupLeader; anno = corrente se assente
+│   ├── MockedIdentityProperties.java    # + birthDate, groupLeader; anno = corrente se assente
+│   ├── MockEventTypesLoader.java        # + SPEC_EG (campo di specialità E/G, solo tramite capo)
 │   └── MockIdentityService.java
 ├── model/
 │   ├── User.java (+ birthDate), Census.java (+ groupLeader), Event.java (- enrolledCount)
@@ -87,14 +88,14 @@ src/main/java/it/buonacaccia/
 │   ├── EventCapacityService.java        # posti, promozione, cambio dei posti (R1, R10)
 │   ├── EnrollmentJobs.java              # scadenze e attesa alla partenza (R8)
 │   ├── EventService.java                # + capienza alla pubblicazione, cambio posti, annullamento
-│   └── guard/EnrollmentAccessPolicy.java  # chi vede e chi agisce su un'iscrizione (FR-021)
+│   └── guard/CallerContext.java (+ entitlement), EnrollmentAccessPolicy.java  # chi vede e chi agisce (FR-021)
 └── v1/
     ├── controller/EnrollmentController.java, EventEnrollmentController.java
     ├── dto/ EnrollmentRequestDTO, EnrollmentDTO, EnrollmentSummaryDTO, EnrollmentPageDTO,
     │        EnrollmentObligationDTO, ReasonDTO, NoteDTO
     └── mapper/EnrollmentMapper.java
 
-src/main/resources/mocked-identity.yml   # + esploratore, lupetto, rover, rover-lig, capogruppo, socio-non-in-regola
+src/main/resources/mocked-identity.yml   # + esploratore, lupetto, rover, rover-lig, scolta, capogruppo, socio-non-in-regola
 
 src/test/java/it/buonacaccia/
 ├── service/EnrollmentEligibilityTest.java, ObligationPlannerTest.java, RefundRuleTest.java,
