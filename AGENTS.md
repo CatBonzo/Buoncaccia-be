@@ -137,6 +137,12 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-14 | Requisiti non soddisfatti: 422 `42210` (dominio ENROLLMENT) con tutti i motivi in `payload`; conflitti di stato 409 `40910`/`40911`/`40912`; posti sotto gli iscritti 409 `40905` | Stessa forma dei 422 della fase 2; un utente vede tutto quello che manca in un colpo |
 | 2026-10-14 | Scadenze e attesa alla partenza con un job `@Scheduled` ogni 5 minuti, senza ShedLock | A differenza dello stato dell'evento, qui cambiano i dati (posti liberati, promozioni); una sola istanza dell'applicazione |
 | 2026-10-14 | `maxPerGroup` controllato con un conteggio: con due iscrizioni dello stesso gruppo nello stesso istante si può superare di uno | Limite accettato per semplicità; si potrà aggiungere un contatore per gruppo se servirà |
+| 2026-10-14 | Diritto al rimborso solo per chi era nei posti con quota maggiore di 0, anche all'annullamento dell'evento; chi è in attesa non ha pagato | Conseguenza di FR-017 (pagamento alla promozione); spec 003 e research R9 allineate |
+| 2026-10-14 | `40903` (versione superata) diventa generico: dominio `SYSTEM` e messaggio "La risorsa è stata modificata…"; il codice non cambia | Ora vale anche per le iscrizioni; i client della fase 2 guardano il codice, non il dominio |
+| 2026-10-14 | Iscriversi a un evento in bozza risponde 404, non 409 | Coerente con il dettaglio della fase 2: per chi non la gestisce la bozza non esiste |
+| 2026-10-14 | La promozione sceglie il primo in attesa con un solo `findAndModify` ordinato per arrivo, dopo aver preso il posto sulla capienza | Due promozioni in parallelo non scelgono mai la stessa iscrizione; se non c'è nessuno il posto si restituisce |
+| 2026-10-14 | Nuovo tipo evento di prova `SPEC_EG` (campo di specialità E/G, solo tramite capo) e 7 utenti di prova: esploratore, lupetto, rover, rover-lig, scolta, capogruppo, socio-non-in-regola | Servono a provare a mano ogni caso della fase 3 (quickstart), compresi capo presentatore e autorizzazioni |
+| 2026-10-14 | Nei test delle iscrizioni le date degli eventi sono relative a oggi e le iscrizioni si cancellano prima di ogni test | Le iscrizioni passano dall'ora vera (finestra aperta); gli utenti di prova si riusano senza che "uno per tipo" o "massimo per gruppo" leghino i test fra loro |
 
 ## 5. Domande aperte
 

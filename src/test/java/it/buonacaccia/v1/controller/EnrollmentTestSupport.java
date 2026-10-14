@@ -70,6 +70,49 @@ abstract class EnrollmentTestSupport extends AbstractTest {
         return published.body().get("payload");
     }
 
+    /** Evento di specialità E/G che accetta solo iscrizioni del capo (tipo di prova SPEC_EG). */
+    static Map<String, Object> scoutEvent(Object... overrides) {
+        Map<String, Object> requirements = new HashMap<>();
+        requirements.put("minAge", 12);
+        requirements.put("maxAge", 16);
+        requirements.put("branches", List.of("EG"));
+        requirements.put("memberTypes", List.of("YOUTH"));
+        Map<String, Object> event = openEvent("typeCode", "SPEC_EG", "enrollmentMode", "BY_LEADER",
+                "requirements", requirements, "fee", 40);
+        return EventFixtures.with(event, overrides);
+    }
+
+    /** Campo per capi (tipo CFM_EG: autorizzazione del capo gruppo e quota). */
+    static Map<String, Object> leaderEvent(Object... overrides) {
+        Map<String, Object> requirements = new HashMap<>();
+        requirements.put("minAge", 21);
+        requirements.put("branches", List.of("CO"));
+        requirements.put("memberTypes", List.of("LEADER"));
+        Map<String, Object> event = openEvent("typeCode", "CFM_EG", "requirements", requirements);
+        return EventFixtures.with(event, overrides);
+    }
+
+    /** Modifica di un evento pubblicato: il corpo completo di creazione più i cambi e la versione. */
+    Result updateEvent(JsonNode published, Map<String, Object> creationBody, Object... changes) {
+        Map<String, Object> body = EventFixtures.with(creationBody, changes);
+        body.put("version", published.get("version").asLong());
+        return put(EVENTS + "/" + published.get("id").asString(), tokenOf("segreteria"), body);
+    }
+
+    JsonNode enrollment(String username, String id) {
+        Result result = getEnrollment(username, id);
+        assertThat(result.status()).as("lettura: %s", result.body()).isEqualTo(200);
+        return result.body().get("payload");
+    }
+
+    static java.time.Instant romeTime(LocalDate date, int hour, int minute) {
+        return date.atTime(hour, minute).atZone(ZoneId.of("Europe/Rome")).toInstant();
+    }
+
+    static List<String> actions(JsonNode enrollment) {
+        return enrollment.get("availableActions").valueStream().map(JsonNode::asString).toList();
+    }
+
     String publishOpen(Object... overrides) {
         return publish(openEvent(overrides)).get("id").asString();
     }

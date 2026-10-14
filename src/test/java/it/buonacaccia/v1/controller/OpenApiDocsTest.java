@@ -26,7 +26,16 @@ class OpenApiDocsTest extends AbstractTest {
                 "/api/v1/events/{id}",
                 "/api/v1/events/{id}/publish",
                 "/api/v1/events/{id}/close-registrations",
-                "/api/v1/events/{id}/cancel");
+                "/api/v1/events/{id}/cancel",
+                "/api/v1/events/{eventId}/enrollments",
+                "/api/v1/enrollments/mine",
+                "/api/v1/enrollments/presented",
+                "/api/v1/enrollments/to-authorize",
+                "/api/v1/enrollments/{id}",
+                "/api/v1/enrollments/{id}/withdraw",
+                "/api/v1/enrollments/{id}/obligations/{type}/approve",
+                "/api/v1/enrollments/{id}/obligations/{type}/reject",
+                "/api/v1/enrollments/{id}/obligations/{type}/satisfy");
         assertThat(result.body().get("components").get("securitySchemes").has("bearerAuth")).isTrue();
     }
 

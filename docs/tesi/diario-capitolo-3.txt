@@ -661,6 +661,28 @@ Problemi: (1) Dove tenere i contatori dei posti. Sull'evento no: l'evento ha la 
 Spunto: la costituzione (principio IV, semplicità) ha pesato due volte: niente transazioni e niente ShedLock.
   Scrivere nel piano anche i limiti accettati rende la scelta discutibile in sede di tesi, non nascosta.
 
+[2026-10-14] Task e implementazione della fase 3
+Cosa: speckit-tasks (38 task in 8 fasi), un controllo di coerenza fra spec, piano e task, poi implementazione
+  test-first delle 5 storie: capienza atomica, iscrizione autonoma e del capo, pagina di stato, autorizzazioni,
+  adempimenti della segreteria, scadenze e lista d'attesa con un job, ritiro con rimborso, elenchi, annullamento a
+  cascata. Build verde con 145 test.
+Chi: Claude; nessuna nuova decisione chiesta a Mahima oltre al pagamento in attesa (ancora da confermare).
+Paradigma: TDD dentro SDD. Ordine seguito: test di concorrenza della capienza, test unitari delle regole
+  (requisiti, adempimenti, rimborso), test di integrazione per storia, poi il codice. Il test con 200 iscrizioni
+  in parallelo è la prova diretta del criterio SC-002 della spec.
+Artefatti: specs/003-iscrizioni/tasks.md; model Enrollment, EventCapacity e quattro enum; EventCapacityRepository
+  e Service, EnrollmentEligibility, ObligationPlanner, RefundRule, EnrollmentService, EnrollmentJobs,
+  EnrollmentAccessPolicy; due controller; 9 classi di test nuove; mocked-identity.yml con 7 utenti in più.
+Problemi: (1) Il controllo di coerenza ha trovato una contraddizione: FR-020 dava il rimborso a tutti gli annullati,
+  ma chi è in attesa non ha pagato (FR-017). Spec corretta prima del codice. (2) Il primo test dei tempi falliva per
+  i nanosecondi: MongoDB salva i millisecondi, il test ora li tronca. (3) Il codice 40903 era "dell'evento": reso
+  generico perché le iscrizioni hanno la stessa versione ottimistica. (4) Spostare enrolledCount fuori dall'evento
+  ha toccato la ricerca della fase 2: il filtro di disponibilità ora passa dagli id della capienza; i test della
+  fase 2 sono rimasti verdi senza modifiche, prova che il contratto non è cambiato.
+Spunto: scrivere prima i test delle regole pure (senza database) ha reso il resto quasi meccanico: 12 test della
+  storia 1 verdi al primo giro. Il controllo spec-piano-task prima del codice costa poco e trova errori di logica
+  che i test non vedrebbero, perché i test seguono la spec.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
