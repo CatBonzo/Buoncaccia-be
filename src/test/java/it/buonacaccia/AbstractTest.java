@@ -125,6 +125,19 @@ public abstract class AbstractTest {
         }
     }
 
+    /** GET con la risposta intera (intestazioni e testo), per i contenuti che non sono JSON come il CSV. */
+    protected HttpResponse<String> getRaw(String path, String token) {
+        HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET();
+        if (token != null) {
+            request.header("Authorization", "Bearer " + token);
+        }
+        try {
+            return http.send(request.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /** Token dell'utente di prova con lo username indicato, preso da findAll. */
     protected String tokenOf(String username) {
         for (JsonNode user : get("/api/v1/mock/auth/findAll").body().get("payload")) {

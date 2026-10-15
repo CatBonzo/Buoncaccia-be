@@ -103,12 +103,12 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 ### Test (prima del codice)
 
-- [ ] T021 [P] [US4] `test/service/ReconciliationCsvTest.java`: intestazione, una riga per pagamento e per rimborso, campi con `;`, `"` e a capo fra virgolette, importi con il punto decimale e due cifre, date `dd/MM/yyyy`
-- [ ] T022 [US4] `test/v1/controller/ReconciliationTest.java`: tre pagamenti e un rimborso → totali (incassato, annullato, da rimborsare, rimborsato) e iscrizioni con residuo; CSV con le stesse righe; segreteria di un'altra regione 403; evento inesistente 404; invariante SC-004
+- [x] T021 [P] [US4] `test/service/ReconciliationCsvTest.java`: intestazione, una riga per pagamento e per rimborso, campi con `;`, `"` e a capo fra virgolette, importi con il punto decimale e due cifre, date `dd/MM/yyyy`
+- [x] T022 [US4] `test/v1/controller/ReconciliationTest.java`: tre pagamenti e un rimborso → totali (incassato, annullato, da rimborsare, rimborsato) e iscrizioni con residuo; CSV con le stesse righe; segreteria di un'altra regione 403; evento inesistente 404; invariante SC-004
 
 ### Implementazione
 
-- [ ] T023 [US4] Creare `main/service/ReconciliationService.java` (totali, iscrizioni con residuo, CSV a mano, R11), `main/v1/dto/ReconciliationDTO.java` e `main/v1/controller/EventPaymentController.java`
+- [x] T023 [US4] Creare `main/service/ReconciliationService.java` (totali, iscrizioni con residuo, CSV a mano, R11), `main/v1/dto/ReconciliationDTO.java` e `main/v1/controller/EventPaymentController.java`
 
 ---
 
