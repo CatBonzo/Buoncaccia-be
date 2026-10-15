@@ -43,6 +43,37 @@ class ObligationPlannerTest {
     }
 
     @Test
+    void unAdempimentoPerOgniDocumentoConIVincoliDellEvento() {
+        Event event = event(0);
+        event.setObligations(List.of(
+                Obligation.builder().type(ObligationType.DOCUMENT).code("FOTO").allowedMimeTypes(List.of("image/jpeg"))
+                        .maxSizeBytes(1_048_576L).build(),
+                Obligation.builder().type(ObligationType.DOCUMENT).code("LIBERATORIA")
+                        .delivery(it.buonacaccia.model.DocumentDelivery.PAPER).build(),
+                Obligation.builder().type(ObligationType.DOCUMENT).description("senza codice").build()));
+
+        List<EnrollmentObligation> obligations = ObligationPlanner.initial(event, SeatPosition.IN_SEATS, null, NOW);
+
+        assertThat(obligations).extracting(EnrollmentObligation::getCode).containsExactly("FOTO", "LIBERATORIA", "DOC");
+        assertThat(obligations.get(0).getAllowedMimeTypes()).containsExactly("image/jpeg");
+        assertThat(obligations.get(0).getMaxSizeBytes()).isEqualTo(1_048_576L);
+        assertThat(obligations.get(1).getDelivery()).isEqualTo(it.buonacaccia.model.DocumentDelivery.PAPER);
+        assertThat(obligations.get(2).getMaxSizeBytes()).isEqualTo(5L * 1024 * 1024);
+        assertThat(obligations.get(2).getAllowedMimeTypes()).hasSize(3);
+    }
+
+    @Test
+    void ilDocumentoInVerificaNonCompletaLIscrizione() {
+        EnrollmentObligation review = EnrollmentObligation.builder().type(ObligationType.DOCUMENT)
+                .status(ObligationStatus.IN_REVIEW).build();
+        EnrollmentObligation done = EnrollmentObligation.builder().type(ObligationType.DOCUMENT)
+                .status(ObligationStatus.SATISFIED).build();
+
+        assertThat(ObligationPlanner.statusFor(List.of(review, done))).isEqualTo(EnrollmentStatus.REGISTERED);
+        assertThat(ObligationPlanner.statusFor(List.of(done))).isEqualTo(EnrollmentStatus.COMPLETED);
+    }
+
+    @Test
     void paymentDependsOnFeeAndPosition() {
         assertThat(types(ObligationPlanner.initial(event(150, ObligationType.PAYMENT), SeatPosition.IN_SEATS, null, NOW)))
                 .containsExactly(ObligationType.PAYMENT);

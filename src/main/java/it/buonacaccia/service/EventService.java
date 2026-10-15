@@ -90,6 +90,7 @@ public class EventService {
         accessPolicy.checkCanManage(caller, event.getLevel(), event.getRegion());
         EventType type = activeType(event.getTypeCode());
         applyTypeDefaults(event, type);
+        throwIfInvalid(DocumentRules.validate(event.getObligations()));
 
         Instant now = clock.instant();
         event.setId(UUID.randomUUID().toString());
@@ -122,6 +123,7 @@ public class EventService {
                     ? eventTypeService.find(event.getTypeCode()).orElse(null)
                     : activeType(event.getTypeCode());
             applyTypeDefaults(event, type);
+            throwIfInvalid(DocumentRules.validate(event.getObligations()));
         } else if (EDITABLE_AFTER_PUBLISH.contains(status)) {
             previousSeats = event.getSeats();
             validator.checkLockedFields(event, request);

@@ -2,6 +2,8 @@ package it.buonacaccia.model;
 
 import java.time.Instant;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -28,4 +30,13 @@ public class EnrollmentObligation {
     private Instant satisfiedAt;
     /** Nota della segreteria o motivo del diniego. */
     private String note;
+
+    /** Codice del documento, univoco nell'evento (feature 006); assente = {@code DOC}. */
+    private String code;
+    /** Solo per i documenti: online o cartaceo; assente = online. */
+    private DocumentDelivery delivery;
+    /** Solo per i documenti online: tipi ammessi; assente = JPEG, PNG, PDF. */
+    private List<String> allowedMimeTypes;
+    /** Solo per i documenti online: dimensione massima in byte; assente = 5 MB. */
+    private Long maxSizeBytes;
 }

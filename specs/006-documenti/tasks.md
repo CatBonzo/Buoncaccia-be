@@ -4,10 +4,10 @@
 
 ## Phase 1: Fondamenta
 
-- [ ] T001 [P] `test/service/FileTypeDetectorTest.java` e `main/service/FileTypeDetector.java` (JPEG, PNG, PDF dai primi byte; tutto il resto sconosciuto; file vuoto)
-- [ ] T002 Modello: `Obligation` e `EnrollmentObligation` con `code`, `delivery`, `allowedMimeTypes`, `maxSizeBytes`; `ObligationStatus.IN_REVIEW`; `ObligationDTO` e `EnrollmentObligationDTO` coerenti (default JPEG/PNG/PDF e 5 MB in `DocumentRules`, con test)
-- [ ] T003 `Document`, `DocumentStatus`, `DocumentRepository`; `DocumentStorage` e `GridFsDocumentStorage`; codici d'errore `40960`
-- [ ] T004 `ObligationPlanner`: un adempimento per documento (R4), `statusFor` con `IN_REVIEW` (R5); test aggiornati (`ObligationPlannerTest` se esiste)
+- [X] T001 [P] `test/service/FileTypeDetectorTest.java` e `main/service/FileTypeDetector.java` (JPEG, PNG, PDF dai primi byte; tutto il resto sconosciuto; file vuoto)
+- [X] T002 Modello: `Obligation` e `EnrollmentObligation` con `code`, `delivery`, `allowedMimeTypes`, `maxSizeBytes`; `ObligationStatus.IN_REVIEW`; `ObligationDTO` e `EnrollmentObligationDTO` coerenti (default JPEG/PNG/PDF e 5 MB in `DocumentRules`, con test)
+- [X] T003 `Document`, `DocumentStatus`, `DocumentRepository`; `DocumentStorage` e `GridFsDocumentStorage`; codici d'errore `40960`
+- [X] T004 `ObligationPlanner`: un adempimento per documento (R4), `statusFor` con `IN_REVIEW` (R5); test aggiornati (`ObligationPlannerTest` se esiste)
 
 ## Phase 2: US1 Documenti richiesti dall'evento (P1)
 

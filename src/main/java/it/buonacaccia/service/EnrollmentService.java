@@ -715,7 +715,8 @@ public class EnrollmentService {
         EnrollmentDTO dto = EnrollmentMapper.INSTANCE.toDto(enrollment);
         dto.setObligations(enrollment.getObligations().stream()
                 .map(o -> EnrollmentObligationDTO.builder().type(o.getType()).description(o.getDescription())
-                        .status(o.getStatus()).satisfiedAt(o.getSatisfiedAt()).note(o.getNote()).build())
+                        .status(o.getStatus()).satisfiedAt(o.getSatisfiedAt()).note(o.getNote()).code(o.getCode())
+                        .delivery(o.getDelivery()).allowedMimeTypes(o.getAllowedMimeTypes()).maxSizeBytes(o.getMaxSizeBytes()).build())
                 .toList());
         if (event != null) {
             dto.setEventTitle(event.getTitle());
