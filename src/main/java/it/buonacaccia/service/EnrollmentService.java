@@ -137,6 +137,7 @@ public class EnrollmentService {
                 .eventTypeCode(event.getTypeCode())
                 .eventLevel(event.getLevel())
                 .eventRegion(event.getRegion())
+                .feeCents(Money.feeToCents(event.getFee()))
                 .participantId(participantId)
                 .participantMemberCode(participant.getCensus().getMemberCode())
                 .participantName(fullName(participant))

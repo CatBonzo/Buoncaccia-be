@@ -24,11 +24,11 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 **Scopo**: modelli, importi, errori e dati comuni a tutte le storie.
 
-- [ ] T001 [P] Creare `main/service/Money.java` (`toCents(BigDecimal)` rifiuta ≤ 0 e più di due decimali con `IllegalArgumentException`; `toEuro(long)` restituisce scala 2) e il test unitario `test/service/MoneyTest.java` (R1)
-- [ ] T002 [P] Creare `main/model/PaymentMethod.java` (`BANK_TRANSFER`, `OFFICE_CASH`), `PaymentStatus.java` (`VALID`, `CANCELLED`), `RefundStatus.java` (`REQUESTED`, `IN_PROGRESS`, `ISSUED`, `REJECTED`)
-- [ ] T003 Creare `main/model/Payment.java` e `main/model/Refund.java` con le annotazioni della regola e gli indici di data-model.md (`refunds.enrollmentId` unico), `main/repository/PaymentRepository.java` e `RefundRepository.java`
-- [ ] T004 Aggiungere a `main/model/Enrollment.java` `Long feeCents` e `long paidCents`; in `EnrollmentService.enroll` impostare `feeCents` dalla quota dell'evento (R3) e `paidCents` a 0
-- [ ] T005 [P] In `main/config/error/ErrorCode.java` aggiungere `PAYMENT_DUPLICATE(40930, 409, "PAYMENT", ...)`, `PAYMENT_CANCELLED(40931, 409, "PAYMENT", ...)`, `REFUND_TRANSITION(40940, 409, "REFUND", ...)`
+- [x] T001 [P] Creare `main/service/Money.java` (`toCents(BigDecimal)` rifiuta ≤ 0 e più di due decimali con `IllegalArgumentException`; `toEuro(long)` restituisce scala 2) e il test unitario `test/service/MoneyTest.java` (R1)
+- [x] T002 [P] Creare `main/model/PaymentMethod.java` (`BANK_TRANSFER`, `OFFICE_CASH`), `PaymentStatus.java` (`VALID`, `CANCELLED`), `RefundStatus.java` (`REQUESTED`, `IN_PROGRESS`, `ISSUED`, `REJECTED`)
+- [x] T003 Creare `main/model/Payment.java` e `main/model/Refund.java` con le annotazioni della regola e gli indici di data-model.md (`refunds.enrollmentId` unico), `main/repository/PaymentRepository.java` e `RefundRepository.java`
+- [x] T004 Aggiungere a `main/model/Enrollment.java` `Long feeCents` e `long paidCents`; in `EnrollmentService.enroll` impostare `feeCents` dalla quota dell'evento (R3) e `paidCents` a 0
+- [x] T005 [P] In `main/config/error/ErrorCode.java` aggiungere `PAYMENT_DUPLICATE(40930, 409, "PAYMENT", ...)`, `PAYMENT_CANCELLED(40931, 409, "PAYMENT", ...)`, `REFUND_TRANSITION(40940, 409, "REFUND", ...)`
 - [ ] T006 Aggiungere ai tipi di `DomainEventType` `PAYMENT_REGISTERED`, `REFUND_REQUESTED`, `REFUND_ISSUED`, `REFUND_REJECTED`, a `NotificationTemplate` i quattro modelli corrispondenti, a `DomainEvent` il record `MoneySnapshot(amount, paid, due, date, reference, reason)` (nuovo componente `money`, null per i vecchi) e a `DomainEventRecorder` i metodi `payment(...)` e `refund(...)`; aggiornare i costruttori di `DomainEvent` nei test esistenti (`MailComposerTest`, `RecipientResolverTest`)
 - [ ] T007 In `main/notification/RecipientResolver.java` i quattro tipi nuovi vanno a partecipante e presentatore; in `MailComposer.java` i quattro testi (R8): pagamento ricevuto con importo/versato/residuo e "iscrizione completa"; rimborso richiesto, emesso (importo, data, riferimento), rifiutato (motivo); estendere `MailComposerTest` e `RecipientResolverTest`
 
