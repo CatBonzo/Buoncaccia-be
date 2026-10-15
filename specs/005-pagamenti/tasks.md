@@ -42,13 +42,13 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 ### Test (prima del codice)
 
-- [ ] T008 [P] [US5] `test/service/IbanTest.java`: IBAN italiano valido (`IT60X0542811101000000123456`), con spazi e minuscole normalizzato, cifre di controllo errate, lunghezza sbagliata per il paese, caratteri non ammessi, paese sconosciuto
-- [ ] T009 [US5] `test/v1/controller/RegionSettingsTest.java`: la segreteria PIE salva e legge le proprie coordinate; IBAN non valido 422 col campo `iban`; segreteria LIG non può cambiare PIE (403); `NAT` solo amministrazione; sigla inesistente 404; lettura di una regione mai impostata con campi null
+- [x] T008 [P] [US5] `test/service/IbanTest.java`: IBAN italiano valido (`IT60X0542811101000000123456`), con spazi e minuscole normalizzato, cifre di controllo errate, lunghezza sbagliata per il paese, caratteri non ammessi, paese sconosciuto
+- [x] T009 [US5] `test/v1/controller/RegionSettingsTest.java`: la segreteria PIE salva e legge le proprie coordinate; IBAN non valido 422 col campo `iban`; segreteria LIG non può cambiare PIE (403); `NAT` solo amministrazione; sigla inesistente 404; lettura di una regione mai impostata con campi null
 
 ### Implementazione
 
-- [ ] T010 [US5] Creare `main/service/Iban.java` (formato e modulo 97, lunghezza per paese per i paesi europei più comuni, normalizzazione)
-- [ ] T011 [US5] Creare `main/model/RegionSettings.java`, `main/repository/RegionSettingsRepository.java`, `main/service/RegionSettingsService.java` (permessi con `EventAccessPolicy`, R10), `main/v1/dto/RegionSettingsDTO.java`, `main/v1/mapper/RegionSettingsMapper.java` e `main/v1/controller/RegionSettingsController.java` (`@SecurityAccess(entitlement = PAGAMENTO_REGISTRAZIONE)`)
+- [x] T010 [US5] Creare `main/service/Iban.java` (formato e modulo 97, lunghezza per paese per i paesi europei più comuni, normalizzazione)
+- [x] T011 [US5] Creare `main/model/RegionSettings.java`, `main/repository/RegionSettingsRepository.java`, `main/service/RegionSettingsService.java` (permessi con `EventAccessPolicy`, R10), `main/v1/dto/RegionSettingsDTO.java`, `main/v1/mapper/RegionSettingsMapper.java` e `main/v1/controller/RegionSettingsController.java` (`@SecurityAccess(entitlement = PAGAMENTO_REGISTRAZIONE)`)
 
 ---
 
