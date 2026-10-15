@@ -4,12 +4,12 @@ Test prima del codice; si spunta solo a test verdi.
 
 ## Phase 1: Fondamenta
 
-- [ ] T001 Modello e regole: `FormTemplate`, `FormSection`, `FormQuestion`, `QuestionType`, `FormSubmission`, `FormStatus`, repository, `FormRules` (validazione del modello e delle risposte) con `FormRulesTest`; codice errore `40970`
+- [X] T001 Modello e regole: `FormTemplate`, `FormSection`, `FormQuestion`, `QuestionType`, `FormSubmission`, `FormStatus`, repository, `FormRules` (validazione del modello e delle risposte) con `FormRulesTest`; codice errore `40970`
 
 ## Phase 2: US1 Modello di scheda (P1)
 
-- [ ] T002 [US1] `test/v1/controller/FormTemplateTest.java`: salva/rilegge, sostituisce, doppioni, scelta senza opzioni, senza domande, 403 non admin, evento con scheda e tipo senza modello 422
-- [ ] T003 [US1] `FormTemplateService`, `FormTemplateController`, controllo in `EventService`
+- [X] T002 [US1] `test/v1/controller/FormTemplateTest.java`: salva/rilegge, sostituisce, doppioni, scelta senza opzioni, senza domande, 403 non admin, evento con scheda e tipo senza modello 422
+- [X] T003 [US1] `FormTemplateService`, `FormTemplateController`, controllo in `EventService`
 
 ## Phase 3: US2 Compilazione e invio (P1) e US4 Riservatezza (P1)
 

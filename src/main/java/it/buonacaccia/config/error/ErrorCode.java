@@ -25,6 +25,7 @@ public enum ErrorCode {
     PAYMENT_CANCELLED(40931, 409, "PAYMENT", "Il pagamento è già stato annullato."),
     REFUND_TRANSITION(40940, 409, "REFUND", "Il rimborso non può passare a questo stato."),
     DOCUMENT_TRANSITION(40960, 409, "DOCUMENT", "Il documento non è più in attesa di verifica."),
+    FORM_TRANSITION(40970, 409, "FORM", "La scheda non è in uno stato che consente questa operazione."),
     INVALID_INPUT(42200, 422, "SYSTEM", "Richiesta non valida."),
     PUBLISH_INVARIANTS(42201, 422, "CATALOG", "L'evento non si può pubblicare: correggi i campi indicati."),
     NOT_ELIGIBLE(42210, 422, "ENROLLMENT", "Il socio non ha i requisiti per questo evento."),
