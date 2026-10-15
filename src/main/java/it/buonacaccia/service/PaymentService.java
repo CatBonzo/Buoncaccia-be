@@ -204,6 +204,10 @@ public class PaymentService {
             throw new BuonaCacciaException(ErrorCode.ENROLLMENT_STATE_CONFLICT,
                     "L'iscrizione non è nei posti con un pagamento ancora da fare.");
         }
+        if (!PaymentRules.authorized(enrollment)) {
+            throw new BuonaCacciaException(ErrorCode.ENROLLMENT_STATE_CONFLICT,
+                    "Il pagamento si abilita dopo l'autorizzazione del capo unità.");
+        }
         return obligation.get();
     }
 

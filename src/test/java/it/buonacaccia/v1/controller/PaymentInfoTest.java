@@ -25,10 +25,29 @@ class PaymentInfoTest extends EnrollmentTestSupport {
                 .isEqualTo(200);
     }
 
+    private JsonNode authorized(String user, String eventId) {
+        JsonNode enrollment = enrolled(user, eventId);
+        assertThat(post(ENROLLMENTS + "/" + enrollment.get("id").asString()
+                + "/obligations/UNIT_LEADER_AUTHORIZATION/satisfy", tokenOf("amministratore"), null).status()).isEqualTo(200);
+        return enrollment(user, enrollment.get("id").asString());
+    }
+
+    @Test
+    void finoAllAutorizzazioneDelCapoUnitaNonSiPuoPagare() {
+        setSettings("segreteria", "PIE", "AGESCI Piemonte");
+        JsonNode enrollment = enrolled("rover", publishOpen());
+
+        assertThat(enrollment.get("payment").get("due").asDouble()).isEqualTo(150.0);
+        assertThat(enrollment.get("paymentInfo").isNull()).isTrue();
+        Result result = post(ENROLLMENTS + "/" + enrollment.get("id").asString() + "/payments", tokenOf("segreteria"),
+                Map.of("amount", 50, "receivedOn", today().toString()));
+        EventManagementTest.assertError(result, 409, 40910);
+    }
+
     @Test
     void nei_posti_con_quota_si_vedono_importi_e_coordinate_della_regione() {
         setSettings("segreteria", "PIE", "AGESCI Piemonte");
-        JsonNode enrollment = enrolled("rover", publishOpen());
+        JsonNode enrollment = authorized("rover", publishOpen());
 
         JsonNode payment = enrollment.get("payment");
         assertThat(payment.get("fee").asDouble()).isEqualTo(150.0);
@@ -63,7 +82,7 @@ class PaymentInfoTest extends EnrollmentTestSupport {
 
     @Test
     void una_regione_senza_impostazioni_da_coordinate_vuote() {
-        JsonNode enrollment = enrolled("rover", publishOpen());
+        JsonNode enrollment = authorized("rover", publishOpen());
 
         assertThat(enrollment.get("paymentInfo")).isNotNull();
         assertThat(enrollment.get("paymentInfo").get("iban").isNull()).isTrue();
@@ -76,7 +95,7 @@ class PaymentInfoTest extends EnrollmentTestSupport {
         setSettings("amministratore", "NAT", "AGESCI Nazionale");
         String eventId = publish(openEvent("level", "NATIONAL", "region", null), "amministratore").get("id").asString();
 
-        JsonNode enrollment = enrolled("rover", eventId);
+        JsonNode enrollment = authorized("rover", eventId);
 
         assertThat(enrollment.get("paymentInfo").get("holder").asString()).isEqualTo("AGESCI Nazionale");
     }

@@ -748,7 +748,7 @@ public class EnrollmentService {
                 .build());
         boolean toPay = enrollment.isActive() && enrollment.getObligations().stream()
                 .anyMatch(o -> o.getType() == ObligationType.PAYMENT && o.getStatus() == ObligationStatus.TODO);
-        if (toPay) {
+        if (toPay && PaymentRules.authorized(enrollment)) {
             RegionSettings settings = regionSettingsService.forEvent(enrollment.getEventLevel(), enrollment.getEventRegion())
                     .orElseGet(RegionSettings::new);
             dto.setPaymentInfo(PaymentInfoDTO.builder().holder(settings.getHolder()).iban(settings.getIban())

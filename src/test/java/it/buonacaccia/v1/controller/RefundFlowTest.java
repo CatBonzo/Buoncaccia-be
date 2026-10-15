@@ -37,6 +37,8 @@ class RefundFlowTest extends EnrollmentTestSupport {
     }
 
     private void pay(JsonNode enrollment, Object amount) {
+        post(ENROLLMENTS + "/" + enrollment.get("id").asString() + "/obligations/UNIT_LEADER_AUTHORIZATION/satisfy",
+                tokenOf("segreteria"), null);
         Result result = post(ENROLLMENTS + "/" + enrollment.get("id").asString() + "/payments", tokenOf("segreteria"),
                 Map.of("amount", amount, "method", "BANK_TRANSFER", "receivedOn", today().toString(),
                         "reference", "R-" + System.nanoTime()));
@@ -116,21 +118,6 @@ class RefundFlowTest extends EnrollmentTestSupport {
 
         assertThat(refundsOf(eventId, "segreteria").size()).isZero();
         assertThat(enrollment("rover", enrollment.get("id").asString()).get("status").asString()).isEqualTo("EXPIRED");
-    }
-
-    @Test
-    void ilDinegoDelCapoRimborsaIlVersato() {
-        String eventId = publishOpen();
-        JsonNode enrollment = enrolled("rover", eventId);
-        pay(enrollment, 150);
-
-        Result rejected = post(ENROLLMENTS + "/" + enrollment.get("id").asString()
-                + "/obligations/UNIT_LEADER_AUTHORIZATION/reject", tokenOf("capogruppo"), Map.of("reason", "Non pronto"));
-        assertThat(rejected.status()).as("%s", rejected.body()).isEqualTo(200);
-
-        JsonNode refund = refundsOf(eventId, "segreteria").get(0);
-        assertThat(refund.get("amount").asDouble()).isEqualTo(150.0);
-        assertThat(refund.get("closingReason").asString()).isEqualTo("REJECTED");
     }
 
     @Test

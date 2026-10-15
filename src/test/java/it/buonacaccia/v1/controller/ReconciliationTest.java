@@ -22,6 +22,8 @@ class ReconciliationTest extends EnrollmentTestSupport {
     }
 
     private Result pay(JsonNode enrollment, Object amount, String reference) {
+        post(ENROLLMENTS + "/" + enrollment.get("id").asString() + "/obligations/UNIT_LEADER_AUTHORIZATION/satisfy",
+                tokenOf("segreteria"), null);
         return post(ENROLLMENTS + "/" + enrollment.get("id").asString() + "/payments", tokenOf("segreteria"),
                 Map.of("amount", amount, "method", "BANK_TRANSFER", "receivedOn", today().toString(), "reference", reference));
     }

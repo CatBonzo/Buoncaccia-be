@@ -141,5 +141,6 @@ MVP = fondamenta + US5 + US1: la pagina dell'iscrizione che dice quanto e dove p
 - La data di incasso non può essere nel futuro (422 sul campo `receivedOn`): regola aggiunta in implementazione.
 - T017: `satisfy` sul pagamento resta coperto dal test esistente `EnrollmentLifecycleTest`; le e-mail di pagamento sono provate in `PaymentRegistrationTest`.
 - 15/10, decisione di Mahima: solo bonifico (`OFFICE_CASH` tolto, `method` facoltativo) e nessun rimborso alla scadenza; resta il rimborso al diniego.
+- 15/10, decisione di Mahima: il pagamento si abilita solo dopo l'autorizzazione del capo unità (registrazione e coordinate `paymentInfo`); il caso "diniego dopo un pagamento" resta solo per il capo gruppo e non ha un test dedicato.
 - T025: aggiornate FR-040, FR-041, FR-044 e la riga sul rimborso parziale nella checklist della spec di progetto v2.0 (.md e .docx).
 - Limite noto: l'e-mail di ritiro della fase 4 promette il rimborso in base al diritto anche quando non è stato versato nulla (nessun rimborso nasce); non toccata.
