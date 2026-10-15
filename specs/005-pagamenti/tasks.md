@@ -114,9 +114,9 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 ## Phase 7: Polish
 
-- [ ] T024 [P] Aggiornare `specs/005-pagamenti/quickstart.md` con quanto verificato a mano, `AGENTS.md` (decisioni R1–R13 con il perché) e `docs/tesi/diario-capitolo-3.txt`
-- [ ] T025 [P] Aggiornare la spec di progetto in `/mnt/project-files/spec/` (.md e .docx): checklist e FR-041/FR-045 adattati (registrazione dalla segreteria, niente ricevuta caricata)
-- [ ] T026 `./gradlew build --max-workers=1` verde; rivedere i log a `debug` di un pagamento e di un rimborso
+- [x] T024 [P] Aggiornare `specs/005-pagamenti/quickstart.md` con quanto verificato a mano, `AGENTS.md` (decisioni R1–R13 con il perché) e `docs/tesi/diario-capitolo-3.txt`
+- [x] T025 [P] Aggiornare la spec di progetto in `/mnt/project-files/spec/` (.md e .docx): checklist e FR-041/FR-045 adattati (registrazione dalla segreteria, niente ricevuta caricata)
+- [x] T026 `./gradlew build --max-workers=1` verde; rivedere i log a `debug` di un pagamento e di un rimborso
 
 ---
 
@@ -132,3 +132,13 @@ description: "Task della feature 005 pagamenti e rimborsi"
 ## Strategia
 
 MVP = fondamenta + US5 + US1: la pagina dell'iscrizione che dice quanto e dove pagare. Poi US2 (registrazione, il valore maggiore per la segreteria), US3 (chiude il ciclo del denaro), US4.
+
+## Note di implementazione
+
+- `TransactionRunner` (non previsto nel piano) raccoglie la transazione con un solo riprovo sui conflitti, usato da `PaymentService` e `RefundService`: un conflitto fra transazioni esce da Mongo come errore transitorio e va tradotto in "versione superata" prima del circuit breaker, che altrimenti lo conterebbe come guasto.
+- `MoneySnapshot` porta centesimi (`Long`), non euro: il messaggio Kafka resta fatto di interi; gli euro li scrive `MailComposer`.
+- Un pagamento che completa l'iscrizione manda solo l'e-mail del pagamento ("iscrizione completa"), non anche quella di completamento della fase 4.
+- La data di incasso non può essere nel futuro (422 sul campo `receivedOn`): regola aggiunta in implementazione.
+- T017: `satisfy` sul pagamento resta coperto dal test esistente `EnrollmentLifecycleTest`; le e-mail di pagamento sono provate in `PaymentRegistrationTest`.
+- T025: aggiornate FR-040, FR-041, FR-044 e la riga sul rimborso parziale nella checklist della spec di progetto v2.0 (.md e .docx).
+- Limite noto: l'e-mail di ritiro della fase 4 promette il rimborso in base al diritto anche quando non è stato versato nulla (nessun rimborso nasce); non toccata.

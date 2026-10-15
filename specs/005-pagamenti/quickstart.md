@@ -32,4 +32,4 @@ Avviare `BuonaCacciaApplication (mocked)`; casella di prova su http://localhost:
 
 ## Esito atteso
 
-`./gradlew build --max-workers=1` verde, comprese le prove su rate, doppioni, concorrenza e transizioni del rimborso.
+`./gradlew build --max-workers=1` verde, comprese le prove su importi, doppioni, concorrenza e transizioni del rimborso.

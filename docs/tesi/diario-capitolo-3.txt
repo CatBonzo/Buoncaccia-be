@@ -755,6 +755,22 @@ Problemi: la spec di progetto lascia aperto il rimborso per un'iscrizione pagata
 Spunto: le domande aperte della spec di progetto diventano proposte esplicite nella spec di feature, con il default
   scritto: l'implementazione non si ferma ma la decisione resta tracciabile e correggibile.
 
+[2026-10-15] Fase 5: pagamenti e rimborsi costruiti
+Cosa: implementati in 8 commit, test per test: importi in centesimi, registro dei pagamenti (registrazione, annullamento
+  motivato, versato che soddisfa l'adempimento e completa l'iscrizione), rimborsi che nascono nella transazione di
+  chiusura e che la segreteria prende in carico, emette o rifiuta, quadro dell'evento con CSV, coordinate di pagamento
+  per regione con IBAN validato, e-mail di pagamento e rimborso sullo stesso percorso outbox-Kafka della fase 4.
+Chi: Claude ha scritto test e codice dalla spec 005 e dal piano; Mahima decide le due scelte di default ancora aperte.
+Paradigma: SDD + loop engineering. Ogni storia e' partita da un test rosso (compreso quello sulla concorrenza) e
+  il piano ha fatto da guida: 26 task, ticchettati solo a test verdi.
+Artefatti: specs/005-pagamenti/*, AGENTS.md, src/main (Money, Iban, PaymentService, RefundService, ReconciliationService,
+  TransactionRunner), src/test (PaymentRegistrationTest, RefundFlowTest, ReconciliationTest, PaymentInfoTest...).
+Problemi: il conflitto fra due registrazioni insieme sullo stesso documento esce da Mongo come errore transitorio, non
+  come versione superata: va tradotto prima del circuit breaker, altrimenti sembrava un guasto del database (503).
+  Risolto con un piccolo componente (TransactionRunner) che ritenta una volta.
+Spunto: la regola "la somma e' sempre ricostruibile dai pagamenti" (SC-004) ha deciso il modello: interi, un solo punto
+  che cambia il versato, nessun cancellare. Il vincolo contabile guida il disegno piu' del framework.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
