@@ -11,5 +11,7 @@ public interface RefundRepository extends MongoRepository<Refund, String> {
 
     Optional<Refund> findByEnrollmentId(String enrollmentId);
 
+    boolean existsByEnrollmentId(String enrollmentId);
+
     List<Refund> findByEventIdOrderByCreatedAtAsc(String eventId);
 }

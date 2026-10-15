@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import com.mongodb.MongoException;
 import it.buonacaccia.config.ClockConfig;
 import it.buonacaccia.config.error.BuonaCacciaException;
 import it.buonacaccia.config.error.ErrorCode;
@@ -36,10 +35,7 @@ import it.buonacaccia.v1.dto.FieldErrorDTO;
 import it.buonacaccia.v1.dto.PaymentRequestDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Pagamenti registrati dalla segreteria (feature 005, research R2, R4, R5). {@code Enrollment.paidCents}
@@ -59,7 +55,7 @@ public class PaymentService {
     private final EnrollmentAccessPolicy enrollmentAccessPolicy;
     private final DomainEventRecorder domainEvents;
     private final CircuitBreakerService circuitBreakerService;
-    private final TransactionTemplate transactionTemplate;
+    private final TransactionRunner transactions;
     private final Clock clock;
 
     /**
@@ -68,7 +64,7 @@ public class PaymentService {
      *                              per importo o data non validi, {@code PAYMENT_DUPLICATE} per un doppione
      */
     public Payment register(CallerContext caller, String enrollmentId, PaymentRequestDTO request) {
-        return retryOnConflict(() -> registerOnce(caller, enrollmentId, request));
+        return transactions.retryOnConflict(() -> registerOnce(caller, enrollmentId, request));
     }
 
     /** Pagamenti di un'iscrizione, per chi la vede come partecipante o presentatore e per chi la gestisce. */
@@ -89,7 +85,7 @@ public class PaymentService {
      *                              se per l'iscrizione esiste già un rimborso
      */
     public Payment cancel(CallerContext caller, String paymentId, String reason) {
-        return retryOnConflict(() -> cancelOnce(caller, paymentId, reason));
+        return transactions.retryOnConflict(() -> cancelOnce(caller, paymentId, reason));
     }
 
     // ---------- registrazione ----------
@@ -136,7 +132,7 @@ public class PaymentService {
         }
         EnrollmentService.completeIfDone(enrollment, now);
         enrollment.setUpdatedAt(now);
-        inTransaction(() -> {
+        transactions.run(() -> {
             paymentRepository.insert(payment);
             Enrollment saved = enrollmentRepository.save(enrollment);
             if (event != null) {
@@ -171,7 +167,7 @@ public class PaymentService {
         payment.setCancelledBy(caller.getSubject());
         payment.setCancelledAt(now);
         payment.setCancelReason(reason);
-        inTransaction(() -> {
+        transactions.run(() -> {
             paymentRepository.save(payment);
             return enrollmentRepository.save(enrollment);
         });
@@ -243,46 +239,6 @@ public class PaymentService {
     private Enrollment find(String id) {
         return mongo(() -> enrollmentRepository.findById(id))
                 .orElseThrow(() -> new BuonaCacciaException(ErrorCode.NOT_FOUND, "Iscrizione non trovata."));
-    }
-
-    /**
-     * Scrittura in transazione. Un conflitto con un'altra transazione sulla stessa iscrizione diventa
-     * una versione superata (ignorata dal circuit breaker): {@link #retryOnConflict} ritenta una volta.
-     */
-    private <T> T inTransaction(Supplier<T> writes) {
-        return mongo(() -> {
-            try {
-                return transactionTemplate.execute(tx -> writes.get());
-            } catch (OptimisticLockingFailureException e) {
-                throw e;
-            } catch (DataAccessException e) {
-                if (isTransient(e)) {
-                    throw new OptimisticLockingFailureException("Conflitto fra transazioni sulla stessa iscrizione", e);
-                }
-                throw e;
-            }
-        });
-    }
-
-    private <T> T retryOnConflict(Supplier<T> operation) {
-        try {
-            return operation.get();
-        } catch (BuonaCacciaException e) {
-            if (e.errorCode() != ErrorCode.STALE_VERSION) {
-                throw e;
-            }
-            log.debug("Conflitto sull'iscrizione, riprovo una volta");
-            return operation.get();
-        }
-    }
-
-    private static boolean isTransient(Throwable error) {
-        for (Throwable t = error; t != null; t = t.getCause()) {
-            if (t instanceof MongoException mongo && mongo.hasErrorLabel(MongoException.TRANSIENT_TRANSACTION_ERROR_LABEL)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private <T> T mongo(Supplier<T> operation) {

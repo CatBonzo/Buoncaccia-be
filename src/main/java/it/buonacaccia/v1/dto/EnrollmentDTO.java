@@ -55,6 +55,8 @@ public class EnrollmentDTO {
     private PaymentSummaryDTO payment;
     /** Dove pagare; presente solo se il pagamento è ancora da fare. */
     private PaymentInfoDTO paymentInfo;
+    /** Rimborso aperto alla chiusura dell'iscrizione, se c'è. */
+    private RefundSummaryDTO refund;
     private List<String> availableActions;
     private Long version;
 }

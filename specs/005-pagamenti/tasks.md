@@ -88,12 +88,12 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 ### Test (prima del codice)
 
-- [ ] T018 [US3] `test/v1/controller/RefundFlowTest.java`: ritiro con pagamento ≥ 7 giorni prima → rimborso `REQUESTED` dell'importo versato e e-mail; ritiro a meno di 7 giorni → nessun rimborso; scadenza con pagamento parziale e diniego di un'autorizzazione → rimborso del versato; evento annullato → un rimborso per iscrizione pagata e nessuno per chi non ha pagato né per chi era in attesa; iscrizione senza pagamenti → nessun rimborso; `take` → `IN_PROGRESS`; `issue` con data e riferimento → `ISSUED` ed e-mail; `reject` con motivo → `REJECTED` ed e-mail; transizione non ammessa 409 `40940`; coda filtrata per stato e per regione (segreteria LIG non vede i rimborsi PIE); `issue` con data futura 422; il rimborso compare nell'iscrizione (`refund`)
+- [x] T018 [US3] `test/v1/controller/RefundFlowTest.java`: ritiro con pagamento ≥ 7 giorni prima → rimborso `REQUESTED` dell'importo versato e e-mail; ritiro a meno di 7 giorni → nessun rimborso; scadenza con pagamento parziale e diniego di un'autorizzazione → rimborso del versato; evento annullato → un rimborso per iscrizione pagata e nessuno per chi non ha pagato né per chi era in attesa; iscrizione senza pagamenti → nessun rimborso; `take` → `IN_PROGRESS`; `issue` con data e riferimento → `ISSUED` ed e-mail; `reject` con motivo → `REJECTED` ed e-mail; transizione non ammessa 409 `40940`; coda filtrata per stato e per regione (segreteria LIG non vede i rimborsi PIE); `issue` con data futura 422; il rimborso compare nell'iscrizione (`refund`)
 
 ### Implementazione
 
-- [ ] T019 [US3] Creare `main/service/RefundService.java`: `requestFor(Enrollment)` (R6), `list`, `take`, `issue`, `reject` con aggiornamento condizionato sullo stato di partenza (R7); `main/v1/dto/RefundDTO.java`, `RefundIssueDTO.java`, `RefundPageDTO.java`, `main/v1/mapper/RefundMapper.java`, `main/v1/controller/RefundController.java`
-- [ ] T020 [US3] In `EnrollmentService.exit` e `cancelAll` chiamare `RefundService.requestFor` nella transazione di chiusura; per scadenza e diniego impostare `refundDue = paidCents > 0` (R6); valorizzare `EnrollmentDTO.refund`
+- [x] T019 [US3] Creare `main/service/RefundService.java`: `requestFor(Enrollment)` (R6), `list`, `take`, `issue`, `reject` con aggiornamento condizionato sullo stato di partenza (R7); `main/v1/dto/RefundDTO.java`, `RefundIssueDTO.java`, `RefundPageDTO.java`, `main/v1/mapper/RefundMapper.java`, `main/v1/controller/RefundController.java`
+- [x] T020 [US3] In `EnrollmentService.exit` e `cancelAll` chiamare `RefundService.requestFor` nella transazione di chiusura; per scadenza e diniego impostare `refundDue = paidCents > 0` (R6); valorizzare `EnrollmentDTO.refund`
 
 **Checkpoint**: US1, US2, US3, US5 verdi.
 
