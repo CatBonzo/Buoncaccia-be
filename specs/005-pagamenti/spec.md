@@ -117,7 +117,7 @@ L'amministrazione o la segreteria della regione impostano IBAN, intestatario, co
 - Un pagamento registrato su un'iscrizione in attesa: rifiutato (chi è in attesa non deve ancora pagare).
 - Promozione dalla lista d'attesa con la quota già coperta: non si aggiunge nessun pagamento da fare.
 - Rimborso di un'iscrizione con un pagamento annullato: si rimborsa solo il versato valido.
-- Iscrizione ritirata, poi un pagamento che arriva in ritardo: la segreteria lo registra come "ricevuto fuori iscrizione" non è previsto in questa fase; si gestisce fuori dal sistema e se ne tiene traccia nelle note del rimborso.
+- Iscrizione ritirata o scaduta, poi un bonifico che arriva in ritardo: il sistema non lo registra (FR-004); si gestisce fuori dal sistema e non c'è un tipo di pagamento "fuori iscrizione" in questa fase.
 - Due segreterie lavorano la stessa richiesta insieme: la seconda transizione fallisce con conflitto di stato.
 
 ## Requirements *(mandatory)*

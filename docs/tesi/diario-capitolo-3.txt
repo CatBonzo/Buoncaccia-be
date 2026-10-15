@@ -741,6 +741,20 @@ Problemi: in tasks.md un task di test unitari era stato spuntato prima di scrive
 Spunto: la checklist dei task è utile solo se onesta; il controllo finale tra task spuntati e file presenti
   andrebbe fatto sempre prima della PR (è ciò che /speckit-converge automatizza).
 
+[2026-10-15] Merge della fase 4 e spec della fase 5 (pagamenti e rimborsi)
+Cosa: Mahima ha unito la PR #4 e ha chiesto di passare alla fase successiva. Creato il branch 005-pagamenti da
+  feature aggiornata e scritta la spec: pagamenti registrati dalla segreteria (bonifico, contanti), adempimento di
+  pagamento soddisfatto quando il versato raggiunge la quota, rimborsi che nascono alla chiusura di un'iscrizione
+  pagata e la segreteria lavora a mano, riconciliazione per evento con CSV, coordinate di pagamento per regione.
+Chi: Claude dalla spec di progetto (BR-10, BR-11, FR-039..046, §2.5.3, §2.5.6) e dal Planner v2.
+Paradigma: SDD. Il diritto al rimborso era già calcolato nella fase 3 senza che portasse a nulla: la fase 5 chiude
+  il ciclo senza cambiare le regole, e lo dichiara nella spec invece di ricalcolarlo.
+Artefatti: specs/005-pagamenti/spec.md, checklists/requirements.md, AGENTS.md.
+Problemi: la spec di progetto lascia aperto il rimborso per un'iscrizione pagata solo in parte che scade; scelta di
+  default (rimborso integrale) dichiarata nelle Clarifications, da confermare con Mahima.
+Spunto: le domande aperte della spec di progetto diventano proposte esplicite nella spec di feature, con il default
+  scritto: l'implementazione non si ferma ma la decisione resta tracciabile e correggibile.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
