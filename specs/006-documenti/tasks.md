@@ -11,15 +11,15 @@
 
 ## Phase 2: US1 Documenti richiesti dall'evento (P1)
 
-- [ ] T005 [US1] `test/v1/controller/EventDocumentsTest.java`: due documenti con vincoli, iscrizione con due adempimenti, default, codici duplicati e dimensione oltre 10 MB 422, evento senza codice compatibile
-- [ ] T006 [US1] Validazione dei documenti in `EventService` e mappatura DTO
+- [X] T005 [US1] `test/v1/controller/EventDocumentsTest.java`: due documenti con vincoli, iscrizione con due adempimenti, default, codici duplicati e dimensione oltre 10 MB 422, evento senza codice compatibile
+- [X] T006 [US1] Validazione dei documenti in `EventService` e mappatura DTO
 
 ## Phase 3: US2 Caricamento (P1) e US4 Visibilità (P1)
 
-- [ ] T007 [US2] `test/v1/controller/DocumentUploadTest.java`: caricamento valido → `IN_REVIEW`; estensione `.jpg` ma byte di un eseguibile, formato non ammesso, vuoto, oltre la dimensione → 422 campo `file`; sostituzione; dopo la validazione 409; cartaceo 409; iscrizione chiusa 409; terzi 404; due caricamenti insieme → un solo `UPLOADED`
-- [ ] T008 [US2] `main/service/DocumentService.upload`, `DocumentController` (multipart), supporto multipart nel test (`AbstractTest`)
-- [ ] T009 [US4] `test/v1/controller/DocumentAccessTest.java`: elenco e scarico per partecipante, presentatore, segreteria giusta; 404 per altro socio e segreteria di un'altra regione; sostituiti e rifiutati scaricabili
-- [ ] T010 [US4] `DocumentService.list` e `content`, scarico con nome e tipo originali
+- [X] T007 [US2] `test/v1/controller/DocumentUploadTest.java`: caricamento valido → `IN_REVIEW`; estensione `.jpg` ma byte di un eseguibile, formato non ammesso, vuoto, oltre la dimensione → 422 campo `file`; sostituzione; dopo la validazione 409; cartaceo 409; iscrizione chiusa 409; terzi 404; due caricamenti insieme → un solo `UPLOADED`
+- [X] T008 [US2] `main/service/DocumentService.upload`, `DocumentController` (multipart), supporto multipart nel test (`AbstractTest`)
+- [X] T009 [US4] `test/v1/controller/DocumentAccessTest.java`: elenco e scarico per partecipante, presentatore, segreteria giusta; 404 per altro socio e segreteria di un'altra regione; sostituiti e rifiutati scaricabili
+- [X] T010 [US4] `DocumentService.list` e `content`, scarico con nome e tipo originali
 
 ## Phase 4: US3 Verifica (P1)
 

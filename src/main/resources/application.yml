@@ -25,6 +25,11 @@ spring:
   # Posta in uscita: in locale Mailpit (SPRING_MAIL_HOST/PORT in test-src/env/), interfaccia su http://localhost:8025.
   mail:
     default-encoding: UTF-8
+  servlet:
+    multipart:
+      # Limite del server per i documenti (feature 006, research R3): il controllo per adempimento lo fa il servizio.
+      max-file-size: 10MB
+      max-request-size: 11MB
   security:
     oauth2:
       resourceserver:
@@ -35,6 +40,9 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  tomcat:
+    # Un caricamento oltre i 10 MB va letto fino in fondo, altrimenti il client non riceve il 422 (feature 006).
+    max-swallow-size: 16MB
 
 management:
   endpoints:

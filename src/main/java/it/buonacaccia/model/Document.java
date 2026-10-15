@@ -45,6 +45,7 @@ public class Document {
     private String originalName;
     private String contentType;
     private long sizeBytes;
+    private String sha256;
     private String storageKey;
 
     @Indexed
