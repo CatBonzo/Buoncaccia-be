@@ -1,7 +1,9 @@
 package it.buonacaccia.v1.dto;
 
 import java.time.Instant;
+import java.util.List;
 
+import it.buonacaccia.model.DocumentDelivery;
 import it.buonacaccia.model.ObligationStatus;
 import it.buonacaccia.model.ObligationType;
 import lombok.AllArgsConstructor;
@@ -25,4 +27,8 @@ public class EnrollmentObligationDTO {
     private ObligationStatus status;
     private Instant satisfiedAt;
     private String note;
+    private String code;
+    private DocumentDelivery delivery;
+    private List<String> allowedMimeTypes;
+    private Long maxSizeBytes;
 }

@@ -97,9 +97,22 @@ class MailComposerTest {
         assertThat(requested.text()).contains("rimborso di 150,00 €");
     }
 
+    @Test
+    void ilDocumentoRifiutatoDiceQualeERiceveIlMotivo() {
+        DomainEvent base = event(DomainEventType.DOCUMENT_REJECTED, SeatPosition.IN_SEATS, null);
+        DomainEvent rejected = new DomainEvent(base.id(), base.type(), base.occurredAt(), base.enrollment(), base.event(),
+                null, null, null, new DomainEvent.DocumentSnapshot("FOTO", "Foto tessera", "Foto sfocata"));
+
+        MailComposer.Mail mail = COMPOSER.compose(rejected,
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.DOCUMENT_REJECTED, "e1"), null);
+
+        assertThat(mail.subject()).contains("PIE-2026-0001-0003");
+        assertThat(mail.text()).contains("\"FOTO\"").contains("Motivo: Foto sfocata").contains("Carica un nuovo file");
+    }
+
     private static DomainEvent withMoney(DomainEventType type, DomainEvent.MoneySnapshot money) {
         DomainEvent base = event(type, SeatPosition.IN_SEATS, null);
-        return new DomainEvent(base.id(), type, base.occurredAt(), base.enrollment(), base.event(), null, null, money);
+        return new DomainEvent(base.id(), type, base.occurredAt(), base.enrollment(), base.event(), null, null, money, null);
     }
 
     private static DomainEvent event(DomainEventType type, SeatPosition position, Boolean refundDue) {
@@ -109,6 +122,6 @@ class MailComposerTest {
                 new BigDecimal("150"), refundDue, ClosingReason.WITHDRAWN, null);
         DomainEvent.EventSnapshot event = new DomainEvent.EventSnapshot("ev1", "PIE-2026-0001", "Route di prova",
                 LocalDate.of(2026, 11, 20), LocalDate.of(2026, 11, 25), "Val Pellice", List.of("location"));
-        return new DomainEvent("d1", type, DEADLINE, enrollment, event, ObligationType.UNIT_LEADER_AUTHORIZATION, 3, null);
+        return new DomainEvent("d1", type, DEADLINE, enrollment, event, ObligationType.UNIT_LEADER_AUTHORIZATION, 3, null, null);
     }
 }

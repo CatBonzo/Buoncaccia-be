@@ -14,6 +14,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -69,6 +71,15 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse<Object>> handle(MethodArgumentTypeMismatchException e) {
         List<FieldErrorDTO> fields = List.of(new FieldErrorDTO(e.getName(), "Valore non valido: " + e.getValue()));
         return respond(ErrorCode.INVALID_INPUT, ErrorCode.INVALID_INPUT.defaultMessage(), fields);
+    }
+
+    /** Multipart oltre il limite del server o senza la parte {@code file}: stesso errore del file non valido (research R3). */
+    @ExceptionHandler({MaxUploadSizeExceededException.class, MissingServletRequestPartException.class})
+    ResponseEntity<ApiResponse<Object>> handleUpload(Exception e) {
+        String message = e instanceof MaxUploadSizeExceededException
+                ? "Il file supera la dimensione massima di 10 MB." : "Manca il file da caricare.";
+        return respond(ErrorCode.INVALID_INPUT, ErrorCode.INVALID_INPUT.defaultMessage(),
+                List.of(new FieldErrorDTO("file", message)));
     }
 
     @ExceptionHandler({HandlerMethodValidationException.class, HttpMessageNotReadableException.class})

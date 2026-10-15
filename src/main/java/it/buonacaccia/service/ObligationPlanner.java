@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import it.buonacaccia.config.ClockConfig;
 import it.buonacaccia.model.Enrollment;
@@ -32,12 +33,20 @@ public final class ObligationPlanner {
     public static List<EnrollmentObligation> initial(Event event, SeatPosition position, String presenterId, Instant now) {
         List<EnrollmentObligation> result = new ArrayList<>();
         for (Obligation obligation : eventObligations(event)) {
+            boolean document = obligation.getType() == ObligationType.DOCUMENT;
+            String code = document ? DocumentRules.codeOf(obligation.getCode()) : null;
             if (obligation.getType() == ObligationType.PAYMENT
-                    || result.stream().anyMatch(o -> o.getType() == obligation.getType())) {
+                    || result.stream().anyMatch(o -> o.getType() == obligation.getType() && Objects.equals(o.getCode(), code))) {
                 continue;
             }
             EnrollmentObligation item = EnrollmentObligation.builder()
                     .type(obligation.getType()).description(obligation.getDescription()).status(ObligationStatus.TODO).build();
+            if (document) {
+                item.setCode(code);
+                item.setDelivery(DocumentRules.deliveryOf(obligation.getDelivery()));
+                item.setAllowedMimeTypes(DocumentRules.typesOf(obligation.getAllowedMimeTypes()));
+                item.setMaxSizeBytes(DocumentRules.maxBytesOf(obligation.getMaxSizeBytes()));
+            }
             if (obligation.getType() == ObligationType.LEADER_VALIDATION) {
                 if (presenterId != null) {
                     item.setStatus(ObligationStatus.SATISFIED);
@@ -55,9 +64,9 @@ public final class ObligationPlanner {
         return result;
     }
 
-    /** {@code COMPLETED} se non resta nulla da fare (FR-011), altrimenti {@code REGISTERED}. */
+    /** {@code COMPLETED} se non resta nulla da fare né da verificare (FR-011), altrimenti {@code REGISTERED}. */
     public static EnrollmentStatus statusFor(List<EnrollmentObligation> obligations) {
-        return obligations.stream().anyMatch(o -> o.getStatus() == ObligationStatus.TODO)
+        return obligations.stream().anyMatch(o -> o.getStatus() == ObligationStatus.TODO || o.getStatus() == ObligationStatus.IN_REVIEW)
                 ? EnrollmentStatus.REGISTERED : EnrollmentStatus.COMPLETED;
     }
 

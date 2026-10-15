@@ -41,7 +41,7 @@ public class DomainEventRecorder {
 
     /** Cambio di stato di un'iscrizione. */
     public void enrollment(DomainEventType type, Enrollment enrollment, Event event) {
-        write(type, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null), null, null, null);
+        write(type, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null), null, null, null, null);
     }
 
     /** Un {@code AUTHORIZATION_REQUESTED} per ogni autorizzazione dei capi ancora da dare (FR-009). */
@@ -49,7 +49,7 @@ public class DomainEventRecorder {
         for (EnrollmentObligation obligation : enrollment.getObligations()) {
             if (AUTHORIZATIONS.contains(obligation.getType()) && obligation.getStatus() == ObligationStatus.TODO) {
                 write(DomainEventType.AUTHORIZATION_REQUESTED, enrollment.getId(), snapshot(enrollment, event),
-                        snapshot(event, null), obligation.getType(), null, null);
+                        snapshot(event, null), obligation.getType(), null, null, null);
             }
         }
     }
@@ -57,12 +57,12 @@ public class DomainEventRecorder {
     /** Promemoria a {@code days} giorni dalla scadenza (FR-010). */
     public void reminder(Enrollment enrollment, Event event, int days) {
         write(DomainEventType.DEADLINE_REMINDER, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null),
-                null, days, null);
+                null, days, null, null);
     }
 
     /** Date o luogo di un evento pubblicato cambiati (FR-012). */
     public void eventChanged(Event event, List<String> changedFields) {
-        write(DomainEventType.EVENT_CHANGED, event.getId(), null, snapshot(event, changedFields), null, null, null);
+        write(DomainEventType.EVENT_CHANGED, event.getId(), null, snapshot(event, changedFields), null, null, null, null);
     }
 
     /** Pagamento registrato: {@code paid} e residuo sono quelli dopo la registrazione (R8 della 005). */
@@ -70,22 +70,28 @@ public class DomainEventRecorder {
         long fee = enrollment.getFeeCents() == null ? 0 : enrollment.getFeeCents();
         write(DomainEventType.PAYMENT_REGISTERED, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null),
                 null, null, new DomainEvent.MoneySnapshot(amountCents, enrollment.getPaidCents(),
-                        Math.max(0, fee - enrollment.getPaidCents()), receivedOn, reference, null));
+                        Math.max(0, fee - enrollment.getPaidCents()), receivedOn, reference, null), null);
     }
 
     /** Fatto di un rimborso: richiesto, emesso o rifiutato (R8 della 005). */
     public void refund(DomainEventType type, Refund refund, Enrollment enrollment, Event event) {
         write(type, refund.getId(), snapshot(enrollment, event), snapshot(event, null), null, null,
                 new DomainEvent.MoneySnapshot(refund.getAmountCents(), null, null, refund.getIssuedOn(),
-                        refund.getReference(), refund.getRejectReason()));
+                        refund.getReference(), refund.getRejectReason()), null);
+    }
+
+    /** Documento rifiutato dalla segreteria: il partecipante deve caricarne uno nuovo (R7 della 006). */
+    public void documentRejected(Enrollment enrollment, Event event, String code, String description, String reason) {
+        write(DomainEventType.DOCUMENT_REJECTED, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null),
+                null, null, null, new DomainEvent.DocumentSnapshot(code, description, reason));
     }
 
     private void write(DomainEventType type, String aggregateId, DomainEvent.EnrollmentSnapshot enrollment,
                        DomainEvent.EventSnapshot event, ObligationType obligationType, Integer reminderDays,
-                       DomainEvent.MoneySnapshot money) {
+                       DomainEvent.MoneySnapshot money, DomainEvent.DocumentSnapshot document) {
         Instant now = clock.instant();
         DomainEvent domainEvent = new DomainEvent(UUID.randomUUID().toString(), type, now, enrollment, event,
-                obligationType, reminderDays, money);
+                obligationType, reminderDays, money, document);
         mongoTemplate.insert(OutboxEvent.builder()
                 .id(domainEvent.id())
                 .type(type)

@@ -125,6 +125,50 @@ public abstract class AbstractTest {
         }
     }
 
+    /** Risposta con il corpo grezzo, per i contenuti scaricati (file). */
+    protected record RawResult(int status, byte[] body, String contentType, String disposition) {
+    }
+
+    /** POST multipart con un solo file nella parte {@code file}. */
+    protected Result postFile(String path, String token, String filename, String declaredType, byte[] content) {
+        String boundary = "----test" + java.util.UUID.randomUUID();
+        java.io.ByteArrayOutputStream body = new java.io.ByteArrayOutputStream();
+        String head = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + filename
+                + "\"\r\nContent-Type: " + declaredType + "\r\n\r\n";
+        body.writeBytes(head.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        body.writeBytes(content);
+        body.writeBytes(("\r\n--" + boundary + "--\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray()));
+        if (token != null) {
+            request.header("Authorization", "Bearer " + token);
+        }
+        try {
+            HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
+            boolean json = response.headers().firstValue("Content-Type").orElse("").contains("json");
+            return new Result(response.statusCode(), json && !response.body().isBlank() ? JSON.readTree(response.body()) : null);
+        } catch (IOException | InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** GET che restituisce i byte e le intestazioni del file scaricato. */
+    protected RawResult getBytes(String path, String token) {
+        HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET();
+        if (token != null) {
+            request.header("Authorization", "Bearer " + token);
+        }
+        try {
+            HttpResponse<byte[]> response = http.send(request.build(), HttpResponse.BodyHandlers.ofByteArray());
+            return new RawResult(response.statusCode(), response.body(),
+                    response.headers().firstValue("Content-Type").orElse(""),
+                    response.headers().firstValue("Content-Disposition").orElse(""));
+        } catch (IOException | InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /** GET con la risposta intera (intestazioni e testo), per i contenuti che non sono JSON come il CSV. */
     protected HttpResponse<String> getRaw(String path, String token) {
         HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET();
