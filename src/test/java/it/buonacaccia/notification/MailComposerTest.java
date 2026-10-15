@@ -65,6 +65,43 @@ class MailComposerTest {
         assertThat(notRefunded.text()).contains("Non è previsto il rimborso");
     }
 
+    @Test
+    void ilPagamentoRicevutoDiceImportoVersatoEResiduo() {
+        MailComposer.Mail mail = COMPOSER.compose(withMoney(DomainEventType.PAYMENT_REGISTERED,
+                new DomainEvent.MoneySnapshot(5000L, 5000L, 10000L, LocalDate.of(2026, 10, 20), "CRO123", null)),
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.PAYMENT_RECEIVED, "e1"), null);
+
+        assertThat(mail.subject()).contains("PIE-2026-0001-0003");
+        assertThat(mail.text()).contains("50,00 €").contains("Versato finora: 50,00 €").contains("Resta da pagare: 100,00 €");
+    }
+
+    @Test
+    void ilRimborsoEmessoDiceImportoDataERiferimento() {
+        MailComposer.Mail mail = COMPOSER.compose(withMoney(DomainEventType.REFUND_ISSUED,
+                new DomainEvent.MoneySnapshot(15000L, null, null, LocalDate.of(2026, 11, 2), "BON-77", null)),
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.REFUND_ISSUED, "e1"), null);
+
+        assertThat(mail.text()).contains("150,00 €").contains("02/11/2026").contains("BON-77");
+    }
+
+    @Test
+    void ilRimborsoRifiutatoDiceIlMotivoEQuelloRichiestoLImporto() {
+        MailComposer.Mail rejected = COMPOSER.compose(withMoney(DomainEventType.REFUND_REJECTED,
+                new DomainEvent.MoneySnapshot(15000L, null, null, null, null, "Ritiro tardivo")),
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.REFUND_REJECTED, "e1"), null);
+        MailComposer.Mail requested = COMPOSER.compose(withMoney(DomainEventType.REFUND_REQUESTED,
+                new DomainEvent.MoneySnapshot(15000L, null, null, null, null, null)),
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.REFUND_REQUESTED, "e1"), null);
+
+        assertThat(rejected.text()).contains("Motivo: Ritiro tardivo");
+        assertThat(requested.text()).contains("rimborso di 150,00 €");
+    }
+
+    private static DomainEvent withMoney(DomainEventType type, DomainEvent.MoneySnapshot money) {
+        DomainEvent base = event(type, SeatPosition.IN_SEATS, null);
+        return new DomainEvent(base.id(), type, base.occurredAt(), base.enrollment(), base.event(), null, null, money);
+    }
+
     private static DomainEvent event(DomainEventType type, SeatPosition position, Boolean refundDue) {
         DomainEvent.EnrollmentSnapshot enrollment = new DomainEvent.EnrollmentSnapshot("e1", "PIE-2026-0001-0003", "u2",
                 "Rocco Rover", "PIE-TO-01-RS", "PIE-TO-01", null, null, EnrollmentStatus.REGISTERED, position, null,
@@ -72,6 +109,6 @@ class MailComposerTest {
                 new BigDecimal("150"), refundDue, ClosingReason.WITHDRAWN, null);
         DomainEvent.EventSnapshot event = new DomainEvent.EventSnapshot("ev1", "PIE-2026-0001", "Route di prova",
                 LocalDate.of(2026, 11, 20), LocalDate.of(2026, 11, 25), "Val Pellice", List.of("location"));
-        return new DomainEvent("d1", type, DEADLINE, enrollment, event, ObligationType.UNIT_LEADER_AUTHORIZATION, 3);
+        return new DomainEvent("d1", type, DEADLINE, enrollment, event, ObligationType.UNIT_LEADER_AUTHORIZATION, 3, null);
     }
 }

@@ -10,9 +10,11 @@ import java.util.stream.Collectors;
 
 import it.buonacaccia.config.ClockConfig;
 import it.buonacaccia.model.ClosingReason;
+import it.buonacaccia.model.EnrollmentStatus;
 import it.buonacaccia.model.ObligationType;
 import it.buonacaccia.model.SeatPosition;
 import it.buonacaccia.model.User;
+import it.buonacaccia.service.Money;
 import org.springframework.stereotype.Component;
 
 /**
@@ -87,7 +89,38 @@ public class MailComposer {
                     hello + "l'evento " + ev.title() + " (" + ev.code() + "), a cui sei iscritto, è cambiato.\n\n"
                             + changes(ev) + "\nLa tua iscrizione resta valida; se non puoi più partecipare puoi ritirarla dal sito."
                             + SIGNATURE);
+            case PAYMENT_RECEIVED -> new Mail(
+                    "Pagamento ricevuto per l'iscrizione " + e.number(),
+                    hello + "la segreteria ha registrato un pagamento di " + cents(m(event).amountCents())
+                            + " per l'iscrizione " + e.number() + " di " + e.participantName() + " all'evento "
+                            + eventLine(ev) + ".\n\nVersato finora: " + cents(m(event).paidCents()) + ". Resta da pagare: "
+                            + cents(m(event).dueCents()) + ".\n"
+                            + (e.status() == EnrollmentStatus.COMPLETED ? "L'iscrizione è completa." : todo(e)) + SIGNATURE);
+            case REFUND_REQUESTED -> new Mail(
+                    "Rimborso richiesto per l'iscrizione " + e.number(),
+                    hello + "per l'iscrizione " + e.number() + " di " + e.participantName() + " all'evento " + eventLine(ev)
+                            + " è stato richiesto il rimborso di " + cents(m(event).amountCents())
+                            + ".\nLa segreteria lo lavorerà e ti avviseremo appena sarà emesso." + SIGNATURE);
+            case REFUND_ISSUED -> new Mail(
+                    "Rimborso emesso per l'iscrizione " + e.number(),
+                    hello + "il rimborso di " + cents(m(event).amountCents()) + " per l'iscrizione " + e.number()
+                            + " all'evento " + eventLine(ev) + " è stato emesso il " + date(m(event).date())
+                            + (m(event).reference() == null ? "" : ".\nRiferimento: " + m(event).reference()) + "."
+                            + SIGNATURE);
+            case REFUND_REJECTED -> new Mail(
+                    "Rimborso non accordato per l'iscrizione " + e.number(),
+                    hello + "il rimborso di " + cents(m(event).amountCents()) + " per l'iscrizione " + e.number()
+                            + " all'evento " + eventLine(ev) + " non è stato accordato.\nMotivo: "
+                            + nullToDash(m(event).reason()) + SIGNATURE);
         };
+    }
+
+    private static DomainEvent.MoneySnapshot m(DomainEvent event) {
+        return event.money() == null ? new DomainEvent.MoneySnapshot(null, null, null, null, null, null) : event.money();
+    }
+
+    private static String cents(Long cents) {
+        return cents == null ? "-" : euro(Money.toEuro(cents));
     }
 
     /** Nome leggibile di un adempimento. */
