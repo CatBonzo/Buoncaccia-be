@@ -19,9 +19,15 @@ Test prima del codice; si spunta solo a test verdi.
 
 ## Phase 4: US3 Riapertura (P1)
 
-- [ ] T007 [US3] `test/v1/controller/FormReopenTest.java`: riapre con motivo, adempimento `TODO` con nota, almeno 3 giorni, e-mail senza risposte, motivo obbligatorio, bozza 409, 403/404, invio e riapertura insieme, ricompila e reinvia
-- [ ] T008 [US3] `FormService.reopen`, `FORM_REOPENED` (evento, modello, `MailComposer`, `RecipientResolver` con test)
+- [X] T007 [US3] `test/v1/controller/FormReopenTest.java`: riapre con motivo, adempimento `TODO` con nota, almeno 3 giorni, e-mail senza risposte, motivo obbligatorio, bozza 409, 403/404, invio e riapertura insieme, ricompila e reinvia
+- [X] T008 [US3] `FormService.reopen`, `FORM_REOPENED` (evento, modello, `MailComposer`, `RecipientResolver` con test)
 
 ## Phase 5: Rifinitura
 
-- [ ] T009 `AGENTS.md`, diario, spec di progetto (FR-050/051), `./gradlew build --max-workers=1` verde, PR verso `feature`
+- [X] T009 `AGENTS.md`, diario, spec di progetto (FR-050/051), `./gradlew build --max-workers=1` verde, PR verso `feature`
+
+## Note di implementazione
+
+- L'avviso `FORM_REOPENED` riusa il `DocumentSnapshot` del `DomainEvent` per il solo motivo (codice e descrizione nulli): un campo in più per un solo testo non valeva la pena.
+- La segreteria che prova a salvare al posto del partecipante riceve 403 solo se la scheda è già inviata (cioè se può vederla); altrimenti 404, come per gli altri.
+- Nessuna cifratura a riposo né tempi di conservazione: restano nella checklist GDPR della spec di progetto.

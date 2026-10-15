@@ -788,6 +788,20 @@ Problemi: (1) il client non riceveva il 422 sul file troppo grande: Tomcat chiud
 Spunto: il vincolo sulla privacy (foto di minorenni) ha deciso la visibilita': meno persone possibile, non quelle
   che per le iscrizioni vanno bene. Una regola di dominio puo' essere piu' stretta di quella del resto del sistema.
 
+[2026-10-15] Fase 7: scheda elettronica
+Cosa: dopo l'unione della fase 6 Mahima ha detto "sviluppa la fase 7" senza altri vincoli. Spec, piano e task scritti prima,
+  poi un test alla volta: modello di scheda per tipo evento (amministrazione), compilazione con bozza e invio del
+  partecipante, riservatezza (il presentatore non vede la scheda), riapertura della segreteria con e-mail senza risposte.
+Chi: Claude dalla spec di progetto (FR-050, FR-051, matrice permessi); le scelte di default sono scritte nella spec.
+Paradigma: SDD + loop engineering. La fase ripete lo schema delle due precedenti (versione dell'iscrizione, un riprovo,
+  stato condizionato) e il codice e' uscito quasi al primo colpo: il costo si e' spostato sulla spec e sui test.
+Artefatti: specs/007-schede/*, AGENTS.md, src/main (FormService, FormTemplateService, FormRules), src/test (FormTemplateTest,
+  FormSubmissionTest, FormAccessTest, FormReopenTest).
+Problemi: nessun errore di rilievo nei test; la scelta delicata e' stata la privacy: chi puo' leggere la scheda e cosa puo'
+  finire nei messaggi. Risolta escludendo il presentatore e tenendo le risposte fuori da e-mail ed eventi.
+Spunto: quando tre fasi condividono lo stesso schema di concorrenza, estrarlo in un componente (TransactionRunner) ha
+  pagato: la quarta ci ha messo meno tempo delle altre. Un buon refactoring si vede dalla velocita' di quella dopo.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

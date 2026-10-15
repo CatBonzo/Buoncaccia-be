@@ -110,6 +110,19 @@ class MailComposerTest {
         assertThat(mail.text()).contains("\"FOTO\"").contains("Motivo: Foto sfocata").contains("Carica un nuovo file");
     }
 
+    @Test
+    void laSchedaRiapertaDiceIlMotivoESenzaRisposte() {
+        DomainEvent base = event(DomainEventType.FORM_REOPENED, SeatPosition.IN_SEATS, null);
+        DomainEvent reopened = new DomainEvent(base.id(), base.type(), base.occurredAt(), base.enrollment(), base.event(),
+                null, null, null, new DomainEvent.DocumentSnapshot(null, null, "Manca la parrocchia"));
+
+        MailComposer.Mail mail = COMPOSER.compose(reopened,
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.FORM_REOPENED, "e1"), null);
+
+        assertThat(mail.subject()).isEqualTo("Scheda da correggere per l'iscrizione PIE-2026-0001-0003");
+        assertThat(mail.text()).contains("Motivo: Manca la parrocchia").contains("inviala di nuovo");
+    }
+
     private static DomainEvent withMoney(DomainEventType type, DomainEvent.MoneySnapshot money) {
         DomainEvent base = event(type, SeatPosition.IN_SEATS, null);
         return new DomainEvent(base.id(), type, base.occurredAt(), base.enrollment(), base.event(), null, null, money, null);
