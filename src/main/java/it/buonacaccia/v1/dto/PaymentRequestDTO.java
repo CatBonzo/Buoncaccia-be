@@ -27,7 +27,7 @@ public class PaymentRequestDTO {
     @DecimalMin("0.01")
     private BigDecimal amount;
 
-    @NotNull
+    /** Facoltativo: per ora esiste solo il bonifico. */
     private PaymentMethod method;
 
     @NotNull

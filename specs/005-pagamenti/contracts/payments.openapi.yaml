@@ -244,10 +244,10 @@ components:
         payload: {}
     PaymentRequest:
       type: object
-      required: [amount, method, receivedOn]
+      required: [amount, receivedOn]
       properties:
         amount: { type: number, minimum: 0.01, multipleOf: 0.01, examples: [150.00] }
-        method: { type: string, enum: [BANK_TRANSFER, OFFICE_CASH] }
+        method: { type: string, enum: [BANK_TRANSFER] }
         receivedOn: { type: string, format: date }
         reference: { type: string, maxLength: 100 }
     Payment:
@@ -257,7 +257,7 @@ components:
         enrollmentId: { type: string }
         enrollmentNumber: { type: string }
         amount: { type: number }
-        method: { type: string, enum: [BANK_TRANSFER, OFFICE_CASH] }
+        method: { type: string, enum: [BANK_TRANSFER] }
         receivedOn: { type: string, format: date }
         reference: { type: [string, "null"] }
         status: { type: string, enum: [VALID, CANCELLED] }

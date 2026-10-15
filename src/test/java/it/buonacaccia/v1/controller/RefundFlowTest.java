@@ -105,7 +105,7 @@ class RefundFlowTest extends EnrollmentTestSupport {
     }
 
     @Test
-    void laScadenzaConUnPagamentoParzialeRimborsaIlVersato() {
+    void laScadenzaConUnPagamentoParzialeNonRimborsaNulla() {
         String eventId = publishOpen();
         clock.setInstant(Instant.now());
         JsonNode enrollment = enrolled("rover", eventId);
@@ -114,9 +114,8 @@ class RefundFlowTest extends EnrollmentTestSupport {
 
         assertThat(jobs.expireOverdue()).isGreaterThanOrEqualTo(1);
 
-        JsonNode refund = refundsOf(eventId, "segreteria").get(0);
-        assertThat(refund.get("amount").asDouble()).isEqualTo(50.0);
-        assertThat(refund.get("closingReason").asString()).isEqualTo("EXPIRED");
+        assertThat(refundsOf(eventId, "segreteria").size()).isZero();
+        assertThat(enrollment("rover", enrollment.get("id").asString()).get("status").asString()).isEqualTo("EXPIRED");
     }
 
     @Test

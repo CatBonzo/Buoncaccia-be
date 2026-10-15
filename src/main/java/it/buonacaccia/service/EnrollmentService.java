@@ -519,8 +519,8 @@ public class EnrollmentService {
         enrollment.setClosedAt(now);
         enrollment.setClosingReason(reason);
         enrollment.setClosingNote(note);
-        // Scadenza e diniego: il diritto c'è se qualcosa è stato versato (R6 della 005).
-        enrollment.setRefundDue(refundDue != null ? refundDue : enrollment.getPaidCents() > 0);
+        // Diniego del capo: il diritto c'è se qualcosa è stato versato; scadenza: mai, il pagamento non è stato completato (R6 della 005).
+        enrollment.setRefundDue(refundDue != null ? refundDue : reason == ClosingReason.REJECTED && enrollment.getPaidCents() > 0);
         enrollment.setUpdatedAt(now);
         Enrollment saved = save(enrollment, event, switch (reason) {
             case WITHDRAWN -> DomainEventType.ENROLLMENT_WITHDRAWN;

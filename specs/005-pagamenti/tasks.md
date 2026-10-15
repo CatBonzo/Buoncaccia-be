@@ -25,7 +25,7 @@ description: "Task della feature 005 pagamenti e rimborsi"
 **Scopo**: modelli, importi, errori e dati comuni a tutte le storie.
 
 - [x] T001 [P] Creare `main/service/Money.java` (`toCents(BigDecimal)` rifiuta ≤ 0 e più di due decimali con `IllegalArgumentException`; `toEuro(long)` restituisce scala 2) e il test unitario `test/service/MoneyTest.java` (R1)
-- [x] T002 [P] Creare `main/model/PaymentMethod.java` (`BANK_TRANSFER`, `OFFICE_CASH`), `PaymentStatus.java` (`VALID`, `CANCELLED`), `RefundStatus.java` (`REQUESTED`, `IN_PROGRESS`, `ISSUED`, `REJECTED`)
+- [x] T002 [P] Creare `main/model/PaymentMethod.java` (`BANK_TRANSFER`), `PaymentStatus.java` (`VALID`, `CANCELLED`), `RefundStatus.java` (`REQUESTED`, `IN_PROGRESS`, `ISSUED`, `REJECTED`)
 - [x] T003 Creare `main/model/Payment.java` e `main/model/Refund.java` con le annotazioni della regola e gli indici di data-model.md (`refunds.enrollmentId` unico), `main/repository/PaymentRepository.java` e `RefundRepository.java`
 - [x] T004 Aggiungere a `main/model/Enrollment.java` `Long feeCents` e `long paidCents`; in `EnrollmentService.enroll` impostare `feeCents` dalla quota dell'evento (R3) e `paidCents` a 0
 - [x] T005 [P] In `main/config/error/ErrorCode.java` aggiungere `PAYMENT_DUPLICATE(40930, 409, "PAYMENT", ...)`, `PAYMENT_CANCELLED(40931, 409, "PAYMENT", ...)`, `REFUND_TRANSITION(40940, 409, "REFUND", ...)`
@@ -140,5 +140,6 @@ MVP = fondamenta + US5 + US1: la pagina dell'iscrizione che dice quanto e dove p
 - Un pagamento che completa l'iscrizione manda solo l'e-mail del pagamento ("iscrizione completa"), non anche quella di completamento della fase 4.
 - La data di incasso non può essere nel futuro (422 sul campo `receivedOn`): regola aggiunta in implementazione.
 - T017: `satisfy` sul pagamento resta coperto dal test esistente `EnrollmentLifecycleTest`; le e-mail di pagamento sono provate in `PaymentRegistrationTest`.
+- 15/10, decisione di Mahima: solo bonifico (`OFFICE_CASH` tolto, `method` facoltativo) e nessun rimborso alla scadenza; resta il rimborso al diniego.
 - T025: aggiornate FR-040, FR-041, FR-044 e la riga sul rimborso parziale nella checklist della spec di progetto v2.0 (.md e .docx).
 - Limite noto: l'e-mail di ritiro della fase 4 promette il rimborso in base al diritto anche quando non è stato versato nulla (nessun rimborso nasce); non toccata.

@@ -14,8 +14,9 @@
 
 - Il pagamento elettronico (FR-040, FR-044) entra in questa fase? → A: no. Nel locale non c'è un gateway e il Planner v2 prevede in questa fase solo il bonifico registrato dalla segreteria; il pagamento elettronico si aggiungerà dopo, riusando lo stesso registro dei pagamenti.
 - Il socio carica la ricevuta del bonifico? → A: no, in questa fase è la segreteria a registrare il pagamento quando lo vede arrivare. Il caricamento dei file è della fase dei documenti.
-- Pagamento in più rate o di importo diverso dalla quota (§2.5.3)? → A (scelta di default): la segreteria può registrare più pagamenti sulla stessa iscrizione; l'adempimento si soddisfa quando il totale registrato raggiunge la quota; un totale che supererebbe la quota è rifiutato. La segreteria è avvisata solo se lo chiede (nessuna notifica interna in questa fase).
-- Chi ha pagato solo in parte e vede scadere l'iscrizione, o riceve un diniego, ha diritto al rimborso (§2.5.5 "da confermare")? → A (scelta di default, da confermare con Mahima): sì, integrale di quanto ha versato, perché non ha avuto il posto per ragioni non sue. Un ritiro segue BR-10 (almeno 7 giorni prima), un evento annullato rimborsa tutto.
+- Pagamento in più rate o di importo diverso dalla quota (§2.5.3)? → A (confermato da Mahima il 15/10): più bonifici sulla stessa iscrizione, l'adempimento si soddisfa quando il totale registrato raggiunge la quota; un totale che superi la quota è rifiutato.
+- Chi ha pagato solo in parte e vede scadere l'iscrizione ha diritto al rimborso (§2.5.5)? → A (deciso da Mahima il 15/10): no. Il rimborso c'è solo se la persona si ritira almeno 7 giorni prima della partenza (BR-10) e lo fa lei (o il suo presentatore); il diniego di un'autorizzazione e l'annullamento dell'evento restano con rimborso del versato.
+- Contanti e PayPal? → A (Mahima, 15/10): il pagamento è solo bonifico; PayPal (simulato) e Keycloak vengono dopo il completamento di backend e frontend.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -38,7 +39,7 @@ Il socio, dalla pagina dell'iscrizione, vede la quota, quanto ha già versato, q
 
 ### User Story 2 - La segreteria registra un pagamento (Priority: P1)
 
-La segreteria che organizza l'evento registra un pagamento ricevuto (bonifico o contanti) indicando importo, metodo, data e riferimento (es. CRO). Se i pagamenti registrati coprono la quota, l'adempimento di pagamento è soddisfatto e, se non resta altro, l'iscrizione si completa. Il socio riceve una e-mail.
+La segreteria che organizza l'evento registra un pagamento ricevuto (solo bonifico, niente contanti) indicando importo, data e riferimento (es. CRO). Se i pagamenti registrati coprono la quota, l'adempimento di pagamento è soddisfatto e, se non resta altro, l'iscrizione si completa. Il socio riceve una e-mail.
 
 **Why this priority**: è l'azione che manda avanti le iscrizioni; senza, i posti pagati restano "da fare" fino alla scadenza.
 
@@ -68,7 +69,7 @@ Quando un'iscrizione con pagamenti registrati si chiude con diritto al rimborso,
 
 1. **Given** un'iscrizione pagata, **When** il socio si ritira almeno 7 giorni prima della partenza, **Then** nasce un rimborso RICHIESTO dell'importo versato e il socio riceve la notizia.
 2. **Given** lo stesso caso a meno di 7 giorni dalla partenza, **When** il socio si ritira, **Then** non nasce nessun rimborso.
-3. **Given** un'iscrizione pagata solo in parte che scade o riceve un diniego, **When** si chiude, **Then** nasce un rimborso dell'importo versato (scelta di default, vedi Clarifications).
+3. **Given** un'iscrizione pagata solo in parte che scade, **When** si chiude, **Then** non nasce nessun rimborso (deciso da Mahima il 15/10); **Given** un diniego di un'autorizzazione con importo versato, **Then** nasce un rimborso del versato (default, non toccato dalla decisione).
 4. **Given** un evento annullato, **When** si annullano le iscrizioni, **Then** ogni iscrizione con pagamenti registrati ottiene un rimborso totale; chi era in attesa non ha pagato e non ha nulla da rimborsare.
 5. **Given** una richiesta RICHIESTO, **When** la segreteria la prende in carico, **Then** diventa IN_LAVORAZIONE; **When** la segna emessa con data e riferimento, **Then** diventa EMESSO e il socio riceve l'e-mail di conferma.
 6. **Given** una richiesta non lavorabile (es. coordinate non valide), **When** la segreteria la rifiuta con un motivo, **Then** diventa RIFIUTATO e il socio riceve il motivo.
@@ -125,7 +126,7 @@ L'amministrazione o la segreteria della regione impostano IBAN, intestatario, co
 ### Pagamenti
 
 - **FR-001**: L'iscrizione MUST mostrare, per chi ha l'adempimento di pagamento, la quota, il totale registrato, il residuo e le coordinate di pagamento della segreteria che organizza l'evento (FR-039, BR-11).
-- **FR-002**: La segreteria che gestisce l'evento (stessa regola della fase 2) MUST poter registrare un pagamento con importo, metodo (`BONIFICO` o `CONTANTI_SEGRETERIA`), data di ricevimento e riferimento facoltativo (FR-041).
+- **FR-002**: La segreteria che gestisce l'evento (stessa regola della fase 2) MUST poter registrare un pagamento con importo, metodo (solo `BONIFICO`, facoltativo), data di ricevimento e riferimento facoltativo (FR-041).
 - **FR-003**: L'importo MUST essere maggiore di 0 e non superare il residuo; un doppione (stessa iscrizione, importo e riferimento non vuoto) MUST essere rifiutato.
 - **FR-004**: La registrazione MUST essere possibile solo su iscrizioni attive nei posti con l'adempimento di pagamento da fare.
 - **FR-005**: Quando il totale dei pagamenti validi raggiunge la quota, l'adempimento di pagamento MUST diventare soddisfatto e l'iscrizione completarsi se non resta altro (stessa logica della fase 3, FR-030 di progetto).
@@ -135,7 +136,7 @@ L'amministrazione o la segreteria della regione impostano IBAN, intestatario, co
 
 ### Rimborsi
 
-- **FR-009**: Alla chiusura di un'iscrizione con pagamenti validi il sistema MUST creare una richiesta di rimborso dell'importo versato, se il diritto c'è: ritiro secondo BR-10 (FR-043), scadenza, diniego di un'autorizzazione, annullamento dell'evento (Clarifications).
+- **FR-009**: Alla chiusura di un'iscrizione con pagamenti validi il sistema MUST creare una richiesta di rimborso dell'importo versato, se il diritto c'è: ritiro della persona secondo BR-10 (FR-043), diniego di un'autorizzazione, annullamento dell'evento (Clarifications).
 - **FR-010**: Il rimborso MUST attraversare gli stati `RICHIESTO` → `IN_LAVORAZIONE` → `EMESSO` oppure `RIFIUTATO` (con motivo); le transizioni fuori da questo schema MUST essere rifiutate; gli stati finali non cambiano.
 - **FR-011**: La segreteria che gestisce l'evento MUST poter vedere la coda dei rimborsi, filtrarla per stato e per evento e lavorare le richieste (FR-045); `EMESSO` richiede data e riferimento facoltativo.
 - **FR-012**: A ogni passaggio (richiesta, emesso, rifiutato) il socio MUST ricevere un'e-mail; il presentatore, se c'è, riceve le stesse.
@@ -176,7 +177,7 @@ L'amministrazione o la segreteria della regione impostano IBAN, intestatario, co
 
 - La segreteria che registra è quella che ha l'entitlement `pagamento:registrazione` (già nel catalogo della fase 1) e che gestisce l'evento secondo la regola territoriale della fase 2; l'amministrazione vale per tutti gli eventi.
 - Le coordinate della regione sono lette da una configurazione per regione; se manca, il socio vede solo un invito a contattare la segreteria.
-- Il diritto al rimborso alla chiusura è quello già calcolato e conservato nell'iscrizione dalla fase 3 (BR-10); questa fase lo applica quando ci sono pagamenti e lo estende ai casi di scadenza parziale e diniego (Clarifications).
+- Il diritto al rimborso alla chiusura è quello già calcolato e conservato nell'iscrizione dalla fase 3 (BR-10); questa fase lo applica quando ci sono pagamenti e lo estende al diniego; la scadenza non dà mai rimborso (Clarifications).
 - Le e-mail passano dall'outbox e da Kafka della fase 4; nessun nuovo canale.
 - Gli importi sono in euro, con due decimali.
 - Fuori ambito: pagamento con PayPal o carta e rimborso automatico (nessun gateway in locale); caricamento della ricevuta e documenti; pagamenti non legati a un'iscrizione; esportazioni contabili oltre il CSV; storno di un rimborso già emesso.

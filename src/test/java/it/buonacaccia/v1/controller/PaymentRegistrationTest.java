@@ -102,7 +102,7 @@ class PaymentRegistrationTest extends EnrollmentTestSupport {
     void laDataDiIncassoNonPuoEssereNelFuturo() {
         JsonNode ready = enrolledAndReady();
         Result result = post(ENROLLMENTS + "/" + ready.get("id").asString() + "/payments", tokenOf("segreteria"),
-                Map.of("amount", 10, "method", "OFFICE_CASH", "receivedOn", today().plusDays(1).toString()));
+                Map.of("amount", 10, "receivedOn", today().plusDays(1).toString()));
 
         assertError(result, 422, 42200);
         assertThat(EventFixtures.fields(result.body().get("payload"))).contains("receivedOn");

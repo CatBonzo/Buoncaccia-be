@@ -30,7 +30,7 @@ class ReconciliationCsvTest {
     @Test
     void ICampiConPuntoEVirgolaVirgoletteOACapoVannoFraVirgolette() {
         ReconciliationCsv.Row tricky = new ReconciliationCsv.Row("PAGAMENTO", "N-1", "Anna; \"la Rossa\"",
-                new BigDecimal("1"), "OFFICE_CASH", "VALID", LocalDate.of(2026, 1, 9), "riga\nuno", "u1");
+                new BigDecimal("1"), "BANK_TRANSFER", "VALID", LocalDate.of(2026, 1, 9), "riga\nuno", "u1");
 
         String csv = ReconciliationCsv.render(List.of(tricky));
 

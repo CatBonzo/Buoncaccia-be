@@ -13,7 +13,7 @@ Importi sempre in centesimi interi (`long`) nel database (R1); le API usano euro
 | eventLevel, eventRegion | EventLevel, Region | copiati dall'iscrizione per la regola territoriale |
 | participantId | String | |
 | amountCents | long | > 0 |
-| method | `BANK_TRANSFER` \| `OFFICE_CASH` | |
+| method | `BANK_TRANSFER` (per ora l'unico) | |
 | receivedOn | LocalDate | non nel futuro (ora italiana) |
 | reference | String | facoltativo, ≤ 100 caratteri (es. CRO) |
 | status | `VALID` \| `CANCELLED` | |

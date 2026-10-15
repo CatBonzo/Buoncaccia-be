@@ -756,7 +756,7 @@ Spunto: le domande aperte della spec di progetto diventano proposte esplicite ne
   scritto: l'implementazione non si ferma ma la decisione resta tracciabile e correggibile.
 
 [2026-10-15] Fase 5: pagamenti e rimborsi costruiti
-Cosa: implementati in 8 commit, test per test: importi in centesimi, registro dei pagamenti (registrazione, annullamento
+Cosa: (poi Mahima ha deciso: solo bonifico, nessun rimborso se l'iscrizione pagata in parte scade.) Implementati in 8 commit, test per test: importi in centesimi, registro dei pagamenti (registrazione, annullamento
   motivato, versato che soddisfa l'adempimento e completa l'iscrizione), rimborsi che nascono nella transazione di
   chiusura e che la segreteria prende in carico, emette o rifiuta, quadro dell'evento con CSV, coordinate di pagamento
   per regione con IBAN validato, e-mail di pagamento e rimborso sullo stesso percorso outbox-Kafka della fase 4.

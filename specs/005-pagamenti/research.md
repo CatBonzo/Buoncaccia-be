@@ -35,10 +35,10 @@ Decisioni tecniche della feature 005. Formato: Decisione, Perché, Alternative s
 
 ## R6. Il rimborso nasce nella transazione di chiusura
 
-- **Decisione**: `EnrollmentService.exit` e `cancelAll` salvano l'iscrizione chiusa e, nella stessa transazione, chiamano `RefundService.requestFor(enrollment)`: se `paidCents > 0` e il diritto c'è (ritiro: `refundDue` di BR-10; scadenza e diniego: sì; evento annullato: sì), inserisce un `Refund` `REQUESTED` di importo `paidCents` e scrive `REFUND_REQUESTED`. Un indice unico su `enrollmentId` impedisce un secondo rimborso. Per scadenza e diniego `Enrollment.refundDue` diventa `paidCents > 0`.
+- **Decisione**: `EnrollmentService.exit` e `cancelAll` salvano l'iscrizione chiusa e, nella stessa transazione, chiamano `RefundService.requestFor(enrollment)`: se `paidCents > 0` e il diritto c'è (ritiro: `refundDue` di BR-10; scadenza: mai; diniego: sì; evento annullato: sì), inserisce un `Refund` `REQUESTED` di importo `paidCents` e scrive `REFUND_REQUESTED`. Un indice unico su `enrollmentId` impedisce un secondo rimborso. Per il diniego `Enrollment.refundDue` diventa `paidCents > 0`; per la scadenza resta `false` (decisione di Mahima, 15/10).
 - **Perché**: chiusura e rimborso sono atomici (niente iscrizioni chiuse con diritto ma senza richiesta); nessun job nuovo.
 - **Alternative**: un job che cerca le iscrizioni chiuse senza rimborso (può lasciare un buco); evento di dominio che il consumer trasforma in rimborso (il rimborso è un fatto del dominio, non una notifica).
-- **Nota**: il flag `refundDue` della fase 3 resta il diritto; il rimborso c'è solo se qualcosa è stato versato. Il default per scadenza parziale e diniego è quello delle Clarifications.
+- **Nota**: il flag `refundDue` della fase 3 resta il diritto; il rimborso c'è solo se qualcosa è stato versato. La scadenza con versamento parziale non dà rimborso (Clarifications).
 
 ## R7. Stati del rimborso
 

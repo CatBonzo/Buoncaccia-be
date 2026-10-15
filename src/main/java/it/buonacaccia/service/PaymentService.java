@@ -21,6 +21,7 @@ import it.buonacaccia.model.Event;
 import it.buonacaccia.model.ObligationStatus;
 import it.buonacaccia.model.ObligationType;
 import it.buonacaccia.model.Payment;
+import it.buonacaccia.model.PaymentMethod;
 import it.buonacaccia.model.PaymentStatus;
 import it.buonacaccia.model.SeatPosition;
 import it.buonacaccia.notification.DomainEventRecorder;
@@ -116,7 +117,7 @@ public class PaymentService {
                 .eventRegion(enrollment.getEventRegion())
                 .participantId(enrollment.getParticipantId())
                 .amountCents(amount)
-                .method(request.getMethod())
+                .method(request.getMethod() == null ? PaymentMethod.BANK_TRANSFER : request.getMethod())
                 .receivedOn(request.getReceivedOn())
                 .reference(reference)
                 .status(PaymentStatus.VALID)
