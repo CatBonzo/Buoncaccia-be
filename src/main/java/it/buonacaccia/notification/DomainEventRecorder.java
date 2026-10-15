@@ -86,6 +86,12 @@ public class DomainEventRecorder {
                 null, null, null, new DomainEvent.DocumentSnapshot(code, description, reason));
     }
 
+    /** Scheda riaperta dalla segreteria: il partecipante deve correggerla. Nessuna risposta nell'evento (FR-010). */
+    public void formReopened(Enrollment enrollment, Event event, String reason) {
+        write(DomainEventType.FORM_REOPENED, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null),
+                null, null, null, new DomainEvent.DocumentSnapshot(null, null, reason));
+    }
+
     private void write(DomainEventType type, String aggregateId, DomainEvent.EnrollmentSnapshot enrollment,
                        DomainEvent.EventSnapshot event, ObligationType obligationType, Integer reminderDays,
                        DomainEvent.MoneySnapshot money, DomainEvent.DocumentSnapshot document) {

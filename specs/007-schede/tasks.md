@@ -13,9 +13,9 @@ Test prima del codice; si spunta solo a test verdi.
 
 ## Phase 3: US2 Compilazione e invio (P1) e US4 Riservatezza (P1)
 
-- [ ] T004 [US2] `test/v1/controller/FormSubmissionTest.java`: lettura vuota, bozza parziale, tipi sbagliati, id sconosciuto, invio con obbligatorie mancanti, invio completo (adempimento e completamento), modifica dopo l'invio 409, iscrizione chiusa 409, copia del modello
-- [ ] T005 [US2] `FormService.get/save/submit`, `FormController`
-- [ ] T006 [US4] `test/v1/controller/FormAccessTest.java`: 404 per presentatore, capo, altro socio, segreteria di un'altra regione; segreteria giusta legge; salva solo il partecipante
+- [X] T004 [US2] `test/v1/controller/FormSubmissionTest.java`: lettura vuota, bozza parziale, tipi sbagliati, id sconosciuto, invio con obbligatorie mancanti, invio completo (adempimento e completamento), modifica dopo l'invio 409, iscrizione chiusa 409, copia del modello
+- [X] T005 [US2] `FormService.get/save/submit`, `FormController`
+- [X] T006 [US4] `test/v1/controller/FormAccessTest.java`: 404 per presentatore, capo, altro socio, segreteria di un'altra regione; segreteria giusta legge; salva solo il partecipante
 
 ## Phase 4: US3 Riapertura (P1)
 

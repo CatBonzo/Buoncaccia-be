@@ -118,6 +118,12 @@ public class MailComposer {
                             + e.number() + " di " + e.participantName() + " all'evento " + eventLine(ev) + ".\nMotivo: "
                             + nullToDash(d(event).reason()) + "\n\nCarica un nuovo file dalla pagina dell'iscrizione"
                             + (e.deadline() == null ? "." : " entro il " + dateTime(e.deadline()) + ".") + SIGNATURE);
+            case FORM_REOPENED -> new Mail(
+                    "Scheda da correggere per l'iscrizione " + e.number(),
+                    hello + "la segreteria ha riaperto la tua scheda per l'iscrizione " + e.number() + " all'evento "
+                            + eventLine(ev) + ".\nMotivo: " + nullToDash(d(event).reason())
+                            + "\n\nCorreggila e inviala di nuovo dalla pagina dell'iscrizione"
+                            + (e.deadline() == null ? "." : " entro il " + dateTime(e.deadline()) + ".") + SIGNATURE);
         };
     }
 
