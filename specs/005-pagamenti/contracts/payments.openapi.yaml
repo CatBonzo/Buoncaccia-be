@@ -1,0 +1,357 @@
+openapi: 3.1.0
+info:
+  title: Buona Caccia – Pagamenti e rimborsi
+  version: 1.0.0
+  description: |
+    Contratto della feature 005-pagamenti. Stesso envelope delle feature 001–004
+    (`errorCode` / `errorMessage` / `errorDomain` / `payload`, errorCode 0 = successo) con status HTTP significativo.
+    Tutte le API richiedono il token. Importi in euro con due decimali (`12.50`). Date senza ora nell'ora italiana, istanti in UTC.
+    Registrare, annullare e lavorare i rimborsi richiede l'entitlement `pagamento:registrazione` e la regola territoriale
+    della fase 2 (amministrazione per tutto, segreteria per la propria regione, eventi nazionali solo amministrazione).
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+tags:
+  - name: payments
+  - name: refunds
+  - name: reconciliation
+  - name: region-settings
+
+paths:
+  /api/v1/enrollments/{id}/payments:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [payments]
+      operationId: registerPayment
+      summary: La segreteria registra un pagamento ricevuto (FR-002)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentRequest' }
+      responses:
+        '201':
+          description: Pagamento registrato
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/Payment' } }
+        '403': { description: Entitlement o regione non ammessi }
+        '404': { description: Iscrizione inesistente }
+        '409': { description: "Iscrizione non attiva o non nei posti o senza pagamento da fare (40910), doppione (40930), versione superata (40903)" }
+        '422': { description: Importo o data non validi, o oltre il residuo (42200, payload = elenco dei campi) }
+    get:
+      tags: [payments]
+      operationId: listPayments
+      summary: Pagamenti di un'iscrizione, per il partecipante, il presentatore e chi gestisce l'evento
+      responses:
+        '200':
+          description: Pagamenti in ordine di registrazione
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties:
+                      payload:
+                        type: array
+                        items: { $ref: '#/components/schemas/Payment' }
+        '404': { description: Iscrizione che il chiamante non può vedere }
+  /api/v1/payments/{id}/cancel:
+    post:
+      tags: [payments]
+      operationId: cancelPayment
+      summary: Annulla un pagamento registrato per errore (FR-006)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Reason' }
+      responses:
+        '200':
+          description: Pagamento annullato
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/Payment' } }
+        '403': { description: Regione non ammessa }
+        '404': { description: Pagamento inesistente }
+        '409': { description: "Già annullato (40931) o rimborso già creato (40910)" }
+        '422': { description: Motivo mancante (42200) }
+  /api/v1/refunds:
+    get:
+      tags: [refunds]
+      operationId: listRefunds
+      summary: Coda dei rimborsi della propria regione (FR-011)
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/RefundStatus' } }
+        - { name: eventId, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: Rimborsi per data di richiesta
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/RefundPage' } }
+  /api/v1/refunds/{id}/take:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [refunds]
+      operationId: takeRefund
+      summary: Prende in carico (REQUESTED → IN_PROGRESS)
+      responses:
+        '200': { $ref: '#/components/responses/RefundOk' }
+        '404': { description: Rimborso inesistente o fuori regione }
+        '409': { description: Transizione non ammessa (40940) }
+  /api/v1/refunds/{id}/issue:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [refunds]
+      operationId: issueRefund
+      summary: Segna il rimborso emesso (→ ISSUED), con data e riferimento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefundIssue' }
+      responses:
+        '200': { $ref: '#/components/responses/RefundOk' }
+        '404': { description: Rimborso inesistente o fuori regione }
+        '409': { description: Transizione non ammessa (40940) }
+        '422': { description: Data mancante o nel futuro (42200) }
+  /api/v1/refunds/{id}/reject:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [refunds]
+      operationId: rejectRefund
+      summary: Rifiuta il rimborso con un motivo (→ REJECTED)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Reason' }
+      responses:
+        '200': { $ref: '#/components/responses/RefundOk' }
+        '404': { description: Rimborso inesistente o fuori regione }
+        '409': { description: Transizione non ammessa (40940) }
+        '422': { description: Motivo mancante (42200) }
+  /api/v1/events/{eventId}/reconciliation:
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [reconciliation]
+      operationId: reconciliation
+      summary: Totali, iscrizioni con residuo, pagamenti e rimborsi dell'evento (FR-014)
+      responses:
+        '200':
+          description: Quadro dell'evento
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/Reconciliation' } }
+        '403': { description: Regione non ammessa }
+        '404': { description: Evento inesistente }
+  /api/v1/events/{eventId}/reconciliation/export:
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [reconciliation]
+      operationId: reconciliationCsv
+      summary: Lo stesso quadro in CSV (FR-015)
+      description: "UTF-8, separatore `;`, una riga per pagamento e per rimborso. Colonne: tipo;iscrizione;partecipante;importo;metodo;stato;data;riferimento;registrato_da."
+      responses:
+        '200':
+          description: File CSV
+          content:
+            text/csv:
+              schema: { type: string }
+  /api/v1/region-settings/{key}:
+    parameters:
+      - { name: key, in: path, required: true, description: Sigla della regione o NAT, schema: { type: string } }
+    get:
+      tags: [region-settings]
+      operationId: getRegionSettings
+      summary: Coordinate di pagamento della regione (FR-016)
+      responses:
+        '200':
+          description: Impostazioni (campi null se mai impostate)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/RegionSettings' } }
+        '403': { description: Regione non ammessa }
+        '404': { description: Sigla inesistente }
+    put:
+      tags: [region-settings]
+      operationId: putRegionSettings
+      summary: Imposta le coordinate (IBAN validato, FR-017)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegionSettings' }
+      responses:
+        '200':
+          description: Impostazioni salvate
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - properties: { payload: { $ref: '#/components/schemas/RegionSettings' } }
+        '403': { description: Regione non ammessa }
+        '422': { description: IBAN non valido (42200, payload = campo iban) }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    RefundOk:
+      description: Rimborso aggiornato
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - properties: { payload: { $ref: '#/components/schemas/Refund' } }
+  schemas:
+    Envelope:
+      type: object
+      required: [errorCode, errorMessage, errorDomain]
+      properties:
+        errorCode: { type: integer }
+        errorMessage: { type: string }
+        errorDomain: { type: string }
+        payload: {}
+    PaymentRequest:
+      type: object
+      required: [amount, method, receivedOn]
+      properties:
+        amount: { type: number, minimum: 0.01, multipleOf: 0.01, examples: [150.00] }
+        method: { type: string, enum: [BANK_TRANSFER, OFFICE_CASH] }
+        receivedOn: { type: string, format: date }
+        reference: { type: string, maxLength: 100 }
+    Payment:
+      type: object
+      properties:
+        id: { type: string }
+        enrollmentId: { type: string }
+        enrollmentNumber: { type: string }
+        amount: { type: number }
+        method: { type: string, enum: [BANK_TRANSFER, OFFICE_CASH] }
+        receivedOn: { type: string, format: date }
+        reference: { type: [string, "null"] }
+        status: { type: string, enum: [VALID, CANCELLED] }
+        registeredBy: { type: string }
+        registeredAt: { type: string, format: date-time }
+        cancelledBy: { type: [string, "null"] }
+        cancelledAt: { type: [string, "null"], format: date-time }
+        cancelReason: { type: [string, "null"] }
+        enrollmentStatus: { type: string, description: Stato dell'iscrizione dopo l'operazione }
+        paid: { type: number, description: Versato valido dopo l'operazione }
+        due: { type: number, description: Residuo dopo l'operazione }
+    Reason:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 500 }
+    RefundStatus:
+      type: string
+      enum: [REQUESTED, IN_PROGRESS, ISSUED, REJECTED]
+    Refund:
+      type: object
+      properties:
+        id: { type: string }
+        enrollmentId: { type: string }
+        enrollmentNumber: { type: string }
+        participantName: { type: string }
+        eventCode: { type: string }
+        amount: { type: number }
+        closingReason: { type: string }
+        status: { $ref: '#/components/schemas/RefundStatus' }
+        createdAt: { type: string, format: date-time }
+        takenBy: { type: [string, "null"] }
+        issuedOn: { type: [string, "null"], format: date }
+        reference: { type: [string, "null"] }
+        rejectReason: { type: [string, "null"] }
+    RefundIssue:
+      type: object
+      required: [issuedOn]
+      properties:
+        issuedOn: { type: string, format: date }
+        reference: { type: string, maxLength: 100 }
+    RefundPage:
+      type: object
+      properties:
+        content: { type: array, items: { $ref: '#/components/schemas/Refund' } }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    Reconciliation:
+      type: object
+      properties:
+        eventId: { type: string }
+        eventCode: { type: string }
+        collected: { type: number, description: Pagamenti VALID }
+        cancelled: { type: number, description: Pagamenti CANCELLED }
+        toRefund: { type: number, description: Rimborsi REQUESTED e IN_PROGRESS }
+        refunded: { type: number, description: Rimborsi ISSUED }
+        outstanding:
+          type: array
+          description: Iscrizioni attive con residuo > 0
+          items:
+            type: object
+            properties:
+              enrollmentNumber: { type: string }
+              participantName: { type: string }
+              fee: { type: number }
+              paid: { type: number }
+              due: { type: number }
+        payments: { type: array, items: { $ref: '#/components/schemas/Payment' } }
+        refunds: { type: array, items: { $ref: '#/components/schemas/Refund' } }
+    RegionSettings:
+      type: object
+      properties:
+        region: { type: string, description: "Sigla o NAT (sola lettura)" }
+        holder: { type: [string, "null"], maxLength: 120 }
+        iban: { type: [string, "null"], examples: ["IT60X0542811101000000123456"] }
+        contactEmail: { type: [string, "null"], format: email }
+        contactPhone: { type: [string, "null"], maxLength: 30 }
+        hours: { type: [string, "null"], maxLength: 300 }
+        updatedAt: { type: [string, "null"], format: date-time }
+    PaymentSummary:
+      type: object
+      description: Campo `payment` di Enrollment (per iscrizioni con quota > 0)
+      properties:
+        fee: { type: number }
+        paid: { type: number }
+        due: { type: number }
+    PaymentInfo:
+      type: object
+      description: Campo `paymentInfo` di Enrollment (solo con adempimento PAYMENT da fare)
+      properties:
+        holder: { type: [string, "null"] }
+        iban: { type: [string, "null"] }
+        contactEmail: { type: [string, "null"] }
+        contactPhone: { type: [string, "null"] }
+        hours: { type: [string, "null"] }
