@@ -72,13 +72,13 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 ### Test (prima del codice)
 
-- [ ] T014 [US2] `test/v1/controller/PaymentRegistrationTest.java`: pagamento pieno → adempimento soddisfatto, iscrizione `COMPLETED` se non resta altro, e-mail al socio; pagamento parziale e poi il resto; oltre il residuo 422 col campo `amount`; doppione 409 `40930`; iscrizione in attesa o chiusa 409 `40910`; segreteria LIG su evento PIE 403 e socio 403; annullamento col motivo (versato ricalcolato, adempimento di nuovo da fare, `COMPLETED` → `REGISTERED` con scadenza nuova); annullamento due volte 409 `40931`; due registrazioni contemporanee: una sola riesce (R2); elenco dei pagamenti visibile a partecipante e segreteria, non agli altri (404)
+- [x] T014 [US2] `test/v1/controller/PaymentRegistrationTest.java`: pagamento pieno → adempimento soddisfatto, iscrizione `COMPLETED` se non resta altro, e-mail al socio; pagamento parziale e poi il resto; oltre il residuo 422 col campo `amount`; doppione 409 `40930`; iscrizione in attesa o chiusa 409 `40910`; segreteria LIG su evento PIE 403 e socio 403; annullamento col motivo (versato ricalcolato, adempimento di nuovo da fare, `COMPLETED` → `REGISTERED` con scadenza nuova); annullamento due volte 409 `40931`; due registrazioni contemporanee: una sola riesce (R2); elenco dei pagamenti visibile a partecipante e segreteria, non agli altri (404)
 
 ### Implementazione
 
-- [ ] T015 [US2] Rendere `EnrollmentService.completeIfDone` accessibile al package `service` (static, package-private)
-- [ ] T016 [US2] Creare `main/service/PaymentService.java` (`register`, `cancel`, `list` come R4, R5; transazione, un solo riprovo su `TransientTransactionError`), `main/v1/dto/PaymentRequestDTO.java` (`@NotNull @DecimalMin("0.01") amount`, `@NotNull method`, `@NotNull receivedOn`, `@Size(max=100) reference`), `PaymentDTO.java`, `ReasonDTO` già esistente per l'annullamento, `main/v1/mapper/PaymentMapper.java` e `main/v1/controller/PaymentController.java`
-- [ ] T017 [US2] Verificare che le e-mail di `PAYMENT_REGISTERED` arrivino (T007) e che `satisfy` della fase 3 sul tipo `PAYMENT` resti invariato (R4, nota)
+- [x] T015 [US2] Rendere `EnrollmentService.completeIfDone` accessibile al package `service` (static, package-private)
+- [x] T016 [US2] Creare `main/service/PaymentService.java` (`register`, `cancel`, `list` come R4, R5; transazione, un solo riprovo su `TransientTransactionError`), `main/v1/dto/PaymentRequestDTO.java` (`@NotNull @DecimalMin("0.01") amount`, `@NotNull method`, `@NotNull receivedOn`, `@Size(max=100) reference`), `PaymentDTO.java`, `ReasonDTO` già esistente per l'annullamento, `main/v1/mapper/PaymentMapper.java` e `main/v1/controller/PaymentController.java`
+- [x] T017 [US2] Verificare che le e-mail di `PAYMENT_REGISTERED` arrivino (T007) e che `satisfy` della fase 3 sul tipo `PAYMENT` resti invariato (R4, nota)
 
 **Checkpoint**: US1, US2, US5 verdi.
 

@@ -565,7 +565,7 @@ public class EnrollmentService {
     }
 
     /** @return {@code ENROLLMENT_COMPLETED} se l'iscrizione è appena diventata completa, altrimenti null */
-    private static DomainEventType completeIfDone(Enrollment enrollment, Instant now) {
+    static DomainEventType completeIfDone(Enrollment enrollment, Instant now) {
         enrollment.setUpdatedAt(now);
         if (enrollment.getStatus() == EnrollmentStatus.REGISTERED
                 && ObligationPlanner.statusFor(enrollment.getObligations()) == EnrollmentStatus.COMPLETED) {
