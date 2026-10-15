@@ -44,6 +44,10 @@ public class RecipientResolver {
             case ENROLLMENT_PROMOTED -> participantAndPresenter(enrollment, NotificationTemplate.ENROLLMENT_PROMOTED);
             case ENROLLMENT_REJECTED -> participantAndPresenter(enrollment, NotificationTemplate.ENROLLMENT_REJECTED);
             case ENROLLMENT_CANCELLED -> participantAndPresenter(enrollment, NotificationTemplate.ENROLLMENT_CANCELLED);
+            case PAYMENT_REGISTERED -> participantAndPresenter(enrollment, NotificationTemplate.PAYMENT_RECEIVED);
+            case REFUND_REQUESTED -> participantAndPresenter(enrollment, NotificationTemplate.REFUND_REQUESTED);
+            case REFUND_ISSUED -> participantAndPresenter(enrollment, NotificationTemplate.REFUND_ISSUED);
+            case REFUND_REJECTED -> participantAndPresenter(enrollment, NotificationTemplate.REFUND_REJECTED);
             case EVENT_CHANGED -> activeParticipants(event.event().id());
         };
     }

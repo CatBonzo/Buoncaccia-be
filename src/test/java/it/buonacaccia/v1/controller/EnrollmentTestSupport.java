@@ -62,7 +62,12 @@ abstract class EnrollmentTestSupport extends AbstractTest {
 
     /** Crea e pubblica l'evento con la segreteria della sua regione; restituisce l'evento pubblicato. */
     JsonNode publish(Map<String, Object> event) {
-        String token = "LIG".equals(event.get("region")) ? tokenOf("segreteria-lig") : tokenOf("segreteria");
+        return publish(event, "LIG".equals(event.get("region")) ? "segreteria-lig" : "segreteria");
+    }
+
+    /** Come {@link #publish(Map)}, con l'utente scelto (es. l'amministrazione per un evento nazionale). */
+    JsonNode publish(Map<String, Object> event, String username) {
+        String token = tokenOf(username);
         Result created = post(EVENTS, token, event);
         assertThat(created.status()).as("creazione: %s", created.body()).isEqualTo(201);
         Result published = post(EVENTS + "/" + created.body().get("payload").get("id").asString() + "/publish", token, null);

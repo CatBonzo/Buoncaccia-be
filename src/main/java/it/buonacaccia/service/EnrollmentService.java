@@ -43,6 +43,9 @@ import it.buonacaccia.service.guard.CallerContext;
 import it.buonacaccia.service.guard.EnrollmentAccessPolicy;
 import it.buonacaccia.service.guard.EventAccessPolicy;
 import it.buonacaccia.v1.dto.EnrollmentDTO;
+import it.buonacaccia.v1.dto.PaymentInfoDTO;
+import it.buonacaccia.v1.dto.PaymentSummaryDTO;
+import it.buonacaccia.model.RegionSettings;
 import it.buonacaccia.v1.dto.EnrollmentObligationDTO;
 import it.buonacaccia.v1.dto.EnrollmentPageDTO;
 import it.buonacaccia.v1.dto.EnrollmentRequestDTO;
@@ -50,6 +53,7 @@ import it.buonacaccia.v1.dto.FieldErrorDTO;
 import it.buonacaccia.v1.dto.NotificationDTO;
 import it.buonacaccia.v1.mapper.EnrollmentMapper;
 import it.buonacaccia.v1.mapper.NotificationMapper;
+import it.buonacaccia.v1.mapper.RefundMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -92,6 +96,8 @@ public class EnrollmentService {
     private final DomainEventRecorder domainEvents;
     private final NotificationRepository notificationRepository;
     private final TransactionTemplate transactionTemplate;
+    private final RegionSettingsService regionSettingsService;
+    private final RefundService refundService;
     private final Clock clock;
 
     // ---------- iscrizione ----------
@@ -137,6 +143,7 @@ public class EnrollmentService {
                 .eventTypeCode(event.getTypeCode())
                 .eventLevel(event.getLevel())
                 .eventRegion(event.getRegion())
+                .feeCents(Money.feeToCents(event.getFee()))
                 .participantId(participantId)
                 .participantMemberCode(participant.getCensus().getMemberCode())
                 .participantName(fullName(participant))
@@ -512,14 +519,15 @@ public class EnrollmentService {
         enrollment.setClosedAt(now);
         enrollment.setClosingReason(reason);
         enrollment.setClosingNote(note);
-        enrollment.setRefundDue(refundDue != null ? refundDue : Boolean.FALSE);
+        // Diniego del capo: il diritto c'è se qualcosa è stato versato; scadenza: mai, il pagamento non è stato completato (R6 della 005).
+        enrollment.setRefundDue(refundDue != null ? refundDue : reason == ClosingReason.REJECTED && enrollment.getPaidCents() > 0);
         enrollment.setUpdatedAt(now);
         Enrollment saved = save(enrollment, event, switch (reason) {
             case WITHDRAWN -> DomainEventType.ENROLLMENT_WITHDRAWN;
             case EXPIRED -> DomainEventType.ENROLLMENT_EXPIRED;
             case REJECTED -> DomainEventType.ENROLLMENT_REJECTED;
             case EVENT_CANCELLED, SEATS_EXHAUSTED -> DomainEventType.ENROLLMENT_CANCELLED;
-        });
+        }, true);
         capacityService.release(enrollment.getEventId(), position);
         if (position == SeatPosition.IN_SEATS && event != null) {
             promoteWaiting(event);
@@ -554,13 +562,14 @@ public class EnrollmentService {
                 enrollment.setClosingNote(event.getCancellationReason());
                 enrollment.setRefundDue(refundDue);
                 domainEvents.enrollment(DomainEventType.ENROLLMENT_CANCELLED, enrollment, event);
+                refundService.requestFor(enrollment, event);
             }
             return modified;
         }));
     }
 
     /** @return {@code ENROLLMENT_COMPLETED} se l'iscrizione è appena diventata completa, altrimenti null */
-    private static DomainEventType completeIfDone(Enrollment enrollment, Instant now) {
+    static DomainEventType completeIfDone(Enrollment enrollment, Instant now) {
         enrollment.setUpdatedAt(now);
         if (enrollment.getStatus() == EnrollmentStatus.REGISTERED
                 && ObligationPlanner.statusFor(enrollment.getObligations()) == EnrollmentStatus.COMPLETED) {
@@ -631,10 +640,18 @@ public class EnrollmentService {
 
     /** Salva l'iscrizione e, se {@code type} non è null, il suo evento di dominio nella stessa transazione (R2 della 004). */
     private Enrollment save(Enrollment enrollment, Event event, DomainEventType type) {
+        return save(enrollment, event, type, false);
+    }
+
+    /** Come {@code save}; se {@code closing} apre nella stessa transazione l'eventuale rimborso (R6 della 005). */
+    private Enrollment save(Enrollment enrollment, Event event, DomainEventType type, boolean closing) {
         return mongo(() -> transactionTemplate.execute(tx -> {
             Enrollment saved = enrollmentRepository.save(enrollment);
             if (type != null && event != null) {
                 domainEvents.enrollment(type, saved, event);
+            }
+            if (closing) {
+                refundService.requestFor(saved, event);
             }
             return saved;
         }));
@@ -710,7 +727,34 @@ public class EnrollmentService {
             dto.setWaitingPosition((int) (long) mongo(() -> mongoTemplate.count(ahead, Enrollment.class)) + 1);
         }
         dto.setAvailableActions(accessPolicy.availableActions(caller, callerUser, enrollment, event, now));
+        setPayment(dto, enrollment, event);
+        if (!enrollment.isActive() && enrollment.getPaidCents() > 0) {
+            refundService.ofEnrollment(enrollment.getId()).ifPresent(r -> dto.setRefund(RefundMapper.INSTANCE.toSummary(r)));
+        }
         return dto;
+    }
+
+    /** Quota, versato e residuo (R9 della 005); le coordinate solo se il pagamento è ancora da fare. */
+    private void setPayment(EnrollmentDTO dto, Enrollment enrollment, Event event) {
+        long fee = enrollment.getFeeCents() != null ? enrollment.getFeeCents()
+                : event == null ? 0 : Money.feeToCents(event.getFee());
+        if (fee <= 0) {
+            return;
+        }
+        dto.setPayment(PaymentSummaryDTO.builder()
+                .fee(Money.toEuro(fee))
+                .paid(Money.toEuro(enrollment.getPaidCents()))
+                .due(Money.toEuro(Math.max(0, fee - enrollment.getPaidCents())))
+                .build());
+        boolean toPay = enrollment.isActive() && enrollment.getObligations().stream()
+                .anyMatch(o -> o.getType() == ObligationType.PAYMENT && o.getStatus() == ObligationStatus.TODO);
+        if (toPay && PaymentRules.authorized(enrollment)) {
+            RegionSettings settings = regionSettingsService.forEvent(enrollment.getEventLevel(), enrollment.getEventRegion())
+                    .orElseGet(RegionSettings::new);
+            dto.setPaymentInfo(PaymentInfoDTO.builder().holder(settings.getHolder()).iban(settings.getIban())
+                    .contactEmail(settings.getContactEmail()).contactPhone(settings.getContactPhone())
+                    .hours(settings.getHours()).build());
+        }
     }
 
     private static String fullName(User user) {

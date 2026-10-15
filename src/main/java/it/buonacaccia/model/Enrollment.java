@@ -79,6 +79,12 @@ public class Enrollment {
     /** Diritto al rimborso (BR-10): null finché l'iscrizione è attiva. */
     private Boolean refundDue;
 
+    /** Quota dovuta fissata all'iscrizione, in centesimi (research R3 della 005); null nei documenti vecchi. */
+    private Long feeCents;
+
+    /** Somma dei pagamenti validi, in centesimi: la cambia solo {@code PaymentService} (R2). */
+    private long paidCents;
+
     /** Promemoria già inviati, come {@code D3:<scadenza>} e {@code D1:<scadenza>} (research R9 della 004). */
     @Builder.Default
     private Set<String> remindersSent = new HashSet<>();

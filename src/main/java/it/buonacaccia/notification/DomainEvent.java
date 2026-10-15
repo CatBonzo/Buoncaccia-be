@@ -18,9 +18,11 @@ import it.buonacaccia.model.SeatPosition;
  *
  * @param obligationType solo per {@code AUTHORIZATION_REQUESTED}
  * @param reminderDays   solo per {@code DEADLINE_REMINDER} (3 o 1)
+ * @param money          solo per pagamenti e rimborsi (feature 005); null per gli altri eventi
  */
 public record DomainEvent(String id, DomainEventType type, Instant occurredAt, EnrollmentSnapshot enrollment,
-                          EventSnapshot event, ObligationType obligationType, Integer reminderDays) {
+                          EventSnapshot event, ObligationType obligationType, Integer reminderDays,
+                          MoneySnapshot money) {
 
     /** Iscrizione al momento del fatto. {@code waitingRank} solo per chi è in attesa. */
     public record EnrollmentSnapshot(String id, String number, String participantId, String participantName,
@@ -29,6 +31,15 @@ public record DomainEvent(String id, DomainEventType type, Instant occurredAt, E
                                      Integer waitingRank, List<ObligationType> pendingObligations, Instant deadline,
                                      BigDecimal fee, Boolean refundDue, ClosingReason closingReason,
                                      String closingNote) {
+    }
+
+    /**
+     * Importi del pagamento o del rimborso, in centesimi (research R1 della 005). {@code paidCents} e
+     * {@code dueCents} (residuo) solo per un pagamento; {@code date} è la data di incasso o di emissione;
+     * {@code reason} il motivo del rifiuto.
+     */
+    public record MoneySnapshot(Long amountCents, Long paidCents, Long dueCents, LocalDate date, String reference,
+                                String reason) {
     }
 
     /** Evento al momento del fatto. {@code changedFields} solo per {@code EVENT_CHANGED}. */

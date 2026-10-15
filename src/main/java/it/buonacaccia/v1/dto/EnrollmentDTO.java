@@ -51,6 +51,12 @@ public class EnrollmentDTO {
     private ClosingReason closingReason;
     private String closingNote;
     private Boolean refundDue;
+    /** Quota, versato e residuo; assente per eventi gratuiti. */
+    private PaymentSummaryDTO payment;
+    /** Dove pagare; presente solo se il pagamento è ancora da fare. */
+    private PaymentInfoDTO paymentInfo;
+    /** Rimborso aperto alla chiusura dell'iscrizione, se c'è. */
+    private RefundSummaryDTO refund;
     private List<String> availableActions;
     private Long version;
 }

@@ -23,5 +23,7 @@ public interface EnrollmentRepository extends MongoRepository<Enrollment, String
 
     List<Enrollment> findByEventIdAndActiveTrue(String eventId);
 
+    List<Enrollment> findByEventId(String eventId);
+
     List<Enrollment> findByStatusAndDeadlineBefore(EnrollmentStatus status, Instant deadline);
 }
