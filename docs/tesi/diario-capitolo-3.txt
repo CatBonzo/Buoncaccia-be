@@ -771,6 +771,23 @@ Problemi: il conflitto fra due registrazioni insieme sullo stesso documento esce
 Spunto: la regola "la somma e' sempre ricostruibile dai pagamenti" (SC-004) ha deciso il modello: interi, un solo punto
   che cambia il versato, nessun cancellare. Il vincolo contabile guida il disegno piu' del framework.
 
+[2026-10-15] Fase 6: documenti richiesti, caricamento e verifica
+Cosa: Mahima ha scelto "documenti e schede" per la fase successiva. Per tenere la PR rivedibile ho preso i documenti
+  (la scheda elettronica va nella fase 7). L'evento dice quali documenti servono, con codice, online o cartaceo,
+  formati e dimensione; il socio o il presentatore carica il file; la segreteria lo valida o lo rifiuta con un
+  motivo (e-mail al socio); coda dei documenti da verificare per regione; i file li vedono solo gli aventi diritto.
+Chi: Claude dalla spec di progetto (FR-047..049) e dalle fasi 3-5; le scelte di default sono scritte nella spec.
+Paradigma: SDD + loop engineering. Stessa sequenza: spec, piano, task, poi test rosso e codice, un task alla volta;
+  i task si ticchettano solo a test verdi (256 test prima, 292 alla fine).
+Artefatti: specs/006-documenti/*, AGENTS.md, src/main (DocumentService, DocumentStorage, GridFsDocumentStorage,
+  FileTypeDetector, DocumentRules), src/test (DocumentUploadTest, DocumentAccessTest, DocumentReviewTest, DocumentQueueTest).
+Problemi: (1) il client non riceveva il 422 sul file troppo grande: Tomcat chiudeva la connessione prima di finire
+  di leggere; risolto alzando la lettura residua. (2) La dedupe degli adempimenti per tipo avrebbe fuso due documenti
+  diversi: ora chiave tipo + codice. (3) Un test usava un nome di helper uguale a un import statico e chiamava
+  l'altro metodo: errore sciocco ma instruttivo sulla lettura dei messaggi.
+Spunto: il vincolo sulla privacy (foto di minorenni) ha deciso la visibilita': meno persone possibile, non quelle
+  che per le iscrizioni vanno bene. Una regola di dominio puo' essere piu' stretta di quella del resto del sistema.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

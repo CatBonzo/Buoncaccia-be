@@ -112,7 +112,17 @@ public class MailComposer {
                     hello + "il rimborso di " + cents(m(event).amountCents()) + " per l'iscrizione " + e.number()
                             + " all'evento " + eventLine(ev) + " non è stato accordato.\nMotivo: "
                             + nullToDash(m(event).reason()) + SIGNATURE);
+            case DOCUMENT_REJECTED -> new Mail(
+                    "Documento da ricaricare per l'iscrizione " + e.number(),
+                    hello + "la segreteria ha rifiutato il documento \"" + d(event).code() + "\" caricato per l'iscrizione "
+                            + e.number() + " di " + e.participantName() + " all'evento " + eventLine(ev) + ".\nMotivo: "
+                            + nullToDash(d(event).reason()) + "\n\nCarica un nuovo file dalla pagina dell'iscrizione"
+                            + (e.deadline() == null ? "." : " entro il " + dateTime(e.deadline()) + ".") + SIGNATURE);
         };
+    }
+
+    private static DomainEvent.DocumentSnapshot d(DomainEvent event) {
+        return event.document() == null ? new DomainEvent.DocumentSnapshot(null, null, null) : event.document();
     }
 
     private static DomainEvent.MoneySnapshot m(DomainEvent event) {

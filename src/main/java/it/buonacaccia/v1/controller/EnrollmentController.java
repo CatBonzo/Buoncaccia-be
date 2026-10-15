@@ -100,9 +100,10 @@ public class EnrollmentController {
     @SecurityAccess(entitlement = Entitlements.ISCRIZIONE_GESTIONE)
     @Operation(summary = "La segreteria che gestisce l'evento segna l'adempimento come soddisfatto (FR-010)")
     public ApiResponse<EnrollmentDTO> satisfy(@PathVariable String id, @PathVariable ObligationType type,
+                                              @RequestParam(required = false) String code,
                                               @Valid @RequestBody(required = false) NoteDTO request,
                                               @AuthenticationPrincipal Jwt jwt) {
-        return ApiResponse.ok(enrollmentService.satisfy(CallerContext.from(jwt), id, type,
+        return ApiResponse.ok(enrollmentService.satisfy(CallerContext.from(jwt), id, type, code,
                 request == null ? null : request.getNote()));
     }
 }

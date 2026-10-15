@@ -35,7 +35,7 @@
 
 ## R7. E-mail
 
-- **Decisione**: nuovo `DomainEventType.DOCUMENT_REJECTED` e modello `DOCUMENT_REJECTED` (partecipante e presentatore) con il motivo e il codice del documento (`MoneySnapshot` non serve: il motivo viaggia nel campo `closingNote`? No: nuovo campo `note` nel `DomainEvent`). Nessuna e-mail per caricamento e validazione (il completamento ha già la sua).
+- **Decisione**: nuovo `DomainEventType.DOCUMENT_REJECTED` e modello `DOCUMENT_REJECTED` (partecipante e presentatore). Il motivo e il codice del documento viaggiano in un nuovo `DocumentSnapshot(code, description, reason)` dentro il `DomainEvent`. Nessuna e-mail per caricamento e validazione (il completamento ha già la sua).
 - **Perché**: SC-005; il socio deve sapere cosa rifare, non essere avvisato di ogni passo.
 
 ## R8. Visibilità

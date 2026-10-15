@@ -323,11 +323,11 @@ public class EnrollmentService {
     }
 
     /** La segreteria che gestisce l'evento segna un adempimento come soddisfatto (FR-010). */
-    public EnrollmentDTO satisfy(CallerContext caller, String id, ObligationType type, String note) {
+    public EnrollmentDTO satisfy(CallerContext caller, String id, ObligationType type, String code, String note) {
         Enrollment enrollment = find(id);
         eventAccessPolicy.checkCanManage(caller, enrollment.getEventLevel(), enrollment.getEventRegion());
         Instant now = clock.instant();
-        EnrollmentObligation obligation = todoObligation(enrollment, type);
+        EnrollmentObligation obligation = todoObligation(enrollment, type, code);
         obligation.setStatus(ObligationStatus.SATISFIED);
         obligation.setSatisfiedBy(caller.getSubject());
         obligation.setSatisfiedAt(now);
@@ -370,6 +370,9 @@ public class EnrollmentService {
         Map<String, Event> events = new HashMap<>();
         int expired = 0;
         for (Enrollment enrollment : overdue) {
+            if (!hasTodo(enrollment)) {
+                continue; // aspetta solo la verifica della segreteria (FR-012 della 006)
+            }
             Event event = events.computeIfAbsent(enrollment.getEventId(), this::eventRepositoryFind);
             if (tryExit(enrollment, event, ClosingReason.EXPIRED, now)) {
                 expired++;
@@ -396,7 +399,7 @@ public class EnrollmentService {
         int sent = 0;
         for (Enrollment enrollment : mongo(() -> mongoTemplate.find(due, Enrollment.class))) {
             int days = reminderDue(enrollment.getDeadline(), now, enrollment.getRemindersSent());
-            if (days == 0) {
+            if (days == 0 || !hasTodo(enrollment)) {
                 continue;
             }
             Event event = events.computeIfAbsent(enrollment.getEventId(), this::eventRepositoryFind);
@@ -568,6 +571,11 @@ public class EnrollmentService {
         }));
     }
 
+    /** Resta qualcosa da fare per il socio? Chi aspetta solo la verifica di un documento non scade (FR-012 della 006). */
+    private static boolean hasTodo(Enrollment enrollment) {
+        return enrollment.getObligations().stream().anyMatch(o -> o.getStatus() == ObligationStatus.TODO);
+    }
+
     /** @return {@code ENROLLMENT_COMPLETED} se l'iscrizione è appena diventata completa, altrimenti null */
     static DomainEventType completeIfDone(Enrollment enrollment, Instant now) {
         enrollment.setUpdatedAt(now);
@@ -601,11 +609,17 @@ public class EnrollmentService {
     }
 
     private static EnrollmentObligation todoObligation(Enrollment enrollment, ObligationType type) {
+        return todoObligation(enrollment, type, null);
+    }
+
+    /** Con {@code code} sceglie quel documento fra i tanti dello stesso tipo (feature 006). */
+    private static EnrollmentObligation todoObligation(Enrollment enrollment, ObligationType type, String code) {
         if (!enrollment.isActive()) {
             throw stateConflict("L'iscrizione non è attiva.");
         }
         return enrollment.getObligations().stream()
-                .filter(o -> o.getType() == type && o.getStatus() == ObligationStatus.TODO)
+                .filter(o -> o.getType() == type && o.getStatus() == ObligationStatus.TODO
+                        && (code == null || code.equals(o.getCode())))
                 .findFirst()
                 .orElseThrow(() -> stateConflict("L'iscrizione non ha l'adempimento " + type + " da fare."));
     }

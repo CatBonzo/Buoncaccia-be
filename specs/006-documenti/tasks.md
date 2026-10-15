@@ -23,13 +23,21 @@
 
 ## Phase 4: US3 Verifica (P1)
 
-- [ ] T011 [US3] `test/v1/controller/DocumentReviewTest.java`: valida → soddisfatto e iscrizione completa con l'e-mail della fase 4; rifiuta con motivo → `TODO`, e-mail col motivo; senza motivo 422; 403 altra regione e socio; già validato/rifiutato 409; due segreterie insieme; `satisfy?code=` per un cartaceo; scadenza e promemoria ignorati con soli `IN_REVIEW`
-- [ ] T012 [US3] `DocumentService.validate/reject`, `DocumentEventType`/modello `DOCUMENT_REJECTED` con test di `MailComposer` e `RecipientResolver`, `satisfy?code=`, filtri di scadenza e promemoria in `EnrollmentService`
+- [X] T011 [US3] `test/v1/controller/DocumentReviewTest.java`: valida → soddisfatto e iscrizione completa con l'e-mail della fase 4; rifiuta con motivo → `TODO`, e-mail col motivo; senza motivo 422; 403 altra regione e socio; già validato/rifiutato 409; due segreterie insieme; `satisfy?code=` per un cartaceo; scadenza e promemoria ignorati con soli `IN_REVIEW`
+- [X] T012 [US3] `DocumentService.validate/reject`, `DocumentEventType`/modello `DOCUMENT_REJECTED` con test di `MailComposer` e `RecipientResolver`, `satisfy?code=`, filtri di scadenza e promemoria in `EnrollmentService`
 
 ## Phase 5: US5 Coda (P2)
 
-- [ ] T013 [US5] `test/v1/controller/DocumentQueueTest.java` e `DocumentService.queue` (regione, evento, stato, pagine)
+- [X] T013 [US5] `test/v1/controller/DocumentQueueTest.java` e `DocumentService.queue` (regione, evento, stato, pagine)
 
 ## Phase 6: Rifinitura
 
-- [ ] T014 `AGENTS.md` (decisioni R1-R9 con il perché), `docs/tesi/diario-capitolo-3.txt`, spec di progetto (FR-047..049, checklist), `./gradlew build --max-workers=1` verde, PR verso `feature`
+- [X] T014 `AGENTS.md` (decisioni R1-R9 con il perché), `docs/tesi/diario-capitolo-3.txt`, spec di progetto (FR-047..049, checklist), `./gradlew build --max-workers=1` verde, PR verso `feature`
+
+## Note di implementazione
+
+- Il rifiuto di un documento allunga la scadenza dell'iscrizione ad almeno 3 giorni da quel momento (non previsto in spec: default di Claude, da confermare): chi aspetta la verifica non deve scadere per i tempi della segreteria.
+- `DomainEvent` ha un nuovo componente `document` (`DocumentSnapshot`) invece di riusare `MoneySnapshot`; i test di `MailComposer` e `RecipientResolver` sono aggiornati.
+- `server.tomcat.max-swallow-size: 16MB`: senza, Tomcat chiude la connessione sui file oltre il limite e il client non vede il 422.
+- Il file caricato si legge in memoria (max 10 MB) per rilevare il tipo e calcolare SHA-256; per i limiti dichiarati va bene, con file più grandi servirebbe lo streaming.
+- Antivirus non incluso (la spec di progetto lo cita in FR-048): da decidere con Mahima.

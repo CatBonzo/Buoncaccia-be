@@ -88,13 +88,15 @@ class RecipientResolverTest {
                 .extracting(Recipient::template).containsExactly(NotificationTemplate.REFUND_REQUESTED);
         assertThat(resolver.resolve(event(DomainEventType.REFUND_REJECTED, null, null)))
                 .extracting(Recipient::template).containsExactly(NotificationTemplate.REFUND_REJECTED);
+        assertThat(resolver.resolve(event(DomainEventType.DOCUMENT_REJECTED, "leader", null)))
+                .extracting(Recipient::template).containsOnly(NotificationTemplate.DOCUMENT_REJECTED);
     }
 
     private static DomainEvent event(DomainEventType type, String presenterId, ObligationType obligationType) {
         DomainEvent.EnrollmentSnapshot enrollment = new DomainEvent.EnrollmentSnapshot("e1", "N-0001", "p", "Pia",
                 "PIE-TO-01-RS", "PIE-TO-01", presenterId, null, null, null, null, List.of(), null, null, null, null, null);
         DomainEvent.EventSnapshot event = new DomainEvent.EventSnapshot("ev1", "C", "T", null, null, null, null);
-        return new DomainEvent("d1", type, Instant.EPOCH, enrollment, event, obligationType, null, null);
+        return new DomainEvent("d1", type, Instant.EPOCH, enrollment, event, obligationType, null, null, null);
     }
 
     private static User user(String id) {

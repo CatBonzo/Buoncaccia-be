@@ -19,10 +19,11 @@ import it.buonacaccia.model.SeatPosition;
  * @param obligationType solo per {@code AUTHORIZATION_REQUESTED}
  * @param reminderDays   solo per {@code DEADLINE_REMINDER} (3 o 1)
  * @param money          solo per pagamenti e rimborsi (feature 005); null per gli altri eventi
+ * @param document       solo per {@code DOCUMENT_REJECTED} (feature 006)
  */
 public record DomainEvent(String id, DomainEventType type, Instant occurredAt, EnrollmentSnapshot enrollment,
                           EventSnapshot event, ObligationType obligationType, Integer reminderDays,
-                          MoneySnapshot money) {
+                          MoneySnapshot money, DocumentSnapshot document) {
 
     /** Iscrizione al momento del fatto. {@code waitingRank} solo per chi è in attesa. */
     public record EnrollmentSnapshot(String id, String number, String participantId, String participantName,
@@ -40,6 +41,10 @@ public record DomainEvent(String id, DomainEventType type, Instant occurredAt, E
      */
     public record MoneySnapshot(Long amountCents, Long paidCents, Long dueCents, LocalDate date, String reference,
                                 String reason) {
+    }
+
+    /** Documento rifiutato: codice, descrizione richiesta dall'evento e motivo della segreteria. */
+    public record DocumentSnapshot(String code, String description, String reason) {
     }
 
     /** Evento al momento del fatto. {@code changedFields} solo per {@code EVENT_CHANGED}. */
