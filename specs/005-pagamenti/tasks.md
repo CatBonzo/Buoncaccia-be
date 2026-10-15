@@ -58,11 +58,11 @@ description: "Task della feature 005 pagamenti e rimborsi"
 
 ### Test (prima del codice)
 
-- [ ] T012 [US1] `test/v1/controller/PaymentInfoTest.java`: iscrizione nei posti con quota (fee, paid 0, due = fee, IBAN e contatti della regione); in attesa (quota ma niente `paymentInfo`); evento gratuito (nessun `payment`); regione senza impostazioni (`paymentInfo` con campi null); evento nazionale (impostazioni `NAT`)
+- [x] T012 [US1] `test/v1/controller/PaymentInfoTest.java`: iscrizione nei posti con quota (fee, paid 0, due = fee, IBAN e contatti della regione); in attesa (quota ma niente `paymentInfo`); evento gratuito (nessun `payment`); regione senza impostazioni (`paymentInfo` con campi null); evento nazionale (impostazioni `NAT`)
 
 ### Implementazione
 
-- [ ] T013 [US1] Creare `main/v1/dto/PaymentSummaryDTO.java` e `PaymentInfoDTO.java`; aggiungere `payment`, `paymentInfo` (e `refund`, vuoto per ora) a `EnrollmentDTO`; in `EnrollmentService.toDto` valorizzarli (R9) leggendo `RegionSettingsService.find(...)`
+- [x] T013 [US1] Creare `main/v1/dto/PaymentSummaryDTO.java` e `PaymentInfoDTO.java`; aggiungere `payment`, `paymentInfo` (e `refund`, vuoto per ora) a `EnrollmentDTO`; in `EnrollmentService.toDto` valorizzarli (R9) leggendo `RegionSettingsService.find(...)`
 
 **Checkpoint**: US1 e US5 verdi.
 
