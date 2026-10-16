@@ -167,6 +167,9 @@ class PaymentRegistrationTest extends EnrollmentTestSupport {
         JsonNode list = get(ENROLLMENTS + "/" + ready.get("id").asString() + "/payments", tokenOf("segreteria")).body().get("payload");
         assertThat(list.get(0).get("status").asString()).isEqualTo("CANCELLED");
         assertThat(list.get(0).get("cancelReason").asString()).contains("sbagliata");
+        Mail mail = MAIL.expectOne(ROVER, "Pagamento annullato per l'iscrizione " + ready.get("number").asString());
+        assertThat(mail.text()).contains("150,00 €").contains("Motivo: Importo registrato sull'iscrizione sbagliata")
+                .contains("Versato finora: 0,00 €");
     }
 
     @Test

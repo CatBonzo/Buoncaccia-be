@@ -168,9 +168,14 @@ public class PaymentService {
         payment.setCancelledBy(caller.getSubject());
         payment.setCancelledAt(now);
         payment.setCancelReason(reason);
+        Event event = mongo(() -> eventRepository.findById(enrollment.getEventId())).orElse(null);
         transactions.run(() -> {
             paymentRepository.save(payment);
-            return enrollmentRepository.save(enrollment);
+            Enrollment saved = enrollmentRepository.save(enrollment);
+            if (event != null) {
+                domainEvents.paymentCancelled(saved, event, payment);
+            }
+            return saved;
         });
         log.info("Iscrizione {}: pagamento {} annullato da {}", enrollment.getNumber(), paymentId, caller.getSubject());
         return payment;

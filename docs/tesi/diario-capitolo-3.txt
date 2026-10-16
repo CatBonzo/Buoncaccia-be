@@ -854,6 +854,14 @@ Artefatti: EventController.delete, EventService.delete e actionsFor, EnrollmentR
 Problemi: aggiungere un valore a availableActions ha rotto tre test esistenti che elencavano le azioni una per una: segnale che il contratto e' ben coperto.
 Spunto: "eliminare" e "annullare" sono due cose diverse per chi guarda lo storico: la seconda lascia traccia, la prima no; la regola sulle iscrizioni le separa senza chiedere al frontend di decidere.
 
+[2026-10-16] E-mail al partecipante quando la segreteria annulla un pagamento
+Cosa: nuovo evento di dominio e modello PAYMENT_CANCELLED; l'e-mail dice che la segreteria ha annullato il pagamento, con importo, data, motivo, versato e residuo.
+Chi: Mahima ha scoperto che le notifiche erano pensate solo come e-mail e ha chiesto il motivo nel testo; Claude ha trovato il buco (nessun avviso all'annullo) e ha scritto il codice.
+Paradigma: AI-assisted e test-first: prima MailComposerTest, RecipientResolverTest e l'asserzione sull'e-mail in PaymentRegistrationTest, poi il codice. Una proposta di Claude (schermata delle e-mail inviate) e' stata scartata dalla committente.
+Artefatti: DomainEventType, NotificationTemplate, DomainEventRecorder.paymentCancelled, RecipientResolver, MailComposer, PaymentService.cancelOnce; ramo 013-email-pagamento-annullato.
+Problemi: nessuno; il motivo era gia' obbligatorio e salvato sul pagamento, bastava metterlo nell'evento.
+Spunto: chiedere "cosa intendevi con notifiche" ha evitato di costruire una funzione non voluta; l'ambiguita' di un termine costa piu' di una domanda.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
