@@ -801,6 +801,14 @@ Problemi: 292 test verdi e nessuno dei due lati se ne era accorto: il contratto 
 Spunto: e' il primo esempio per il capitolo 3 di cosa aggiunge il full-stack: il cliente reale e' un test che i test
   del servizio non possono scrivere.
 
+[2026-10-16] Il contratto si legge dal client generato
+Cosa: generando il client TypeScript dall'OpenAPI e' emerso che le operazioni si chiamavano get_1, get_2, update_1. Aggiunto un OperationCustomizer: ora controller_metodo (event_publish), con un test che vieta duplicati e suffissi numerici.
+Chi: Claude, su richiesta di Mahima di iniziare il frontend per verificare le API.
+Paradigma: contract-first / API come interfaccia tra due team; il frontend come primo consumatore reale.
+Artefatti: OpenApiConfig, OpenApiDocsTest, riga in AGENTS.md.
+Problemi: i nomi automatici cambiano quando si aggiunge un endpoint, rompendo il client.
+Spunto: un contratto si valida costruendo chi lo usa, non solo scrivendolo.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

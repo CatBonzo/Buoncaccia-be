@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,5 +32,19 @@ public class OpenApiConfig {
                         .scheme("bearer")
                         .bearerFormat("JWT")))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH));
+    }
+
+    /**
+     * Nome dell'operazione = "controller_metodo" (es. event_publish): unico e leggibile nel client TypeScript
+     * generato, al posto dei suffissi _1, _2 di springdoc.
+     */
+    @Bean
+    OperationCustomizer readableOperationIds() {
+        return (operation, handlerMethod) -> {
+            String controller = handlerMethod.getBeanType().getSimpleName().replaceFirst("Controller$", "");
+            operation.setOperationId(Character.toLowerCase(controller.charAt(0)) + controller.substring(1)
+                    + "_" + handlerMethod.getMethod().getName());
+            return operation;
+        };
     }
 }

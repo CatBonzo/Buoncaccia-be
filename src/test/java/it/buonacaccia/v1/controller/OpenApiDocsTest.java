@@ -39,6 +39,18 @@ class OpenApiDocsTest extends AbstractTest {
         assertThat(result.body().get("components").get("securitySchemes").has("bearerAuth")).isTrue();
     }
 
+    /** Il client del frontend si genera dai nomi delle operazioni: unici e leggibili, senza suffissi _1, _2 (feature 008). */
+    @Test
+    void operationIdsAreUniqueAndReadable() {
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        get("/api-docs").body().get("paths").forEach(path ->
+                path.forEach(operation -> ids.add(operation.get("operationId").asText())));
+
+        assertThat(ids).isNotEmpty().doesNotHaveDuplicates();
+        assertThat(ids).noneMatch(id -> id.matches(".*_\\d+$"));
+        assertThat(ids).contains("event_publish", "enrollment_withdraw", "user_me");
+    }
+
     @Test
     void swaggerUiIsPublic() {
         assertThat(get("/swagger-ui/index.html").status()).isEqualTo(200);
