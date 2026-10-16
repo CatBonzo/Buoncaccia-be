@@ -45,6 +45,7 @@ public class RecipientResolver {
             case ENROLLMENT_REJECTED -> participantAndPresenter(enrollment, NotificationTemplate.ENROLLMENT_REJECTED);
             case ENROLLMENT_CANCELLED -> participantAndPresenter(enrollment, NotificationTemplate.ENROLLMENT_CANCELLED);
             case PAYMENT_REGISTERED -> participantAndPresenter(enrollment, NotificationTemplate.PAYMENT_RECEIVED);
+            case PAYMENT_CANCELLED -> participantAndPresenter(enrollment, NotificationTemplate.PAYMENT_CANCELLED);
             case REFUND_REQUESTED -> participantAndPresenter(enrollment, NotificationTemplate.REFUND_REQUESTED);
             case REFUND_ISSUED -> participantAndPresenter(enrollment, NotificationTemplate.REFUND_ISSUED);
             case REFUND_REJECTED -> participantAndPresenter(enrollment, NotificationTemplate.REFUND_REJECTED);

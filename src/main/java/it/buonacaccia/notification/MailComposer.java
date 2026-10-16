@@ -96,6 +96,14 @@ public class MailComposer {
                             + eventLine(ev) + ".\n\nVersato finora: " + cents(m(event).paidCents()) + ". Resta da pagare: "
                             + cents(m(event).dueCents()) + ".\n"
                             + (e.status() == EnrollmentStatus.COMPLETED ? "L'iscrizione è completa." : todo(e)) + SIGNATURE);
+            case PAYMENT_CANCELLED -> new Mail(
+                    "Pagamento annullato per l'iscrizione " + e.number(),
+                    hello + "la segreteria ha annullato il pagamento di " + cents(m(event).amountCents()) + " del "
+                            + date(m(event).date()) + " per l'iscrizione " + e.number() + " di " + e.participantName()
+                            + " all'evento " + eventLine(ev) + ".\nMotivo: " + nullToDash(m(event).reason())
+                            + "\n\nVersato finora: " + cents(m(event).paidCents()) + ". Resta da pagare: "
+                            + cents(m(event).dueCents()) + ".\n"
+                            + (e.status() == EnrollmentStatus.COMPLETED ? "L'iscrizione è completa." : todo(e)) + SIGNATURE);
             case REFUND_REQUESTED -> new Mail(
                     "Rimborso richiesto per l'iscrizione " + e.number(),
                     hello + "per l'iscrizione " + e.number() + " di " + e.participantName() + " all'evento " + eventLine(ev)

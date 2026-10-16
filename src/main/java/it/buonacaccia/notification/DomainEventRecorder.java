@@ -10,6 +10,7 @@ import java.util.UUID;
 import it.buonacaccia.model.DomainEventType;
 import it.buonacaccia.model.Enrollment;
 import it.buonacaccia.model.EnrollmentObligation;
+import it.buonacaccia.model.Payment;
 import it.buonacaccia.model.Event;
 import it.buonacaccia.model.ObligationStatus;
 import it.buonacaccia.model.ObligationType;
@@ -71,6 +72,15 @@ public class DomainEventRecorder {
         write(DomainEventType.PAYMENT_REGISTERED, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null),
                 null, null, new DomainEvent.MoneySnapshot(amountCents, enrollment.getPaidCents(),
                         Math.max(0, fee - enrollment.getPaidCents()), receivedOn, reference, null), null);
+    }
+
+    /** Pagamento annullato dalla segreteria con il motivo: importo e data sono quelli del pagamento, {@code paid} è dopo l'annullo. */
+    public void paymentCancelled(Enrollment enrollment, Event event, Payment payment) {
+        long fee = enrollment.getFeeCents() == null ? 0 : enrollment.getFeeCents();
+        write(DomainEventType.PAYMENT_CANCELLED, enrollment.getId(), snapshot(enrollment, event), snapshot(event, null),
+                null, null, new DomainEvent.MoneySnapshot(payment.getAmountCents(), enrollment.getPaidCents(),
+                        Math.max(0, fee - enrollment.getPaidCents()), payment.getReceivedOn(), payment.getReference(),
+                        payment.getCancelReason()), null);
     }
 
     /** Fatto di un rimborso: richiesto, emesso o rifiutato (R8 della 005). */

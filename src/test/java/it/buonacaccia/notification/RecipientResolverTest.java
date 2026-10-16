@@ -82,6 +82,10 @@ class RecipientResolverTest {
                 .extracting(Recipient::role, Recipient::template).containsExactly(
                         tuple(RecipientRole.PARTICIPANT, NotificationTemplate.PAYMENT_RECEIVED),
                         tuple(RecipientRole.PRESENTER, NotificationTemplate.PAYMENT_RECEIVED));
+        assertThat(resolver.resolve(event(DomainEventType.PAYMENT_CANCELLED, "leader", null)))
+                .extracting(Recipient::role, Recipient::template).containsExactly(
+                        tuple(RecipientRole.PARTICIPANT, NotificationTemplate.PAYMENT_CANCELLED),
+                        tuple(RecipientRole.PRESENTER, NotificationTemplate.PAYMENT_CANCELLED));
         assertThat(resolver.resolve(event(DomainEventType.REFUND_ISSUED, "leader", null)))
                 .extracting(Recipient::template).containsOnly(NotificationTemplate.REFUND_ISSUED);
         assertThat(resolver.resolve(event(DomainEventType.REFUND_REQUESTED, null, null)))

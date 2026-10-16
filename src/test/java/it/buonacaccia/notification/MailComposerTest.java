@@ -76,6 +76,19 @@ class MailComposerTest {
     }
 
     @Test
+    void ilPagamentoAnnullatoDiceImportoEMotivo() {
+        MailComposer.Mail mail = COMPOSER.compose(withMoney(DomainEventType.PAYMENT_CANCELLED,
+                new DomainEvent.MoneySnapshot(5000L, 0L, 15000L, LocalDate.of(2026, 10, 20), "CRO123",
+                        "Registrato sull'iscrizione sbagliata")),
+                new Recipient(SARA, RecipientRole.PARTICIPANT, NotificationTemplate.PAYMENT_CANCELLED, "e1"), null);
+
+        assertThat(mail.subject()).contains("Pagamento annullato").contains("PIE-2026-0001-0003");
+        assertThat(mail.text()).contains("50,00 €").contains("20/10/2026")
+                .contains("Motivo: Registrato sull'iscrizione sbagliata")
+                .contains("Versato finora: 0,00 €").contains("Resta da pagare: 150,00 €");
+    }
+
+    @Test
     void ilRimborsoEmessoDiceImportoDataERiferimento() {
         MailComposer.Mail mail = COMPOSER.compose(withMoney(DomainEventType.REFUND_ISSUED,
                 new DomainEvent.MoneySnapshot(15000L, null, null, LocalDate.of(2026, 11, 2), "BON-77", null)),
