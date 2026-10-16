@@ -2,6 +2,8 @@ package it.buonacaccia.v1.dto;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 import it.buonacaccia.model.ClosingReason;
@@ -57,6 +59,9 @@ public class EnrollmentDTO {
     private PaymentInfoDTO paymentInfo;
     /** Rimborso aperto alla chiusura dell'iscrizione, se c'è. */
     private RefundSummaryDTO refund;
+    /** Cosa può fare ora chi guarda: i valori possibili sono elencati nel contratto. */
+    @ArraySchema(schema = @Schema(allowableValues = {"WITHDRAW", "SATISFY", "APPROVE_UNIT_LEADER", "REJECT_UNIT_LEADER",
+            "APPROVE_GROUP_LEADER", "REJECT_GROUP_LEADER"}))
     private List<String> availableActions;
     private Long version;
 }
