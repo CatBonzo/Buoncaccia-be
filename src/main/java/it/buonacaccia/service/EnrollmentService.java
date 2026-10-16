@@ -469,6 +469,11 @@ public class EnrollmentService {
         return cancelled;
     }
 
+    /** Qualcuno si e' mai iscritto all'evento, anche se poi si e' ritirato o l'iscrizione e' scaduta. */
+    public boolean hasEnrollments(String eventId) {
+        return mongo(() -> enrollmentRepository.existsByEventId(eventId));
+    }
+
     /** Evento annullato: tutte le iscrizioni attive diventano ANNULLATE (FR-020). */
     public void cancelForEvent(Event event) {
         Instant now = clock.instant();

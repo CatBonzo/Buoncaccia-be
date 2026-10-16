@@ -93,6 +93,11 @@ public class EventCapacityRepository {
     }
 
     /** Evento annullato: nessuna iscrizione attiva. */
+    /** Toglie del tutto la capienza di un evento che viene eliminato. */
+    public void delete(String eventId) {
+        mongoTemplate.remove(byId(eventId), EventCapacity.class);
+    }
+
     public void reset(String eventId) {
         mongoTemplate.updateFirst(byId(eventId), new Update().set(IN_SEATS, 0).set(WAITING, 0).set(ACTIVE, 0),
                 EventCapacity.class);

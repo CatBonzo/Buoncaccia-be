@@ -11,6 +11,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface EnrollmentRepository extends MongoRepository<Enrollment, String> {
 
+    boolean existsByEventId(String eventId);
+
     boolean existsByEventIdAndParticipantIdAndActiveTrue(String eventId, String participantId);
 
     boolean existsByParticipantIdAndEventTypeCodeAndActiveTrue(String participantId, String eventTypeCode);

@@ -34,18 +34,18 @@ class EventActionsTest extends AbstractTest {
     void actionsFollowTheEventThroughItsLife() {
         clock.setInstant(LocalDateTime.parse("2030-03-05T10:00").atZone(ClockConfig.ROME).toInstant());
         JsonNode draft = create("segreteria", validEvent("PIE", "2030"));
-        assertThat(actions(draft)).containsExactly("EDIT", "PUBLISH", "CANCEL");
+        assertThat(actions(draft)).containsExactly("EDIT", "PUBLISH", "CANCEL", "DELETE");
 
         JsonNode open = action("segreteria", draft, "/publish", Map.of("version", draft.get("version").asLong()));
         assertThat(open.get("status").asString()).isEqualTo("REGISTRATION_OPEN");
-        assertThat(actions(open)).containsExactly("EDIT", "CLOSE_REGISTRATIONS", "CANCEL");
+        assertThat(actions(open)).containsExactly("EDIT", "CLOSE_REGISTRATIONS", "CANCEL", "DELETE");
 
         JsonNode closed = action("segreteria", open, "/close-registrations", Map.of("version", open.get("version").asLong()));
-        assertThat(actions(closed)).containsExactly("EDIT", "CANCEL");
+        assertThat(actions(closed)).containsExactly("EDIT", "CANCEL", "DELETE");
 
         JsonNode cancelled = action("segreteria", closed, "/cancel",
                 Map.of("reason", "Maltempo", "version", closed.get("version").asLong()));
-        assertThat(actions(cancelled)).isEmpty();
+        assertThat(actions(cancelled)).containsExactly("DELETE");
     }
 
     @Test
@@ -55,7 +55,7 @@ class EventActionsTest extends AbstractTest {
         JsonNode published = action("segreteria", draft, "/publish", null);
 
         assertThat(published.get("status").asString()).isEqualTo("PUBLISHED");
-        assertThat(actions(published)).containsExactly("EDIT", "CANCEL");
+        assertThat(actions(published)).containsExactly("EDIT", "CANCEL", "DELETE");
     }
 
     @Test
@@ -87,7 +87,7 @@ class EventActionsTest extends AbstractTest {
         JsonNode content = result.body().get("payload").get("content");
         assertThat(content).hasSize(1);
         assertThat(content.get(0).get("id").asString()).isEqualTo(mine.get("id").asString());
-        assertThat(actions(content.get(0))).containsExactly("EDIT", "PUBLISH", "CANCEL");
+        assertThat(actions(content.get(0))).containsExactly("EDIT", "PUBLISH", "CANCEL", "DELETE");
     }
 
     @Test

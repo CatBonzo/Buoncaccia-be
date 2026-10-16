@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -118,6 +119,14 @@ public class EventController {
     public ApiResponse<EventDTO> cancel(@PathVariable String id, @Valid @RequestBody CancelDTO request,
                                         @AuthenticationPrincipal Jwt jwt) {
         return ApiResponse.ok(eventService.cancel(CallerContext.from(jwt), id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @SecurityAccess(entitlement = Entitlements.EVENTO_GESTIONE)
+    @Operation(summary = "Elimina una bozza, o un evento creato che non ha mai avuto iscrizioni")
+    public ApiResponse<Void> delete(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        eventService.delete(CallerContext.from(jwt), id);
+        return ApiResponse.ok(null);
     }
 
     private static Long versionOf(VersionDTO request) {
