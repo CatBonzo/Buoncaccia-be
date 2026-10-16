@@ -24,6 +24,7 @@ import it.buonacaccia.model.EventLevel;
 import it.buonacaccia.model.EventLifecycle;
 import it.buonacaccia.model.EventStatus;
 import it.buonacaccia.model.EventType;
+import it.buonacaccia.model.ObligationType;
 import it.buonacaccia.model.Region;
 import it.buonacaccia.notification.DomainEventRecorder;
 import it.buonacaccia.repository.EventRepository;
@@ -70,6 +71,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventSearchRepository eventSearchRepository;
     private final EventTypeService eventTypeService;
+    private final FormTemplateService formTemplateService;
     private final EventCodeGenerator eventCodeGenerator;
     private final EventStatusResolver statusResolver;
     private final EventValidator validator;
@@ -90,7 +92,7 @@ public class EventService {
         accessPolicy.checkCanManage(caller, event.getLevel(), event.getRegion());
         EventType type = activeType(event.getTypeCode());
         applyTypeDefaults(event, type);
-        throwIfInvalid(DocumentRules.validate(event.getObligations()));
+        throwIfInvalid(documentAndFormErrors(event));
 
         Instant now = clock.instant();
         event.setId(UUID.randomUUID().toString());
@@ -123,7 +125,7 @@ public class EventService {
                     ? eventTypeService.find(event.getTypeCode()).orElse(null)
                     : activeType(event.getTypeCode());
             applyTypeDefaults(event, type);
-            throwIfInvalid(DocumentRules.validate(event.getObligations()));
+            throwIfInvalid(documentAndFormErrors(event));
         } else if (EDITABLE_AFTER_PUBLISH.contains(status)) {
             previousSeats = event.getSeats();
             validator.checkLockedFields(event, request);
@@ -431,6 +433,17 @@ public class EventService {
         }
         Sort order = Sort.by(Sort.Direction.fromString(direction), field).and(Sort.by("code"));
         return PageRequest.of(p, s, order);
+    }
+
+    /** Documenti ben descritti (feature 006) e, con l'adempimento scheda, un modello per il tipo (feature 007, FR-002). */
+    private List<FieldErrorDTO> documentAndFormErrors(Event event) {
+        List<FieldErrorDTO> errors = new ArrayList<>(DocumentRules.validate(event.getObligations()));
+        boolean wantsForm = event.getObligations() != null
+                && event.getObligations().stream().anyMatch(o -> o.getType() == ObligationType.ELECTRONIC_FORM);
+        if (wantsForm && !formTemplateService.exists(event.getTypeCode())) {
+            errors.add(new FieldErrorDTO("obligations", "Il tipo " + event.getTypeCode() + " non ha un modello di scheda."));
+        }
+        return errors;
     }
 
     private static void throwIfInvalid(List<FieldErrorDTO> errors) {

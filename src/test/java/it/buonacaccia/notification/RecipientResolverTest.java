@@ -90,6 +90,9 @@ class RecipientResolverTest {
                 .extracting(Recipient::template).containsExactly(NotificationTemplate.REFUND_REJECTED);
         assertThat(resolver.resolve(event(DomainEventType.DOCUMENT_REJECTED, "leader", null)))
                 .extracting(Recipient::template).containsOnly(NotificationTemplate.DOCUMENT_REJECTED);
+        // la scheda contiene dati sanitari: l'avviso di riapertura va al solo partecipante, non al presentatore
+        assertThat(resolver.resolve(event(DomainEventType.FORM_REOPENED, "leader", null)))
+                .extracting(Recipient::template).containsExactly(NotificationTemplate.FORM_REOPENED);
     }
 
     private static DomainEvent event(DomainEventType type, String presenterId, ObligationType obligationType) {
