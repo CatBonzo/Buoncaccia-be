@@ -838,6 +838,14 @@ Artefatti: EventAction, EventDTO.availableActions, EventService.actionsFor e fin
 Problemi: nessuno di rilievo; le azioni riusano le stesse tabelle di stato dei controlli, cosi' non possono divergere.
 Spunto: una regola copiata in due posti prima o poi diverge; spostarla dove vive il dato rende il frontend piu' semplice e il contratto piu' ricco.
 
+[2026-10-16] I file nel contratto: la seconda volta che il frontend aggira lo stesso difetto
+Cosa: i download di documenti e del CSV sono dichiarati come file, non come testo JSON; la riconciliazione dei pagamenti porta l'id dell'iscrizione con residuo.
+Chi: Mahima ha deciso ("dobbiamo gestire i file"); Claude ha eseguito, test prima.
+Paradigma: contract-first con ciclo di ritorno; TDD sul contratto: due test rossi (OpenApiDocsTest, ReconciliationTest) prima del codice.
+Artefatti: DocumentController, EventPaymentController (annotazioni), ReconciliationDTO/Service, OpenApiDocsTest, ReconciliationTest; ramo 011-contratto-file.
+Problemi: l'annotazione ApiResponse di swagger ha lo stesso nome del wrapper ApiResponse del progetto: usata col nome completo.
+Spunto: lo stesso difetto trovato in due schermate diverse del frontend ha convinto a correggerlo una volta alla fonte; l'aggiramento (FileDownload) e' servito da ponte finche' il contratto non e' stato corretto.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

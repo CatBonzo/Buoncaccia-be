@@ -42,6 +42,7 @@ public class ReconciliationDTO {
     @Builder
     public static class Outstanding {
 
+        private String enrollmentId;
         private String enrollmentNumber;
         private String participantName;
         private BigDecimal fee;

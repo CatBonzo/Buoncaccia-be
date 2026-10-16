@@ -64,6 +64,7 @@ public class ReconciliationService {
                 .filter(e -> e.isActive() && e.getPosition() == SeatPosition.IN_SEATS
                         && PaymentService.feeOf(e) - e.getPaidCents() > 0)
                 .map(e -> ReconciliationDTO.Outstanding.builder()
+                        .enrollmentId(e.getId())
                         .enrollmentNumber(e.getNumber())
                         .participantName(e.getParticipantName())
                         .fee(Money.toEuro(PaymentService.feeOf(e)))
