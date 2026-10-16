@@ -801,6 +801,26 @@ Problemi: nessun errore di rilievo nei test; la scelta delicata e' stata la priv
   finire nei messaggi. Risolta escludendo il presentatore e tenendo le risposte fuori da e-mail ed eventi.
 Spunto: quando tre fasi condividono lo stesso schema di concorrenza, estrarlo in un componente (TransactionRunner) ha
   pagato: la quarta ci ha messo meno tempo delle altre. Un buon refactoring si vede dalla velocita' di quella dopo.
+[2026-10-15] Frontend: il primo problema lo trova il browser
+Cosa: Mahima ha chiesto di cominciare il frontend per vedere se le API progettate funzionano davvero. Scritto il planner
+  del frontend (fasi essenziali prima) e, prima di qualsiasi schermata, aperta la fase di fondamenta sul backend: il
+  backend non aveva CORS, quindi un browser su localhost:4200 si sarebbe visto rifiutare ogni chiamata.
+Chi: Claude; Mahima ha confermato l'avvio con "si vai".
+Paradigma: SDD + loop engineering. Il collaudo con un client vero e' parte del metodo: 300 test sul backend non possono
+  vedere un problema che esiste solo per un browser.
+Artefatti: Claude Doc "Buona Caccia FE - Planner frontend", AGENTS.md, CorsTest, SecurityConfig.
+Problemi: 292 test verdi e nessuno dei due lati se ne era accorto: il contratto era giusto per i test e inutilizzabile per
+  il suo primo vero cliente.
+Spunto: e' il primo esempio per il capitolo 3 di cosa aggiunge il full-stack: il cliente reale e' un test che i test
+  del servizio non possono scrivere.
+
+[2026-10-16] Il contratto si legge dal client generato
+Cosa: generando il client TypeScript dall'OpenAPI e' emerso che le operazioni si chiamavano get_1, get_2, update_1. Aggiunto un OperationCustomizer: ora controller_metodo (event_publish), con un test che vieta duplicati e suffissi numerici.
+Chi: Claude, su richiesta di Mahima di iniziare il frontend per verificare le API.
+Paradigma: contract-first / API come interfaccia tra due team; il frontend come primo consumatore reale.
+Artefatti: OpenApiConfig, OpenApiDocsTest, riga in AGENTS.md.
+Problemi: i nomi automatici cambiano quando si aggiunge un endpoint, rompendo il client.
+Spunto: un contratto si valida costruendo chi lo usa, non solo scrivendolo.
 
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================

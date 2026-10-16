@@ -27,7 +27,7 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 - **Convenzioni.** Paginazione `page`/`size`, ordinamento `sort=campo,asc|desc`, date ISO 8601 in UTC (le regole di dominio usano Europe/Rome), risorse al plurale in inglese.
 - **Azioni disponibili.** La risposta di un'iscrizione elenca le azioni possibili e gli adempimenti mancanti (NFR-12), così il frontend non ricalcola le regole.
 - **Compatibilità.** Una modifica incompatibile va solo in una nuova versione (`/api/v2`). Ogni PR dichiara l'impatto sulle API.
-- **Da definire.** Repository e tecnologia del frontend, origine da abilitare in CORS per lo sviluppo.
+- **Frontend.** Repository CatBonzo/BuonaCaccia-fe, Angular (planner nel Claude Doc "Buona Caccia FE – Planner frontend"). **CORS:** il backend ammette le origini di `buonacaccia.cors.allowed-origins` (predefinita `http://localhost:4200`) sulle sole rotte `/api/**`.
 
 ## 3. Regole di lavoro
 
@@ -182,6 +182,8 @@ Il frontend è un progetto separato che consuma le API; questo repository non co
 | 2026-10-15 | Invio = adempimento `ELECTRONIC_FORM` soddisfatto (nessuno stato intermedio, non c'è verifica); la riapertura (motivo obbligatorio) lo riporta `TODO`, riapre l'iscrizione completa con scadenza nuova o allunga ad almeno 3 giorni (default di Claude, come per i documenti) | FR-051; stesso schema atomico dei pagamenti e dei documenti (versione dell'iscrizione, un riprovo), nuovo 409 `40970` |
 | 2026-10-15 | Un evento con l'adempimento scheda si crea solo se il suo tipo ha un modello (422 sul campo `obligations`) | Meglio un errore alla segreteria che una scheda impossibile da compilare |
 | 2026-10-15 | Le risposte non entrano mai in e-mail, eventi di dominio o log; l'e-mail `FORM_REOPENED` va al solo partecipante e riporta il motivo | FR-010: la scheda contiene dati sanitari di minori. Cifratura e conservazione restano nella checklist GDPR della spec di progetto |
+| 2026-10-15 | CORS sul backend per il frontend: origini in `buonacaccia.cors.allowed-origins` (default `http://localhost:4200`), metodi GET/POST/PUT/DELETE/OPTIONS, intestazioni `Authorization`, `Content-Type`, `Accept`, `Content-Disposition` esposta, solo su `/api/**` | Senza, il browser rifiuta ogni chiamata dal server di sviluppo; il nome del file scaricato deve essere leggibile dal frontend |
+| 2026-10-16 | Nomi delle operazioni OpenAPI nel formato `controller_metodo` (es. `event_publish`, `enrollment_withdraw`) con un `OperationCustomizer` | Springdoc produceva `get_1`, `update_2`: il client TypeScript generato per il frontend sarebbe stato illeggibile e instabile a ogni nuovo endpoint |
 | 2026-10-14 | Diritto al rimborso solo per chi era nei posti con quota maggiore di 0, anche all'annullamento dell'evento; chi è in attesa non ha pagato | Conseguenza di FR-017 (pagamento alla promozione); spec 003 e research R9 allineate |
 | 2026-10-14 | `40903` (versione superata) diventa generico: dominio `SYSTEM` e messaggio "La risorsa è stata modificata…"; il codice non cambia | Ora vale anche per le iscrizioni; i client della fase 2 guardano il codice, non il dominio |
 | 2026-10-14 | Iscriversi a un evento in bozza risponde 404, non 409 | Coerente con il dettaglio della fase 2: per chi non la gestisce la bozza non esiste |

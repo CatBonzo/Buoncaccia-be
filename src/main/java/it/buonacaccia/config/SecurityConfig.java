@@ -1,10 +1,12 @@
 package it.buonacaccia.config;
 
 import java.io.IOException;
+import java.util.List;
 
 import it.buonacaccia.v1.dto.ApiResponse;
 import it.buonacaccia.config.error.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,6 +15,9 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -45,9 +50,28 @@ public class SecurityConfig {
             "/api/v1/events/*"
     };
 
+    /**
+     * CORS per il frontend (feature 008): le origini ammesse stanno in {@code buonacaccia.cors.allowed-origins}
+     * (predefinita: il server di sviluppo di Angular). Il nome del file scaricato viaggia in {@code Content-Disposition}.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${buonacaccia.cors.allowed-origins:http://localhost:4200}") List<String> allowedOrigins) {
+        CorsConfiguration cors = new CorsConfiguration();
+        cors.setAllowedOrigins(allowedOrigins);
+        cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        cors.setExposedHeaders(List.of("Content-Disposition"));
+        cors.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", cors);
+        return source;
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
