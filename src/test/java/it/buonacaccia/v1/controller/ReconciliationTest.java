@@ -69,6 +69,8 @@ class ReconciliationTest extends EnrollmentTestSupport {
         JsonNode partial = payload.get("outstanding").valueStream()
                 .filter(o -> scolta.get("number").asString().equals(o.get("enrollmentNumber").asString())).findFirst().orElseThrow();
         assertThat(partial.get("due").asDouble()).isEqualTo(100.0);
+        // L'id serve a chi registra il bonifico senza cercare l'iscrizione per numero (feature 011).
+        assertThat(partial.get("enrollmentId").asString()).isEqualTo(scolta.get("id").asString());
     }
 
     @Test

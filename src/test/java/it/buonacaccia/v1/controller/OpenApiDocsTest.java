@@ -72,6 +72,22 @@ class OpenApiDocsTest extends AbstractTest {
         assertThat(fieldError.has("message")).isTrue();
     }
 
+    /** Documenti e CSV si scaricano come file: il client generato deve ricevere un Blob, non un testo JSON (feature 011). */
+    @Test
+    void fileDownloadsAreDeclaredAsBinary() {
+        var paths = get("/api-docs").body().get("paths");
+
+        var document = paths.get("/api/v1/documents/{id}/content").get("get").get("responses").get("200").get("content");
+        assertThat(document.has("application/octet-stream")).isTrue();
+        assertThat(document.get("application/octet-stream").get("schema").get("format").asText()).isEqualTo("binary");
+        assertThat(document.has("*/*")).isFalse();
+
+        var csv = paths.get("/api/v1/events/{eventId}/reconciliation/export").get("get").get("responses").get("200").get("content");
+        assertThat(csv.has("text/csv")).isTrue();
+        assertThat(csv.get("text/csv").get("schema").get("format").asText()).isEqualTo("binary");
+        assertThat(csv.has("*/*")).isFalse();
+    }
+
     @Test
     void swaggerUiIsPublic() {
         assertThat(get("/swagger-ui/index.html").status()).isEqualTo(200);

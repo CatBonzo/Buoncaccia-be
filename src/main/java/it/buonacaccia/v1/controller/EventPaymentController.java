@@ -3,6 +3,8 @@ package it.buonacaccia.v1.controller;
 import java.nio.charset.StandardCharsets;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.buonacaccia.guard.SecurityAccess;
 import it.buonacaccia.model.Entitlements;
@@ -37,7 +39,9 @@ public class EventPaymentController {
 
     @GetMapping("/api/v1/events/{eventId}/reconciliation/export")
     @SecurityAccess(entitlement = Entitlements.PAGAMENTO_REGISTRAZIONE)
-    @Operation(summary = "Lo stesso quadro in CSV: una riga per pagamento e per rimborso (FR-015)")
+    @Operation(summary = "Lo stesso quadro in CSV: una riga per pagamento e per rimborso (FR-015)",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "File CSV in UTF-8",
+                    content = @Content(mediaType = "text/csv", schema = @Schema(type = "string", format = "binary"))))
     public ResponseEntity<byte[]> export(@PathVariable String eventId, @AuthenticationPrincipal Jwt jwt) {
         String csv = reconciliationService.csv(CallerContext.from(jwt), eventId);
         return ResponseEntity.ok()

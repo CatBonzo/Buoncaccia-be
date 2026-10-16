@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.buonacaccia.guard.SecurityAccess;
 import it.buonacaccia.model.DocumentStatus;
@@ -59,7 +61,9 @@ public class DocumentController {
     }
 
     @GetMapping("/api/v1/documents/{id}/content")
-    @Operation(summary = "Scarica il file con il nome e il tipo originali (FR-013)")
+    @Operation(summary = "Scarica il file con il nome e il tipo originali (FR-013)",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Il file; il tipo vero è nell'intestazione Content-Type",
+                    content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))))
     public ResponseEntity<byte[]> content(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         DocumentService.DocumentContent result = documentService.content(CallerContext.from(jwt), id);
         return ResponseEntity.ok()
