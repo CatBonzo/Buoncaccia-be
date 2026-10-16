@@ -788,6 +788,19 @@ Problemi: (1) il client non riceveva il 422 sul file troppo grande: Tomcat chiud
 Spunto: il vincolo sulla privacy (foto di minorenni) ha deciso la visibilita': meno persone possibile, non quelle
   che per le iscrizioni vanno bene. Una regola di dominio puo' essere piu' stretta di quella del resto del sistema.
 
+[2026-10-15] Frontend: il primo problema lo trova il browser
+Cosa: Mahima ha chiesto di cominciare il frontend per vedere se le API progettate funzionano davvero. Scritto il planner
+  del frontend (fasi essenziali prima) e, prima di qualsiasi schermata, aperta la fase di fondamenta sul backend: il
+  backend non aveva CORS, quindi un browser su localhost:4200 si sarebbe visto rifiutare ogni chiamata.
+Chi: Claude; Mahima ha confermato l'avvio con "si vai".
+Paradigma: SDD + loop engineering. Il collaudo con un client vero e' parte del metodo: 300 test sul backend non possono
+  vedere un problema che esiste solo per un browser.
+Artefatti: Claude Doc "Buona Caccia FE - Planner frontend", AGENTS.md, CorsTest, SecurityConfig.
+Problemi: 292 test verdi e nessuno dei due lati se ne era accorto: il contratto era giusto per i test e inutilizzabile per
+  il suo primo vero cliente.
+Spunto: e' il primo esempio per il capitolo 3 di cosa aggiunge il full-stack: il cliente reale e' un test che i test
+  del servizio non possono scrivere.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
