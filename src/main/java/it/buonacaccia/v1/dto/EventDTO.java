@@ -7,6 +7,7 @@ import java.util.List;
 
 import it.buonacaccia.model.Availability;
 import it.buonacaccia.model.EnrollmentMode;
+import it.buonacaccia.model.EventAction;
 import it.buonacaccia.model.EventCategory;
 import it.buonacaccia.model.EventLevel;
 import it.buonacaccia.model.EventStatus;
@@ -55,6 +56,8 @@ public class EventDTO {
     private EventStatus status;
     private Availability availability;
     private int enrolledCount;
+    /** Cosa può fare ora chi gestisce l'evento; vuoto per tutti gli altri e nella ricerca pubblica. */
+    private List<EventAction> availableActions;
     private String cancellationReason;
     private Instant cancelledAt;
     private Long version;

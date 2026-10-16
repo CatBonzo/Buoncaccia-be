@@ -830,6 +830,14 @@ Artefatti: EnrollmentDTO (valori ammessi), OpenApiConfig (schema FieldError), Op
 Problemi: springdoc sostituisce gli schemi aggiunti direttamente al bean OpenAPI con quelli che scopre da solo: serve un OpenApiCustomizer.
 Spunto: un test sul contratto vale quanto uno sul comportamento, perche' il contratto e' cio' che l'altra meta' del sistema vede.
 
+[2026-10-16] Il frontend chiede, il backend si prende la regola
+Cosa: gli eventi dicono da soli quali azioni sono possibili (modifica, pubblica, chiudi le iscrizioni, annulla) e l'elenco degli eventi gestiti si cerca per titolo e si ordina, di default dai piu' recenti.
+Chi: Mahima ha deciso ("non e' il frontend a decidere la fase in cui sta" l'evento); Claude ha eseguito, test prima.
+Paradigma: contract-first con ciclo di ritorno: il registro dei contratti del frontend ha indicato i due difetti, il backend li corregge. SDD/AI-assisted: test scritti prima.
+Artefatti: EventAction, EventDTO.availableActions, EventService.actionsFor e findManaged, EventActionsTest, OpenApiDocsTest, contratto 002 aggiornato; commit nel ramo 010-eventi-azioni-ricerca.
+Problemi: nessuno di rilievo; le azioni riusano le stesse tabelle di stato dei controlli, cosi' non possono divergere.
+Spunto: una regola copiata in due posti prima o poi diverge; spostarla dove vive il dato rende il frontend piu' semplice e il contratto piu' ricco.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

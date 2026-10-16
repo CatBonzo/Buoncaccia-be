@@ -62,12 +62,14 @@ public class EventController {
 
     @GetMapping("/managed")
     @SecurityAccess(entitlement = Entitlements.EVENTO_GESTIONE)
-    @Operation(summary = "Eventi gestibili dal chiamante in tutti gli stati, bozze comprese (FR-009)")
+    @Operation(summary = "Eventi gestibili dal chiamante in tutti gli stati, bozze comprese (FR-009); ricerca per titolo e ordinamento (feature 010)")
     public ApiResponse<EventPageDTO> managed(@RequestParam(required = false) EventStatus status,
+                                             @RequestParam(required = false) String q,
                                              @RequestParam(required = false) Integer page,
                                              @RequestParam(required = false) Integer size,
+                                             @RequestParam(required = false) String sort,
                                              @AuthenticationPrincipal Jwt jwt) {
-        return ApiResponse.ok(eventService.findManaged(CallerContext.from(jwt), status, page, size));
+        return ApiResponse.ok(eventService.findManaged(CallerContext.from(jwt), status, q, page, size, sort));
     }
 
     @GetMapping("/{id}")
