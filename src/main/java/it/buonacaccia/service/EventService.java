@@ -18,6 +18,7 @@ import it.buonacaccia.config.error.ErrorCode;
 import it.buonacaccia.config.mongo.CircuitBreakerService;
 import it.buonacaccia.model.Availability;
 import it.buonacaccia.model.Event;
+import it.buonacaccia.model.EventAction;
 import it.buonacaccia.model.EventCapacity;
 import it.buonacaccia.model.EventCategory;
 import it.buonacaccia.model.EventLevel;
@@ -60,7 +61,8 @@ public class EventService {
     private static final Map<String, String> SORT_FIELDS = Map.of(
             "startDate", "startsAt",
             "title", "title",
-            "type", "typeCode");
+            "type", "typeCode",
+            "createdAt", "createdAt");
     private static final Set<EventStatus> CANCELLABLE = Set.of(EventStatus.DRAFT, EventStatus.PUBLISHED,
             EventStatus.REGISTRATION_OPEN, EventStatus.REGISTRATION_CLOSED, EventStatus.IN_PROGRESS);
     private static final Set<EventStatus> EDITABLE_AFTER_PUBLISH = Set.of(EventStatus.PUBLISHED,
@@ -103,7 +105,7 @@ public class EventService {
         event.setUpdatedAt(now);
         statusResolver.computeInstants(event);
         log.info("Evento {} creato in bozza da {}", event.getCode(), caller.getSubject());
-        return toDto(save(event));
+        return toDto(save(event), caller);
     }
 
     /** Modifica: in bozza tutti i campi; dopo la pubblicazione solo quelli consentiti (FR-016…FR-018). */
@@ -150,7 +152,7 @@ public class EventService {
         Event saved = previousSeats == null || previousSeats.equals(event.getSeats())
                 ? save(event, changes) : saveWithNewSeats(event, previousSeats, changes);
         log.info("Evento {} modificato da {}", event.getCode(), caller.getSubject());
-        return toDto(saved);
+        return toDto(saved, caller);
     }
 
     /** Pubblica una bozza se rispetta tutti gli invarianti (FR-007). */
@@ -168,7 +170,7 @@ public class EventService {
         Event saved = save(event);
         capacityService.ensure(saved.getId(), saved.getSeats());
         log.info("Evento {} pubblicato da {}", event.getCode(), caller.getSubject());
-        return toDto(saved);
+        return toDto(saved, caller);
     }
 
     /** Chiusura anticipata delle iscrizioni, solo se sono aperte (FR-015). */
@@ -183,7 +185,7 @@ public class EventService {
         event.setRegistrationClosedEarlyAt(now);
         event.setUpdatedAt(now);
         log.info("Iscrizioni dell'evento {} chiuse in anticipo da {}", event.getCode(), caller.getSubject());
-        return toDto(save(event));
+        return toDto(save(event), caller);
     }
 
     /** Annullamento motivato, da bozza fino a in corso (FR-017). */
@@ -203,14 +205,19 @@ public class EventService {
         Event saved = save(event);
         enrollmentService.cancelForEvent(saved);
         log.info("Evento {} annullato da {}: {}", event.getCode(), caller.getSubject(), request.getReason());
-        return toDto(saved);
+        return toDto(saved, caller);
     }
 
     /** Eventi gestibili dal chiamante in tutti gli stati, bozze comprese (FR-009). */
-    public EventPageDTO findManaged(CallerContext caller, EventStatus status, Integer page, Integer size) {
+    public EventPageDTO findManaged(CallerContext caller, EventStatus status, String q, Integer page, Integer size,
+                                    String sort) {
         accessPolicy.checkManagesSomething(caller);
         List<FieldErrorDTO> errors = new ArrayList<>();
-        PageRequest pageRequest = pageRequest(page, size, "startDate,asc", errors);
+        if (q != null && q.length() > MAX_QUERY_LENGTH) {
+            errors.add(new FieldErrorDTO("q", "Al massimo " + MAX_QUERY_LENGTH + " caratteri."));
+        }
+        // I più recenti per primi: chi ha appena creato una bozza la ritrova in cima.
+        PageRequest pageRequest = pageRequest(page, size, sort == null || sort.isBlank() ? "createdAt,desc" : sort, errors);
         throwIfInvalid(errors);
 
         Instant now = clock.instant();
@@ -222,7 +229,8 @@ public class EventService {
         if (status != null) {
             conditions.add(EventSearchRepository.status(status, now));
         }
-        return toPage(search(conditions, pageRequest), now);
+        addTitleSearch(conditions, q);
+        return toPage(search(conditions, pageRequest), now, caller);
     }
 
     // ---------- consultazione pubblica ----------
@@ -266,10 +274,8 @@ public class EventService {
         if (startTo != null) {
             conditions.add(Criteria.where("startsAt").lt(startTo.plusDays(1).atStartOfDay(ClockConfig.ROME).toInstant()));
         }
-        if (q != null && !q.isBlank()) {
-            conditions.add(Criteria.where("title").regex(Pattern.compile(Pattern.quote(q.trim()), Pattern.CASE_INSENSITIVE)));
-        }
-        return toPage(search(conditions, pageRequest), now);
+        addTitleSearch(conditions, q);
+        return toPage(search(conditions, pageRequest), now, null);
     }
 
     /** Dettaglio (FR-020): una bozza esiste solo per chi la può gestire. */
@@ -279,10 +285,37 @@ public class EventService {
                 && !accessPolicy.canManage(caller, event.getLevel(), event.getRegion())) {
             throw notFound();
         }
-        return toDto(event);
+        return toDto(event, caller);
     }
 
     // ---------- aiuti ----------
+
+    private static void addTitleSearch(List<Criteria> conditions, String q) {
+        if (q != null && !q.isBlank()) {
+            conditions.add(Criteria.where("title").regex(Pattern.compile(Pattern.quote(q.trim()), Pattern.CASE_INSENSITIVE)));
+        }
+    }
+
+    /** Azioni di gestione nello stato attuale (feature 010); vuote per chi non gestisce l'evento. */
+    private List<EventAction> actionsFor(CallerContext caller, Event event, EventStatus status) {
+        List<EventAction> actions = new ArrayList<>();
+        if (caller == null || !accessPolicy.canManage(caller, event.getLevel(), event.getRegion())) {
+            return actions;
+        }
+        if (status == EventStatus.DRAFT || EDITABLE_AFTER_PUBLISH.contains(status)) {
+            actions.add(EventAction.EDIT);
+        }
+        if (status == EventStatus.DRAFT) {
+            actions.add(EventAction.PUBLISH);
+        }
+        if (status == EventStatus.REGISTRATION_OPEN) {
+            actions.add(EventAction.CLOSE_REGISTRATIONS);
+        }
+        if (CANCELLABLE.contains(status)) {
+            actions.add(EventAction.CANCEL);
+        }
+        return actions;
+    }
 
     private Event get(String id) {
         return mongo(() -> eventRepository.findById(id)).orElseThrow(EventService::notFound);
@@ -425,7 +458,7 @@ public class EventService {
         String field = SORT_FIELDS.get(parts[0]);
         String direction = parts.length > 1 ? parts[1] : "asc";
         if (field == null || parts.length > 2 || !Set.of("asc", "desc").contains(direction)) {
-            errors.add(new FieldErrorDTO("sort", "Ordinamento: startDate, title o type, seguito da ,asc o ,desc."));
+            errors.add(new FieldErrorDTO("sort", "Ordinamento: startDate, title, type o createdAt, seguito da ,asc o ,desc."));
             return null;
         }
         if (p < 0 || s < 1 || s > MAX_PAGE_SIZE) {
@@ -452,12 +485,12 @@ public class EventService {
         }
     }
 
-    private EventPageDTO toPage(Page<Event> page, Instant now) {
+    private EventPageDTO toPage(Page<Event> page, Instant now, CallerContext caller) {
         Map<String, EventType> types = eventTypeService.byCode();
         Map<String, Integer> enrolled = capacityService.activeCounts(page.getContent().stream().map(Event::getId).toList());
         return EventPageDTO.builder()
                 .content(page.getContent().stream()
-                        .map(event -> toDto(event, now, types, enrolled.getOrDefault(event.getId(), 0))).toList())
+                        .map(event -> toDto(event, now, types, enrolled.getOrDefault(event.getId(), 0), caller)).toList())
                 .page(page.getNumber())
                 .size(page.getSize())
                 .totalElements(page.getTotalElements())
@@ -465,15 +498,16 @@ public class EventService {
                 .build();
     }
 
-    private EventDTO toDto(Event event) {
+    private EventDTO toDto(Event event, CallerContext caller) {
         int enrolled = capacityService.find(event.getId()).map(EventCapacity::getActive).orElse(0);
-        return toDto(event, clock.instant(), eventTypeService.byCode(), enrolled);
+        return toDto(event, clock.instant(), eventTypeService.byCode(), enrolled, caller);
     }
 
     /** {@code enrolled}: iscrizioni attive lette dalla capienza (research R2 della 003). */
-    private EventDTO toDto(Event event, Instant now, Map<String, EventType> types, int enrolled) {
+    private EventDTO toDto(Event event, Instant now, Map<String, EventType> types, int enrolled, CallerContext caller) {
         EventDTO dto = EventMapper.INSTANCE.toDto(event);
         dto.setStatus(statusResolver.status(event, now));
+        dto.setAvailableActions(actionsFor(caller, event, dto.getStatus()));
         dto.setEnrolledCount(enrolled);
         dto.setAvailability(event.getLifecycle() == EventLifecycle.DRAFT ? Availability.CLOSED
                 : statusResolver.availability(event, enrolled, now));

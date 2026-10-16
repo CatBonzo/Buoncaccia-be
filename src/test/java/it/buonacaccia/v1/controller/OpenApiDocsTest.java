@@ -62,6 +62,11 @@ class OpenApiDocsTest extends AbstractTest {
         assertThat(values).containsExactlyInAnyOrder("WITHDRAW", "SATISFY",
                 "APPROVE_UNIT_LEADER", "REJECT_UNIT_LEADER", "APPROVE_GROUP_LEADER", "REJECT_GROUP_LEADER");
 
+        var eventActions = schemas.get("EventDTO").get("properties").get("availableActions").get("items").get("enum");
+        java.util.List<String> eventValues = new java.util.ArrayList<>();
+        eventActions.forEach(a -> eventValues.add(a.asText()));
+        assertThat(eventValues).containsExactlyInAnyOrder("EDIT", "PUBLISH", "CLOSE_REGISTRATIONS", "CANCEL");
+
         var fieldError = schemas.get("FieldError").get("properties");
         assertThat(fieldError.has("field")).isTrue();
         assertThat(fieldError.has("message")).isTrue();

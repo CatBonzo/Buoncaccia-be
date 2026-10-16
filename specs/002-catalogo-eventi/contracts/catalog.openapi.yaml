@@ -168,11 +168,13 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: status, in: query, schema: { $ref: '#/components/schemas/EventStatus' } }
+        - { name: q, in: query, description: 'Ricerca nel titolo, senza distinguere maiuscole (feature 010)', schema: { type: string, maxLength: 100 } }
+        - { name: sort, in: query, description: 'startDate, title, type o createdAt, seguito da ,asc o ,desc; di default createdAt,desc (feature 010)', schema: { type: string } }
         - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
         - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
       responses:
         '200':
-          description: Pagina di eventi
+          description: Pagina di eventi, ciascuno con availableActions (EDIT, PUBLISH, CLOSE_REGISTRATIONS, CANCEL)
           content:
             application/json:
               schema:
@@ -182,6 +184,7 @@ paths:
                       payload: { $ref: '#/components/schemas/EventPage' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/events/{id}:
     parameters:
