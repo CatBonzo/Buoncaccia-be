@@ -208,6 +208,26 @@ public class EventService {
         return toDto(saved, caller);
     }
 
+    /**
+     * Elimina un evento: una bozza sempre, uno creato solo se nessuno vi si e' mai iscritto (altrimenti si
+     * annulla, cosi' iscrizioni, pagamenti e rimborsi restano consultabili).
+     */
+    public void delete(CallerContext caller, String id) {
+        Event event = get(id);
+        accessPolicy.checkCanManage(caller, event.getLevel(), event.getRegion());
+        if (statusResolver.status(event, clock.instant()) != EventStatus.DRAFT && enrollmentService.hasEnrollments(id)) {
+            throw stateConflict("Questo evento ha avuto iscrizioni: non si elimina, si annulla.");
+        }
+        mongo(() -> {
+            transactionTemplate.executeWithoutResult(tx -> {
+                eventRepository.deleteById(id);
+                capacityService.delete(id);
+            });
+            return null;
+        });
+        log.info("Evento {} eliminato da {}", event.getCode(), caller.getSubject());
+    }
+
     /** Eventi gestibili dal chiamante in tutti gli stati, bozze comprese (FR-009). */
     public EventPageDTO findManaged(CallerContext caller, EventStatus status, String q, Integer page, Integer size,
                                     String sort) {
@@ -313,6 +333,9 @@ public class EventService {
         }
         if (CANCELLABLE.contains(status)) {
             actions.add(EventAction.CANCEL);
+        }
+        if (status == EventStatus.DRAFT || !enrollmentService.hasEnrollments(event.getId())) {
+            actions.add(EventAction.DELETE);
         }
         return actions;
     }

@@ -174,7 +174,7 @@ paths:
         - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
       responses:
         '200':
-          description: Pagina di eventi, ciascuno con availableActions (EDIT, PUBLISH, CLOSE_REGISTRATIONS, CANCEL)
+          description: Pagina di eventi, ciascuno con availableActions (EDIT, PUBLISH, CLOSE_REGISTRATIONS, CANCEL, DELETE)
           content:
             application/json:
               schema:
@@ -220,6 +220,21 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+    delete:
+      tags: [events]
+      operationId: deleteEvent
+      summary: Elimina una bozza, o un evento creato che non ha mai avuto iscrizioni
+      description: Con iscrizioni (anche chiuse) risponde 409: l'evento si annulla, cosi' iscrizioni e pagamenti restano consultabili.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Evento eliminato }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
   /api/v1/events/{id}/publish:
     post:

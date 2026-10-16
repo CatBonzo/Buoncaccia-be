@@ -846,6 +846,14 @@ Artefatti: DocumentController, EventPaymentController (annotazioni), Reconciliat
 Problemi: l'annotazione ApiResponse di swagger ha lo stesso nome del wrapper ApiResponse del progetto: usata col nome completo.
 Spunto: lo stesso difetto trovato in due schermate diverse del frontend ha convinto a correggerlo una volta alla fonte; l'aggiramento (FileDownload) e' servito da ponte finche' il contratto non e' stato corretto.
 
+[2026-10-16] Eliminare un evento: dove finisce la cancellazione e dove comincia lo storico
+Cosa: DELETE /events/{id} per bozze ed eventi creati; azione DELETE in availableActions; un evento con iscrizioni (anche chiuse) non si elimina, si annulla.
+Chi: Mahima ha deciso che segreteria e amministrazione possono eliminare in bozza e a evento creato; Claude ha fissato il limite sulle iscrizioni e ha scritto codice e test, test prima.
+Paradigma: SDD e test-first: EventDeleteTest scritto prima (bozza, creato senza iscrizioni, con iscrizioni, annullato con e senza iscrizioni, permessi); il contratto 002 e la lista delle azioni aggiornati.
+Artefatti: EventController.delete, EventService.delete e actionsFor, EnrollmentRepository.existsByEventId, EventCapacityService.delete, EventDeleteTest, EventActionsTest, OpenApiDocsTest; ramo 012-elimina-evento.
+Problemi: aggiungere un valore a availableActions ha rotto tre test esistenti che elencavano le azioni una per una: segnale che il contratto e' ben coperto.
+Spunto: "eliminare" e "annullare" sono due cose diverse per chi guarda lo storico: la seconda lascia traccia, la prima no; la regola sulle iscrizioni le separa senza chiedere al frontend di decidere.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 

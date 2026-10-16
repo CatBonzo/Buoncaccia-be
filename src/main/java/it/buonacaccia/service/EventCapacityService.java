@@ -82,6 +82,14 @@ public class EventCapacityService {
         log.info("Posti dell'evento {} portati a {}", eventId, seats);
     }
 
+    /** Un evento eliminato non lascia la sua capienza. */
+    public void delete(String eventId) {
+        mongo(() -> {
+            repository.delete(eventId);
+            return null;
+        });
+    }
+
     public void reset(String eventId) {
         mongo(() -> {
             repository.reset(eventId);
