@@ -51,6 +51,22 @@ class OpenApiDocsTest extends AbstractTest {
         assertThat(ids).contains("event_publish", "enrollment_withdraw", "user_me");
     }
 
+    /** Il client generato deve conoscere i valori delle azioni disponibili e la forma dei motivi di errore (feature 009). */
+    @Test
+    void contractListsActionValuesAndFieldErrors() {
+        var schemas = get("/api-docs").body().get("components").get("schemas");
+
+        var actions = schemas.get("EnrollmentDTO").get("properties").get("availableActions").get("items").get("enum");
+        java.util.List<String> values = new java.util.ArrayList<>();
+        actions.forEach(a -> values.add(a.asText()));
+        assertThat(values).containsExactlyInAnyOrder("WITHDRAW", "SATISFY",
+                "APPROVE_UNIT_LEADER", "REJECT_UNIT_LEADER", "APPROVE_GROUP_LEADER", "REJECT_GROUP_LEADER");
+
+        var fieldError = schemas.get("FieldError").get("properties");
+        assertThat(fieldError.has("field")).isTrue();
+        assertThat(fieldError.has("message")).isTrue();
+    }
+
     @Test
     void swaggerUiIsPublic() {
         assertThat(get("/swagger-ui/index.html").status()).isEqualTo(200);

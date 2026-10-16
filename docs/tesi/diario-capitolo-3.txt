@@ -809,6 +809,14 @@ Artefatti: OpenApiConfig, OpenApiDocsTest, riga in AGENTS.md.
 Problemi: i nomi automatici cambiano quando si aggiunge un endpoint, rompendo il client.
 Spunto: un contratto si valida costruendo chi lo usa, non solo scrivendolo.
 
+[2026-10-16] Il contratto si completa dove il frontend lo trova povero
+Cosa: il frontend ha segnalato due attriti: le azioni disponibili di un'iscrizione erano stringhe qualunque e i motivi di un errore 422 (a volte uno, a volte un elenco) non avevano un tipo. Ora il contratto elenca i valori ammessi delle azioni e dichiara lo schema FieldError, con un test che li verifica.
+Chi: Claude, su richiesta di Mahima ("si sistema il fix").
+Paradigma: contract-first con ciclo di ritorno: chi consuma il contratto lo migliora. Registro dei contratti nel frontend, correzione nel backend, test che impedisce di tornare indietro.
+Artefatti: EnrollmentDTO (valori ammessi), OpenApiConfig (schema FieldError), OpenApiDocsTest.
+Problemi: springdoc sostituisce gli schemi aggiunti direttamente al bean OpenAPI con quelli che scopre da solo: serve un OpenApiCustomizer.
+Spunto: un test sul contratto vale quanto uno sul comportamento, perche' il contratto e' cio' che l'altra meta' del sistema vede.
+
 2. NOTE APERTE PER IL CAPITOLO 3
 ==========================================================================
 
