@@ -105,7 +105,8 @@ class EnrollmentLifecycleTest extends EnrollmentTestSupport {
         JsonNode waitingCompleted = post(path(scolta, "DOCUMENT", "satisfy"), tokenOf("segreteria"), null).body().get("payload");
         assertThat(waitingCompleted.get("status").asString()).isEqualTo("COMPLETED");
 
-        Instant later = Instant.now().plus(Duration.ofDays(9)).plus(Duration.ofMinutes(1))
+        // +2 ore e non +1 minuto: la scadenza e' a giorni di calendario e il 25 ottobre il cambio dell'ora la sposta di un'ora.
+        Instant later = Instant.now().plus(Duration.ofDays(9)).plus(Duration.ofHours(2))
                 .truncatedTo(java.time.temporal.ChronoUnit.MILLIS); // MongoDB salva i millisecondi
         clock.setInstant(later);
         assertThat(jobs.expireOverdue()).isEqualTo(1);
