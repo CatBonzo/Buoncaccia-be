@@ -432,10 +432,9 @@ components:
 
     EventTypeRequest:
       type: object
-      required: [code, name, category]
+      required: [code, category]
       properties:
         code: { type: string, pattern: '^[A-Z0-9_]{2,20}$', description: Ignorato in modifica }
-        name: { type: string, maxLength: 120 }
         category: { $ref: '#/components/schemas/EventCategory' }
         defaultRequirements: { $ref: '#/components/schemas/Requirements' }
         defaultObligations: { type: array, items: { $ref: '#/components/schemas/Obligation' } }
@@ -485,7 +484,6 @@ components:
           properties:
             id: { type: string }
             code: { type: string, example: PIE-2027-001 }
-            typeName: { type: string }
             category: { $ref: '#/components/schemas/EventCategory' }
             status: { $ref: '#/components/schemas/EventStatus' }
             availability: { $ref: '#/components/schemas/Availability' }

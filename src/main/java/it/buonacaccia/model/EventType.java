@@ -27,7 +27,6 @@ public class EventType {
     @Id
     private String code;
 
-    private String name;
     private EventCategory category;
     private Requirements defaultRequirements;
     @Builder.Default

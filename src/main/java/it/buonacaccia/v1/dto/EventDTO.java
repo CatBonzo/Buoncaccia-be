@@ -34,7 +34,6 @@ public class EventDTO {
     private String id;
     private String code;
     private String typeCode;
-    private String typeName;
     private EventCategory category;
     private String title;
     private String description;

@@ -53,7 +53,6 @@ public class MockEventTypesLoader implements ApplicationRunner {
                 created++;
             } else if (needsUpdate(existing.get(), type)) {
                 EventType stored = existing.get();
-                stored.setName(type.getName());
                 stored.setCategory(type.getCategory());
                 stored.setActive(true);
                 stored.setUpdatedAt(now);
@@ -72,7 +71,7 @@ public class MockEventTypesLoader implements ApplicationRunner {
     }
 
     private static boolean needsUpdate(EventType stored, EventType wanted) {
-        return !wanted.getName().equals(stored.getName()) || wanted.getCategory() != stored.getCategory() || !stored.isActive();
+        return wanted.getCategory() != stored.getCategory() || !stored.isActive();
     }
 
     // Requisiti e adempimenti sono una prima proposta per categoria (da confermare con Mahima): ROSS e Partenti sono
@@ -80,35 +79,35 @@ public class MockEventTypesLoader implements ApplicationRunner {
     // eventi non hanno limiti di età o di branca.
     private static List<EventType> mockTypes(Instant now) {
         return List.of(
-                youth("PO", "Piccole Orme", EventCategory.LC, Branch.LC, 8, 11, ObligationType.UNIT_LEADER_AUTHORIZATION, "Autorizzazione del capo unità", now),
-                youth("CAPISQ", "Capi Squadriglia", EventCategory.EG, Branch.EG, 12, 16, ObligationType.LEADER_VALIDATION, "Validazione del capo reparto", now),
+                youth("PO", EventCategory.LC, Branch.LC, 8, 11, ObligationType.UNIT_LEADER_AUTHORIZATION, "Autorizzazione del capo unità", now),
+                youth("CAPISQ", EventCategory.EG, Branch.EG, 12, 16, ObligationType.LEADER_VALIDATION, "Validazione del capo reparto", now),
                 ross("ROSS", now),
-                ross("PART", "Partenti", now),
+                ross("PART", now),
                 open("EPPPI", EventCategory.ASSOCIATION, now),
                 leader("CFT", EventCategory.LEADER_TRAINING, false, now),
-                leader("CFM_LC", "CFM L/C", EventCategory.LEADER_TRAINING, false, now),
-                leader("CFM_EG", "CFM E/G", EventCategory.LEADER_TRAINING, false, now),
-                leader("CFM_RS", "CFM R/S", EventCategory.LEADER_TRAINING, false, now),
+                leader("CFM_LC", EventCategory.LEADER_TRAINING, false, now),
+                leader("CFM_EG", EventCategory.LEADER_TRAINING, false, now),
+                leader("CFM_RS", EventCategory.LEADER_TRAINING, false, now),
                 leader("CFA", EventCategory.LEADER_TRAINING, true, now),
                 leader("CCG", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_PT", "MF-Percorso di tirocinio", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_AM_LC", "MF-Aggiornam. metodologico L/C", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_AM_RS", "MF-Aggiornam. metodologico R/S", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_AM_EG", "MF-Aggiornam. metodologico E/G", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_INTER", "MF-Interbranca", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_CT", "MF-Competenze tecniche", EventCategory.LEADER_TRAINING, false, now),
-                open("ASSREG", "Assemblea regionale", EventCategory.ASSOCIATION, now),
-                open("ASSZONA", "Assemblea di zona", EventCategory.ASSOCIATION, now),
-                open("ALTROREG", "Altro regionale", EventCategory.ASSOCIATION, now),
-                leader("MF_CG", "MF-Capi Gruppo", EventCategory.LEADER_TRAINING, false, now),
-                leader("MF_FS", "MF-Fede/Spiritualità", EventCategory.LEADER_TRAINING, false, now));
+                leader("MF_PT", EventCategory.LEADER_TRAINING, false, now),
+                leader("MF_AM_LC", EventCategory.LEADER_TRAINING, false, now),
+                leader("MF_AM_RS", EventCategory.LEADER_TRAINING, false, now),
+                leader("MF_AM_EG", EventCategory.LEADER_TRAINING, false, now),
+                leader("MF_INTER", EventCategory.LEADER_TRAINING, false, now),
+                leader("MF_CT", EventCategory.LEADER_TRAINING, false, now),
+                open("ASSREG", EventCategory.ASSOCIATION, now),
+                open("ASSZONA", EventCategory.ASSOCIATION, now),
+                open("ALTROREG", EventCategory.ASSOCIATION, now),
+                leader("MF_CG", EventCategory.LEADER_TRAINING, false, now),
+                leader("MF_FS", EventCategory.LEADER_TRAINING, false, now));
     }
 
     /** Evento per ragazzi di una branca: serve l'autorizzazione o la convalida del capo e la quota. */
-    private static EventType youth(String code, String name, EventCategory category, Branch branch, int minAge, int maxAge,
+    private static EventType youth(String code, EventCategory category, Branch branch, int minAge, int maxAge,
                                    ObligationType leaderStep, String leaderText, Instant now) {
         return EventType.builder()
-                .code(code).name(name).category(category)
+                .code(code).category(category)
                 .defaultRequirements(Requirements.builder()
                         .minAge(minAge).maxAge(maxAge).branches(List.of(branch)).memberTypes(List.of(MemberType.YOUTH))
                         .maxPerGroup(6).build())
@@ -117,23 +116,10 @@ public class MockEventTypesLoader implements ApplicationRunner {
                 .build();
     }
 
-    /** Il titolo e' uguale al codice (come ROSS, CFT, CFA): non si scrive due volte. */
-    private static EventType ross(String code, Instant now) {
-        return ross(code, code, now);
-    }
-
-    private static EventType leader(String code, EventCategory category, boolean application, Instant now) {
-        return leader(code, code, category, application, now);
-    }
-
-    private static EventType open(String code, EventCategory category, Instant now) {
-        return open(code, code, category, now);
-    }
-
     /** ROSS e Partenti: route per rover e scolte, con scheda sanitaria. */
-    private static EventType ross(String code, String name, Instant now) {
+    private static EventType ross(String code, Instant now) {
         return EventType.builder()
-                .code(code).name(name).category(EventCategory.RS)
+                .code(code).category(EventCategory.RS)
                 .defaultRequirements(Requirements.builder()
                         .minAge(16).maxAge(21).branches(List.of(Branch.RS)).memberTypes(List.of(MemberType.YOUTH))
                         .oneActivePerType(true).maxPerGroup(4).build())
@@ -146,9 +132,9 @@ public class MockEventTypesLoader implements ApplicationRunner {
     }
 
     /** Formazione per capi: dai 21 anni, autorizzazione del capo gruppo e quota. */
-    private static EventType leader(String code, String name, EventCategory category, boolean application, Instant now) {
+    private static EventType leader(String code, EventCategory category, boolean application, Instant now) {
         return EventType.builder()
-                .code(code).name(name).category(category)
+                .code(code).category(category)
                 .defaultRequirements(Requirements.builder()
                         .minAge(21).branches(List.of(Branch.CO)).memberTypes(List.of(MemberType.LEADER))
                         .oneActivePerType(true).build())
@@ -160,9 +146,9 @@ public class MockEventTypesLoader implements ApplicationRunner {
     }
 
     /** Assemblee e altri eventi: nessun limite di età o di branca, solo la quota. */
-    private static EventType open(String code, String name, EventCategory category, Instant now) {
+    private static EventType open(String code, EventCategory category, Instant now) {
         return EventType.builder()
-                .code(code).name(name).category(category)
+                .code(code).category(category)
                 .defaultRequirements(Requirements.builder().build())
                 .defaultObligations(List.of(obligation(ObligationType.PAYMENT, "Quota di partecipazione")))
                 .application(false).active(true).createdAt(now).updatedAt(now)
