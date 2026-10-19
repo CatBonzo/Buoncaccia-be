@@ -82,15 +82,15 @@ public class MockEventTypesLoader implements ApplicationRunner {
         return List.of(
                 youth("PO", "Piccole Orme", EventCategory.LC, Branch.LC, 8, 11, ObligationType.UNIT_LEADER_AUTHORIZATION, "Autorizzazione del capo unità", now),
                 youth("CAPISQ", "Capi Squadriglia", EventCategory.EG, Branch.EG, 12, 16, ObligationType.LEADER_VALIDATION, "Validazione del capo reparto", now),
-                ross("ROSS", "ROSS", now),
+                ross("ROSS", now),
                 ross("PART", "Partenti", now),
-                open("EPPPI", "EPPPI", EventCategory.ASSOCIATION, now),
-                leader("CFT", "CFT", EventCategory.LEADER_TRAINING, false, now),
+                open("EPPPI", EventCategory.ASSOCIATION, now),
+                leader("CFT", EventCategory.LEADER_TRAINING, false, now),
                 leader("CFM_LC", "CFM L/C", EventCategory.LEADER_TRAINING, false, now),
                 leader("CFM_EG", "CFM E/G", EventCategory.LEADER_TRAINING, false, now),
                 leader("CFM_RS", "CFM R/S", EventCategory.LEADER_TRAINING, false, now),
-                leader("CFA", "CFA", EventCategory.LEADER_TRAINING, true, now),
-                leader("CCG", "CCG", EventCategory.LEADER_TRAINING, false, now),
+                leader("CFA", EventCategory.LEADER_TRAINING, true, now),
+                leader("CCG", EventCategory.LEADER_TRAINING, false, now),
                 leader("MF_PT", "MF-Percorso di tirocinio", EventCategory.LEADER_TRAINING, false, now),
                 leader("MF_AM_LC", "MF-Aggiornam. metodologico L/C", EventCategory.LEADER_TRAINING, false, now),
                 leader("MF_AM_RS", "MF-Aggiornam. metodologico R/S", EventCategory.LEADER_TRAINING, false, now),
@@ -115,6 +115,19 @@ public class MockEventTypesLoader implements ApplicationRunner {
                 .defaultObligations(List.of(obligation(leaderStep, leaderText), obligation(ObligationType.PAYMENT, "Quota di partecipazione")))
                 .application(false).active(true).createdAt(now).updatedAt(now)
                 .build();
+    }
+
+    /** Il titolo e' uguale al codice (come ROSS, CFT, CFA): non si scrive due volte. */
+    private static EventType ross(String code, Instant now) {
+        return ross(code, code, now);
+    }
+
+    private static EventType leader(String code, EventCategory category, boolean application, Instant now) {
+        return leader(code, code, category, application, now);
+    }
+
+    private static EventType open(String code, EventCategory category, Instant now) {
+        return open(code, code, category, now);
     }
 
     /** ROSS e Partenti: route per rover e scolte, con scheda sanitaria. */
