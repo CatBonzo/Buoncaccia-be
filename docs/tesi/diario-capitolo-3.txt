@@ -873,3 +873,11 @@ Spunto: chiedere "cosa intendevi con notifiche" ha evitato di costruire una funz
   intercettati dai test o dalla revisione, decisioni rimandate all'autrice.
 - Figure possibili: architettura dei servizi (gia' nel Planner v2), flusso
   Spec Kit applicato a una feature, esempio di loop sulla build.
+
+[2026-10-19] Tipi di evento dell'elenco di Mahima
+Cosa: i tipi di evento di prova diventano i 22 che possono uscire (PO, CAPISQ, ROSS, Partenti, EPPPI, CFT, CFM L/C-E/G-R/S, CFA, CCG, sei momenti di formazione MF, assemblee e altri); il vecchio tipo di specialita' E/G e' ritirato e nei test lo sostituisce CAPISQ.
+Chi: Mahima ha scritto l'elenco (codice e titolo); Claude ha scelto come scrivere i codici nel formato accettato (maiuscole e trattini bassi), il comportamento sui tipi gia' presenti e una prima proposta di requisiti per ogni categoria.
+Paradigma: AI-assisted; code harness: il test dei tipi controlla tutti i 22 codici e che il vecchio non compaia piu'; test di iscrizione e scheda ripassati.
+Artefatti: ramo 014-tipi-evento; MockEventTypesLoader, EventTypeControllerTest, FormTestBase, EnrollmentTestSupport, AGENTS.md.
+Problemi: i codici dell'elenco hanno spazi, barre e trattini ("CFM L/C", "MF-PT") e il formato dei codici non li ammette: scritti come CFM_LC e MF_PT; il titolo resta quello di Mahima. I requisiti dei tipi nuovi non erano nell'elenco: proposta da confermare.
+Spunto: un elenco di dati scritto a mano va tradotto nel formato del sistema, e le parti inventate per completarlo vanno segnate come tali.

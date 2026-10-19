@@ -20,7 +20,11 @@ class EventTypeControllerTest extends AbstractTest {
         Result result = get(TYPES);
 
         assertThat(result.status()).isEqualTo(200);
-        assertThat(codes(result.body().get("payload"))).contains("CFM_EG", "ROSS", "CFA");
+        assertThat(codes(result.body().get("payload"))).contains(
+                "PO", "CAPISQ", "ROSS", "PART", "EPPPI", "CFT", "CFM_LC", "CFM_EG", "CFM_RS", "CFA", "CCG", "MF_PT", "MF_AM_LC",
+                "MF_AM_RS", "MF_AM_EG", "MF_INTER", "MF_CT", "ASSREG", "ASSZONA", "ALTROREG", "MF_CG", "MF_FS");
+        assertThat(codes(result.body().get("payload"))).doesNotContain("SPEC_EG");
+        assertThat(get(TYPES + "/PART").body().get("payload").get("name").asString()).isEqualTo("Partenti");
         assertThat(get(TYPES + "/ROSS").body().get("payload").get("category").asString()).isEqualTo("RS");
     }
 
