@@ -21,7 +21,7 @@ import org.mapstruct.factory.Mappers;
  * Conversioni dell'evento. Stato, disponibilità, nome e categoria del tipo li aggiunge il service,
  * perché dipendono dall'ora e dal tipo evento.
  */
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = FormMapper.class)
 public interface EventMapper {
 
     EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);

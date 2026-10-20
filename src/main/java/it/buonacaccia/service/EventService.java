@@ -25,6 +25,7 @@ import it.buonacaccia.model.EventLevel;
 import it.buonacaccia.model.EventLifecycle;
 import it.buonacaccia.model.EventStatus;
 import it.buonacaccia.model.EventType;
+import it.buonacaccia.model.Obligation;
 import it.buonacaccia.model.ObligationType;
 import it.buonacaccia.model.Region;
 import it.buonacaccia.notification.DomainEventRecorder;
@@ -94,6 +95,7 @@ public class EventService {
         accessPolicy.checkCanManage(caller, event.getLevel(), event.getRegion());
         EventType type = activeType(event.getTypeCode());
         applyTypeDefaults(event, type);
+        applyFormObligation(event);
         throwIfInvalid(documentAndFormErrors(event));
 
         Instant now = clock.instant();
@@ -127,6 +129,7 @@ public class EventService {
                     ? eventTypeService.find(event.getTypeCode()).orElse(null)
                     : activeType(event.getTypeCode());
             applyTypeDefaults(event, type);
+            applyFormObligation(event);
             throwIfInvalid(documentAndFormErrors(event));
         } else if (EDITABLE_AFTER_PUBLISH.contains(status)) {
             previousSeats = event.getSeats();
@@ -164,6 +167,7 @@ public class EventService {
             throw stateConflict("Si pubblica solo un evento in bozza.");
         }
         validator.checkInvariants(event, eventTypeService.find(event.getTypeCode()).isPresent());
+        checkFormQuestions(event);
         event.setLifecycle(EventLifecycle.PUBLISHED);
         event.setUpdatedAt(clock.instant());
         statusResolver.computeInstants(event);
@@ -427,6 +431,16 @@ public class EventService {
         }
     }
 
+    /** Le domande sono facoltative: se la segreteria ne scrive almeno una, la scheda elettronica diventa un adempimento (feature 015). */
+    private static void applyFormObligation(Event event) {
+        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
+        if (own && !wantsForm(event)) {
+            List<Obligation> obligations = new ArrayList<>(event.getObligations() == null ? List.of() : event.getObligations());
+            obligations.add(Obligation.builder().type(ObligationType.ELECTRONIC_FORM).description("Scheda elettronica").build());
+            event.setObligations(obligations);
+        }
+    }
+
     private static void normalizeRegion(CallerContext caller, Event event) {
         if (event.getLevel() == EventLevel.NATIONAL) {
             event.setRegion(null);
@@ -494,12 +508,24 @@ public class EventService {
     /** Documenti ben descritti (feature 006) e, con l'adempimento scheda, un modello per il tipo (feature 007, FR-002). */
     private List<FieldErrorDTO> documentAndFormErrors(Event event) {
         List<FieldErrorDTO> errors = new ArrayList<>(DocumentRules.validate(event.getObligations()));
-        boolean wantsForm = event.getObligations() != null
-                && event.getObligations().stream().anyMatch(o -> o.getType() == ObligationType.ELECTRONIC_FORM);
-        if (wantsForm && !formTemplateService.exists(event.getTypeCode())) {
-            errors.add(new FieldErrorDTO("obligations", "Il tipo " + event.getTypeCode() + " non ha un modello di scheda."));
+        if (event.getFormSections() != null && !event.getFormSections().isEmpty()) {
+            FormRules.validateTemplate(event.getFormSections())
+                    .forEach(e -> errors.add(new FieldErrorDTO("formSections" + e.getField().substring("sections".length()), e.getMessage())));
         }
         return errors;
+    }
+
+    private static boolean wantsForm(Event event) {
+        return event.getObligations() != null
+                && event.getObligations().stream().anyMatch(o -> o.getType() == ObligationType.ELECTRONIC_FORM);
+    }
+
+    /** Alla pubblicazione la scheda deve avere domande: le sue, oppure il modello del tipo (feature 015). */
+    private void checkFormQuestions(Event event) {
+        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
+        if (wantsForm(event) && !own && !formTemplateService.exists(event.getTypeCode())) {
+            throwIfInvalid(List.of(new FieldErrorDTO("formSections", "Aggiungi almeno una domanda alla scheda elettronica.")));
+        }
     }
 
     private static void throwIfInvalid(List<FieldErrorDTO> errors) {

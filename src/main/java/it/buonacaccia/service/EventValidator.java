@@ -11,6 +11,7 @@ import it.buonacaccia.model.EventLevel;
 import it.buonacaccia.v1.dto.EventRequestDTO;
 import it.buonacaccia.v1.dto.FieldErrorDTO;
 import it.buonacaccia.v1.mapper.EventMapper;
+import it.buonacaccia.v1.mapper.FormMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -80,6 +81,9 @@ public class EventValidator {
         lock("enrollmentMode", current.getEnrollmentMode(), request.getEnrollmentMode());
         if (request.getRequirements() != null) {
             lock("requirements", current.getRequirements(), EventMapper.INSTANCE.toRequirements(request.getRequirements()));
+        }
+        if (request.getFormSections() != null) {
+            lock("formSections", String.valueOf(current.getFormSections()), String.valueOf(FormMapper.INSTANCE.toSections(request.getFormSections())));
         }
         if (request.getObligations() != null) {
             lock("obligations", current.getObligations(), EventMapper.INSTANCE.toObligations(request.getObligations()));

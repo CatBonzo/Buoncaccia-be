@@ -213,7 +213,10 @@ public class FormService {
 
     /** Scheda nuova con la copia del modello di oggi; non è salvata finché il partecipante non scrive (FR-004). */
     private FormSubmission draftOf(Enrollment enrollment) {
-        var template = templateService.get(typeCodeOf(enrollment));
+        Event event = mongo(() -> eventRepository.findById(enrollment.getEventId())).orElseThrow(() -> notFound());
+        // Le domande dell'evento, se la segreteria le ha scritte; altrimenti il modello del tipo.
+        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
+        var template = own ? null : templateService.get(event.getTypeCode());
         return FormSubmission.builder()
                 .id(java.util.UUID.randomUUID().toString())
                 .enrollmentId(enrollment.getId())
@@ -221,8 +224,8 @@ public class FormService {
                 .eventLevel(enrollment.getEventLevel())
                 .eventRegion(enrollment.getEventRegion())
                 .participantId(enrollment.getParticipantId())
-                .typeCode(template.getTypeCode())
-                .sections(template.getSections())
+                .typeCode(event.getTypeCode())
+                .sections(own ? event.getFormSections() : template.getSections())
                 .answers(new HashMap<>())
                 .status(FormStatus.DRAFT)
                 .build();
