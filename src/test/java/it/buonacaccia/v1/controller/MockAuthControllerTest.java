@@ -27,7 +27,7 @@ class MockAuthControllerTest extends AbstractTest {
             assertThat(user.get("agesciUUID").asString()).isNotBlank();
             assertThat(user.get("authentication").get("role").size()).isPositive();
         }
-        assertThat(usernames).containsExactlyInAnyOrder("amministratore", "segreteria", "socio", "esterno",
+        assertThat(usernames).containsExactlyInAnyOrder("amministratore", "segreteria", "segreteria-laz", "segreteria-abr", "socio", "esterno",
                 "segreteria-lig", "esploratore", "lupetto", "rover", "rover-lig", "capogruppo",
                 "socio-non-in-regola", "scolta");
     }
