@@ -536,7 +536,6 @@ public class EventService {
                 : statusResolver.availability(event, enrolled, now));
         EventType type = types.get(event.getTypeCode());
         if (type != null) {
-            dto.setTypeName(type.getName());
             dto.setCategory(type.getCategory());
         }
         return dto;

@@ -29,7 +29,7 @@ class EventManagementTest extends AbstractTest {
         JsonNode event = result.body().get("payload");
         assertThat(event.get("status").asString()).isEqualTo("DRAFT");
         assertThat(event.get("code").asString()).matches("PIE-2030-\\d{3}");
-        assertThat(event.get("typeName").asString()).isNotBlank();
+        assertThat(event.get("typeCode").asString()).isNotBlank();
         assertThat(event.get("category").asString()).isEqualTo("RS");
         assertThat(event.get("enrolledCount").asInt()).isZero();
         assertThat(event.get("version").asLong()).isZero();
@@ -173,7 +173,7 @@ class EventManagementTest extends AbstractTest {
     void draftStaysPublishableAfterTypeIsDeactivated() {
         String admin = tokenOf("amministratore");
         String code = "TMP_" + (System.nanoTime() % 100000);
-        post("/api/v1/event-types", admin, Map.of("code", code, "name", "Tipo temporaneo", "category", "EG"));
+        post("/api/v1/event-types", admin, Map.of("code", code, "category", "EG"));
         JsonNode draft = create("segreteria", with(validEvent("PIE", "2030"), "typeCode", code));
         post("/api/v1/event-types/" + code + "/deactivate", admin, null);
 

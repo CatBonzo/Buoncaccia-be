@@ -12,7 +12,7 @@ import it.buonacaccia.model.FormTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import tools.jackson.databind.JsonNode;
 
-/** Base dei test della scheda: un modello per ROSS e SPEC_EG e un evento gratuito che la richiede. */
+/** Base dei test della scheda: un modello per ROSS e CAPISQ e un evento gratuito che la richiede. */
 abstract class FormTestBase extends EnrollmentTestSupport {
 
     static final List<Map<String, Object>> FORM_ONLY =
@@ -23,7 +23,7 @@ abstract class FormTestBase extends EnrollmentTestSupport {
     void resetForms() {
         mongoTemplate.remove(new org.springframework.data.mongodb.core.query.Query(), FormTemplate.class);
         mongoTemplate.remove(new org.springframework.data.mongodb.core.query.Query(), FormSubmission.class);
-        for (String type : List.of("ROSS", "SPEC_EG")) {
+        for (String type : List.of("ROSS", "CAPISQ")) {
             put("/api/v1/event-types/" + type + "/form-template", tokenOf("amministratore"), template(
                     question("fede", "LONG_TEXT", true), question("anni", "TEXT", false),
                     question("allergie", "TEXT", false, "sensitive", true), question("ok", "YES_NO", true)));

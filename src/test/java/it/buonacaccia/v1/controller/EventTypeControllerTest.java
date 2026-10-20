@@ -20,7 +20,11 @@ class EventTypeControllerTest extends AbstractTest {
         Result result = get(TYPES);
 
         assertThat(result.status()).isEqualTo(200);
-        assertThat(codes(result.body().get("payload"))).contains("CFM_EG", "ROSS", "CFA");
+        assertThat(codes(result.body().get("payload"))).contains(
+                "PO", "CAPISQ", "ROSS", "PART", "EPPPI", "CFT", "CFM_LC", "CFM_EG", "CFM_RS", "CFA", "CCG", "MF_PT", "MF_AM_LC",
+                "MF_AM_RS", "MF_AM_EG", "MF_INTER", "MF_CT", "ASSREG", "ASSZONA", "ALTROREG", "MF_CG", "MF_FS");
+        assertThat(codes(result.body().get("payload"))).doesNotContain("SPEC_EG");
+        assertThat(get(TYPES + "/PART").body().get("payload").has("name")).isFalse();
         assertThat(get(TYPES + "/ROSS").body().get("payload").get("category").asString()).isEqualTo("RS");
     }
 
@@ -29,13 +33,13 @@ class EventTypeControllerTest extends AbstractTest {
         String admin = tokenOf("amministratore");
         String code = uniqueCode();
 
-        Result created = post(TYPES, admin, Map.of("code", code, "name", "Campo di prova", "category", "EG",
+        Result created = post(TYPES, admin, Map.of("code", code, "category", "EG",
                 "application", true, "defaultRequirements", Map.of("minAge", 12, "maxAge", 16)));
         assertThat(created.status()).isEqualTo(201);
         assertThat(created.body().get("payload").get("active").asBoolean()).isTrue();
 
-        Result updated = put(TYPES + "/" + code, admin, Map.of("code", code, "name", "Campo rinominato", "category", "EG"));
-        assertThat(updated.body().get("payload").get("name").asString()).isEqualTo("Campo rinominato");
+        Result updated = put(TYPES + "/" + code, admin, Map.of("code", code, "category", "EG"));
+        assertThat(updated.body().get("payload").get("category").asString()).isEqualTo("EG");
 
         Result deactivated = post(TYPES + "/" + code + "/deactivate", admin, null);
         assertThat(deactivated.body().get("payload").get("active").asBoolean()).isFalse();
@@ -47,22 +51,22 @@ class EventTypeControllerTest extends AbstractTest {
     void duplicateCodeIsAConflict() {
         String admin = tokenOf("amministratore");
         String code = uniqueCode();
-        post(TYPES, admin, Map.of("code", code, "name", "Primo", "category", "LC"));
+        post(TYPES, admin, Map.of("code", code, "category", "LC"));
 
-        assertError(post(TYPES, admin, Map.of("code", code, "name", "Secondo", "category", "LC")), 409, 40902);
+        assertError(post(TYPES, admin, Map.of("code", code, "category", "LC")), 409, 40902);
     }
 
     @Test
     void invalidTypeListsFields() {
-        Result result = post(TYPES, tokenOf("amministratore"), Map.of("code", "minuscolo", "name", "x".repeat(121)));
+        Result result = post(TYPES, tokenOf("amministratore"), Map.of("code", "minuscolo"));
 
         assertError(result, 422, 42200);
-        assertThat(fields(result.body().get("payload"))).contains("code", "name", "category");
+        assertThat(fields(result.body().get("payload"))).contains("code", "category");
     }
 
     @Test
     void managementNeedsEntitlement() {
-        Map<String, Object> body = Map.of("code", uniqueCode(), "name", "Non mio", "category", "EG");
+        Map<String, Object> body = Map.of("code", uniqueCode(), "category", "EG");
 
         assertError(post(TYPES, null, body), 401, 40100);
         assertError(post(TYPES, tokenOf("segreteria"), body), 403, 40300);
@@ -74,7 +78,7 @@ class EventTypeControllerTest extends AbstractTest {
     void unknownTypeIsNotFound() {
         assertError(get(TYPES + "/NON_ESISTE"), 404, 40400);
         assertError(put(TYPES + "/NON_ESISTE", tokenOf("amministratore"),
-                Map.of("code", "NON_ESISTE", "name", "x", "category", "EG")), 404, 40400);
+                Map.of("code", "NON_ESISTE", "category", "EG")), 404, 40400);
     }
 
     private static String uniqueCode() {

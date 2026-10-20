@@ -75,14 +75,14 @@ abstract class EnrollmentTestSupport extends AbstractTest {
         return published.body().get("payload");
     }
 
-    /** Evento di specialità E/G che accetta solo iscrizioni del capo (tipo di prova SPEC_EG). */
+    /** Evento per capi squadriglia (E/G) che accetta solo iscrizioni del capo (tipo di prova CAPISQ). */
     static Map<String, Object> scoutEvent(Object... overrides) {
         Map<String, Object> requirements = new HashMap<>();
         requirements.put("minAge", 12);
         requirements.put("maxAge", 16);
         requirements.put("branches", List.of("EG"));
         requirements.put("memberTypes", List.of("YOUTH"));
-        Map<String, Object> event = openEvent("typeCode", "SPEC_EG", "enrollmentMode", "BY_LEADER",
+        Map<String, Object> event = openEvent("typeCode", "CAPISQ", "enrollmentMode", "BY_LEADER",
                 "requirements", requirements, "fee", 40);
         return EventFixtures.with(event, overrides);
     }
