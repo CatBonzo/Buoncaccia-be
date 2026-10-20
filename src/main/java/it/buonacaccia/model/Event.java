@@ -69,6 +69,11 @@ public class Event {
     @Builder.Default
     private List<Obligation> obligations = new ArrayList<>();
     private Contacts contacts;
+    /** Domande della scheda elettronica di questo evento, scritte dalla segreteria (feature 015); se mancano vale il modello del tipo. */
+    private List<FormSection> formSections;
+    /** La segreteria chiede la scheda medica (documento da caricare) e/o intolleranze e allergie (domande obbligatorie), feature 015. */
+    private boolean medicalFormRequired;
+    private boolean dietaryInfoRequired;
 
     private EventLifecycle lifecycle;
     /** Chiusura anticipata delle iscrizioni (FR-015). */

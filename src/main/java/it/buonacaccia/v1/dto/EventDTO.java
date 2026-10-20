@@ -51,6 +51,9 @@ public class EventDTO {
     private EnrollmentMode enrollmentMode;
     private RequirementsDTO requirements;
     private List<ObligationDTO> obligations;
+    private List<FormSectionDTO> formSections;
+    private boolean medicalFormRequired;
+    private boolean dietaryInfoRequired;
     private ContactsDTO contacts;
     private EventStatus status;
     private Availability availability;

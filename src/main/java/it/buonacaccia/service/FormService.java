@@ -212,8 +212,26 @@ public class FormService {
     }
 
     /** Scheda nuova con la copia del modello di oggi; non è salvata finché il partecipante non scrive (FR-004). */
+    /** Intolleranze e allergie, se l'evento le chiede: domande obbligatorie e riservate alla segreteria (feature 015). */
+    private static final it.buonacaccia.model.FormSection DIETARY_SECTION = it.buonacaccia.model.FormSection.builder()
+            .title("Salute e alimentazione")
+            .questions(List.of(
+                    it.buonacaccia.model.FormQuestion.builder().id("intolleranze").text("Intolleranze o esigenze alimentari (scrivi «nessuna» se non ne hai)")
+                            .type(it.buonacaccia.model.QuestionType.TEXT).required(true).sensitive(true).build(),
+                    it.buonacaccia.model.FormQuestion.builder().id("allergie").text("Allergie (scrivi «nessuna» se non ne hai)")
+                            .type(it.buonacaccia.model.QuestionType.TEXT).required(true).sensitive(true).build()))
+            .build();
+
     private FormSubmission draftOf(Enrollment enrollment) {
-        var template = templateService.get(typeCodeOf(enrollment));
+        Event event = mongo(() -> eventRepository.findById(enrollment.getEventId())).orElseThrow(() -> notFound());
+        // Le domande dell'evento, se la segreteria le ha scritte; altrimenti il modello del tipo.
+        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
+        var template = own || event.isDietaryInfoRequired() ? null : templateService.get(event.getTypeCode());
+        List<it.buonacaccia.model.FormSection> sections = new java.util.ArrayList<>(own ? event.getFormSections()
+                : template == null ? List.of() : template.getSections());
+        if (event.isDietaryInfoRequired()) {
+            sections.add(DIETARY_SECTION);
+        }
         return FormSubmission.builder()
                 .id(java.util.UUID.randomUUID().toString())
                 .enrollmentId(enrollment.getId())
@@ -221,8 +239,8 @@ public class FormService {
                 .eventLevel(enrollment.getEventLevel())
                 .eventRegion(enrollment.getEventRegion())
                 .participantId(enrollment.getParticipantId())
-                .typeCode(template.getTypeCode())
-                .sections(template.getSections())
+                .typeCode(event.getTypeCode())
+                .sections(sections)
                 .answers(new HashMap<>())
                 .status(FormStatus.DRAFT)
                 .build();

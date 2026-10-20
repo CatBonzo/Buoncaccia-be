@@ -65,5 +65,8 @@ public class EventRequestDTO {
     private List<@Valid ObligationDTO> obligations;
     @Valid
     private ContactsDTO contacts;
+    private List<@Valid FormSectionDTO> formSections;
+    private Boolean medicalFormRequired;
+    private Boolean dietaryInfoRequired;
     private Long version;
 }

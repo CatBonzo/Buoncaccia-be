@@ -77,14 +77,19 @@ class FormTemplateTest extends EnrollmentTestSupport {
 
     @Test
     @SuppressWarnings("unchecked")
-    void un_evento_con_la_scheda_vuole_il_modello_del_suo_tipo() {
+    void un_evento_con_la_scheda_senza_domande_ne_modello_non_si_pubblica() {
         Map<String, Object> body = openEvent("obligations", List.of(Map.of("type", "ELECTRONIC_FORM", "description", "Scheda")));
 
-        Result without = post(EVENTS, tokenOf("segreteria"), body);
+        // La bozza si salva anche senza domande; e' la pubblicazione a pretenderle (feature 015).
+        Result created = post(EVENTS, tokenOf("segreteria"), body);
+        assertThat(created.status()).isEqualTo(201);
+        String publishPath = EVENTS + "/" + created.body().get("payload").get("id").asString() + "/publish";
+
+        Result without = post(publishPath, tokenOf("segreteria"), null);
         EventManagementTest.assertError(without, 422, 42200);
-        assertThat(fields(without.body().get("payload"))).containsExactly("obligations");
+        assertThat(fields(without.body().get("payload"))).containsExactly("formSections");
 
         put(TEMPLATE, tokenOf("amministratore"), template(question("a", "TEXT", false)));
-        assertThat(post(EVENTS, tokenOf("segreteria"), body).status()).isEqualTo(201);
+        assertThat(post(publishPath, tokenOf("segreteria"), null).status()).isEqualTo(200);
     }
 }
