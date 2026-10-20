@@ -50,9 +50,9 @@ mocked-identity:
           - agesci:entitlement:pagamento:registrazione
 
     - agesciUUID: 7c1e2a2e-0002-4a6b-9a01-0000000000013
-      buonaCacciaUUID: user-002
+      buonaCacciaUUID: user-013
       label: "Segreteria Lazio"
-      username: segreteria
+      username: segreteria-laz
       firstName: "Maria"
       lastName: "Segretaria"
       email: segreteria@buonacaccia.local
@@ -67,9 +67,9 @@ mocked-identity:
           - agesci:entitlement:pagamento:registrazione
 
     - agesciUUID: 7c1e2a2e-0002-4a6b-9a01-0000000000014
-      buonaCacciaUUID: user-002
+      buonaCacciaUUID: user-014
       label: "Segreteria Abruzzo"
-      username: segreteria
+      username: segreteria-abr
       firstName: "Marco"
       lastName: "Segretario"
       email: segreteria@buonacaccia.local

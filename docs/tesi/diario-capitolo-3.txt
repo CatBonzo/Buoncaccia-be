@@ -889,3 +889,11 @@ Paradigma: AI-assisted; code harness: la suite completa e' verde dopo la rimozio
 Artefatti: ramo 014-tipi-evento; EventType, EventTypeDTO, EventDTO, EventService, MockEventTypesLoader, test, catalog.openapi.yaml, AGENTS.md.
 Problemi: ho letto la richiesta a meta' ("tolgo il name dove e' uguale") invece di chiedere cosa intendesse per intero; e' costato un giro in piu'.
 Spunto: quando una richiesta si capisce solo per esempio, conviene riformulare la regola generale e farla confermare prima di applicarla.
+
+[2026-10-20] Utenti di prova con username duplicati
+Cosa: i due utenti segreteria di Lazio e Abruzzo hanno ora username e id propri (`segreteria-laz`, `segreteria-abr`); il test dell'elenco utenti li include.
+Chi: Mahima ha aggiunto gli utenti e mi ha mandato i due test rossi; Claude ha trovato la causa (stesso username e stesso id di `segreteria`) e ha corretto i dati.
+Paradigma: AI-assisted; code harness: i due test falliti in locale sono stati riprodotti prima e passano dopo.
+Artefatti: ramo 017-utenti-prova; mocked-identity.yml, MockAuthControllerTest, AGENTS.md.
+Problemi: copiare un utente di prova senza cambiare username e id e' facile e rompe sia i test sia la pagina di accesso del frontend.
+Spunto: i dati di prova hanno chiavi uniche che i test danno per scontate: conviene un controllo automatico di unicita'.
