@@ -62,4 +62,30 @@ class EventFormQuestionsTest extends FormTestBase {
 
         assertThat(changed.status()).as("%s", changed.body()).isEqualTo(409);
     }
+
+    @Test
+    void la_scheda_medica_richiesta_diventa_un_documento_da_caricare() {
+        JsonNode event = publish(openEvent("medicalFormRequired", true));
+
+        assertThat(event.get("medicalFormRequired").asBoolean()).isTrue();
+        assertThat(event.get("obligations").valueStream())
+                .anyMatch(o -> "DOCUMENT".equals(o.get("type").asString()) && "SCHEDA_MEDICA".equals(o.get("code").asString()));
+        JsonNode enrollment = enrolled("rover", event.get("id").asString());
+        assertThat(enrollment.get("obligations").valueStream().map(o -> String.valueOf(o.get("code").asString())))
+                .contains("SCHEDA_MEDICA");
+    }
+
+    @Test
+    void intolleranze_e_allergie_richieste_sono_domande_obbligatorie_e_riservate() {
+        JsonNode event = publish(openEvent("dietaryInfoRequired", true));
+
+        assertThat(hasFormObligation(event)).isTrue();
+        JsonNode enrollment = enrolled("rover", event.get("id").asString());
+        JsonNode questions = get(form(id(enrollment)), tokenOf("rover")).body().get("payload").get("sections").get(0).get("questions");
+        assertThat(questions.valueStream().map(q -> q.get("id").asString())).containsExactly("intolleranze", "allergie");
+        assertThat(questions.valueStream()).allMatch(q -> q.get("required").asBoolean() && q.get("sensitive").asBoolean());
+
+        Result submit = post(form(id(enrollment)) + "/submit", tokenOf("rover"), null);
+        EventManagementTest.assertError(submit, 422, 42200);
+    }
 }

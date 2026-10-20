@@ -82,6 +82,12 @@ public class EventValidator {
         if (request.getRequirements() != null) {
             lock("requirements", current.getRequirements(), EventMapper.INSTANCE.toRequirements(request.getRequirements()));
         }
+        if (request.getMedicalFormRequired() != null) {
+            lock("medicalFormRequired", current.isMedicalFormRequired(), request.getMedicalFormRequired());
+        }
+        if (request.getDietaryInfoRequired() != null) {
+            lock("dietaryInfoRequired", current.isDietaryInfoRequired(), request.getDietaryInfoRequired());
+        }
         if (request.getFormSections() != null) {
             lock("formSections", String.valueOf(current.getFormSections()), String.valueOf(FormMapper.INSTANCE.toSections(request.getFormSections())));
         }

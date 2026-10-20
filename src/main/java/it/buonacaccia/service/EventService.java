@@ -83,6 +83,8 @@ public class EventService {
     private final EnrollmentService enrollmentService;
     private final CircuitBreakerService circuitBreakerService;
     private final DomainEventRecorder domainEvents;
+    private static final String MEDICAL_FORM_CODE = "SCHEDA_MEDICA";
+
     private final TransactionTemplate transactionTemplate;
     private final Clock clock;
 
@@ -95,7 +97,7 @@ public class EventService {
         accessPolicy.checkCanManage(caller, event.getLevel(), event.getRegion());
         EventType type = activeType(event.getTypeCode());
         applyTypeDefaults(event, type);
-        applyFormObligation(event);
+        applyRequiredItems(event);
         throwIfInvalid(documentAndFormErrors(event));
 
         Instant now = clock.instant();
@@ -129,7 +131,7 @@ public class EventService {
                     ? eventTypeService.find(event.getTypeCode()).orElse(null)
                     : activeType(event.getTypeCode());
             applyTypeDefaults(event, type);
-            applyFormObligation(event);
+            applyRequiredItems(event);
             throwIfInvalid(documentAndFormErrors(event));
         } else if (EDITABLE_AFTER_PUBLISH.contains(status)) {
             previousSeats = event.getSeats();
@@ -431,14 +433,23 @@ public class EventService {
         }
     }
 
-    /** Le domande sono facoltative: se la segreteria ne scrive almeno una, la scheda elettronica diventa un adempimento (feature 015). */
-    private static void applyFormObligation(Event event) {
-        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
-        if (own && !wantsForm(event)) {
-            List<Obligation> obligations = new ArrayList<>(event.getObligations() == null ? List.of() : event.getObligations());
-            obligations.add(Obligation.builder().type(ObligationType.ELECTRONIC_FORM).description("Scheda elettronica").build());
-            event.setObligations(obligations);
+    /**
+     * Le domande sono facoltative: se la segreteria ne scrive almeno una, o chiede intolleranze e allergie, la scheda
+     * elettronica diventa un adempimento. La scheda medica, se richiesta, e' un documento da caricare (feature 015).
+     */
+    private static void applyRequiredItems(Event event) {
+        List<Obligation> obligations = new ArrayList<>(event.getObligations() == null ? List.of() : event.getObligations());
+        obligations.removeIf(o -> o.getType() == ObligationType.DOCUMENT && MEDICAL_FORM_CODE.equals(o.getCode()));
+        if (event.isMedicalFormRequired()) {
+            obligations.add(Obligation.builder().type(ObligationType.DOCUMENT).code(MEDICAL_FORM_CODE).description("Scheda medica")
+                    .delivery(it.buonacaccia.model.DocumentDelivery.ONLINE).build());
         }
+        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
+        boolean hasForm = obligations.stream().anyMatch(o -> o.getType() == ObligationType.ELECTRONIC_FORM);
+        if ((own || event.isDietaryInfoRequired()) && !hasForm) {
+            obligations.add(Obligation.builder().type(ObligationType.ELECTRONIC_FORM).description("Scheda elettronica").build());
+        }
+        event.setObligations(obligations);
     }
 
     private static void normalizeRegion(CallerContext caller, Event event) {
@@ -522,7 +533,8 @@ public class EventService {
 
     /** Alla pubblicazione la scheda deve avere domande: le sue, oppure il modello del tipo (feature 015). */
     private void checkFormQuestions(Event event) {
-        boolean own = event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty();
+        boolean own = event.isDietaryInfoRequired()
+                || (event.getFormSections() != null && !FormRules.questionsOf(event.getFormSections()).isEmpty());
         if (wantsForm(event) && !own && !formTemplateService.exists(event.getTypeCode())) {
             throwIfInvalid(List.of(new FieldErrorDTO("formSections", "Aggiungi almeno una domanda alla scheda elettronica.")));
         }
