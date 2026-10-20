@@ -47,7 +47,9 @@ public class SecurityConfig {
             "/api/v1/event-types",
             "/api/v1/event-types/*",
             "/api/v1/events",
-            "/api/v1/events/*"
+            "/api/v1/events/*",
+            "/api/v1/events/*/attachments",
+            "/api/v1/events/*/attachments/*/content"
     };
 
     /**

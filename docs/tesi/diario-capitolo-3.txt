@@ -889,3 +889,11 @@ Paradigma: AI-assisted; code harness: la suite completa e' verde dopo la rimozio
 Artefatti: ramo 014-tipi-evento; EventType, EventTypeDTO, EventDTO, EventService, MockEventTypesLoader, test, catalog.openapi.yaml, AGENTS.md.
 Problemi: ho letto la richiesta a meta' ("tolgo il name dove e' uguale") invece di chiedere cosa intendesse per intero; e' costato un giro in piu'.
 Spunto: quando una richiesta si capisce solo per esempio, conviene riformulare la regola generale e farla confermare prima di applicarla.
+
+[2026-10-20] File allegati all'evento
+Cosa: la segreteria carica sull'evento file come programma e regolamento (elenco, scarico, eliminazione); chiunque li vede e li scarica a evento pubblicato, la bozza solo la segreteria.
+Chi: Mahima ha chiesto di poter caricare file sull'evento; Claude ha scelto di riusare l'archivio dei documenti, gli stessi controlli sul file (tipo dai byte, 10 MB) e i limiti di 10 file per evento.
+Paradigma: AI-assisted; SDD (rami separati dalle domande della scheda per non toccare lo stesso DTO); code harness: 4 test nuovi (scarico pubblico, bozza, permessi, file non validi e limite) e il test di eliminazione evento.
+Artefatti: ramo 016-allegati-evento; EventAttachment, EventAttachmentService, EventAttachmentController, SecurityConfig, EventAttachmentTest, AGENTS.md.
+Problemi: i percorsi pubblici vanno elencati a mano nella configurazione di sicurezza, altrimenti lo scarico chiede il login.
+Spunto: riusare un meccanismo gia' provato (documenti) per un caso simile costa poco e tiene coerenti le regole.
