@@ -898,3 +898,10 @@ Artefatti: ramo 015-domande-evento; Event, EventDTO, EventRequestDTO, EventMappe
 Problemi: ho letto male la prima richiesta e ho preparato schede di prova prima che Mahima dicesse chi le scrive; la modifica sposta il controllo "serve almeno una domanda" dalla creazione alla pubblicazione, perche' una bozza puo' essere incompleta.
 Spunto: quando una funzione manca nei dati di prova, prima di inventare i dati conviene chiedere chi li scrive: qui erano un contenuto della segreteria, non un dato di sistema.
 
+[2026-10-20] File allegati all'evento
+Cosa: la segreteria carica sull'evento file come programma e regolamento (elenco, scarico, eliminazione); chiunque li vede e li scarica a evento pubblicato, la bozza solo la segreteria.
+Chi: Mahima ha chiesto di poter caricare file sull'evento; Claude ha scelto di riusare l'archivio dei documenti, gli stessi controlli sul file (tipo dai byte, 10 MB) e i limiti di 10 file per evento.
+Paradigma: AI-assisted; SDD (rami separati dalle domande della scheda per non toccare lo stesso DTO); code harness: 4 test nuovi (scarico pubblico, bozza, permessi, file non validi e limite) e il test di eliminazione evento.
+Artefatti: ramo 016-allegati-evento; EventAttachment, EventAttachmentService, EventAttachmentController, SecurityConfig, EventAttachmentTest, AGENTS.md.
+Problemi: i percorsi pubblici vanno elencati a mano nella configurazione di sicurezza, altrimenti lo scarico chiede il login.
+Spunto: riusare un meccanismo gia' provato (documenti) per un caso simile costa poco e tiene coerenti le regole.

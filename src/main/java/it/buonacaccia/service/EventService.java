@@ -82,6 +82,7 @@ public class EventService {
     private final EventCapacityService capacityService;
     private final EnrollmentService enrollmentService;
     private final CircuitBreakerService circuitBreakerService;
+    private final EventAttachmentService attachmentService;
     private final DomainEventRecorder domainEvents;
     private static final String MEDICAL_FORM_CODE = "SCHEDA_MEDICA";
 
@@ -231,6 +232,7 @@ public class EventService {
             });
             return null;
         });
+        attachmentService.deleteAllOf(id);
         log.info("Evento {} eliminato da {}", event.getCode(), caller.getSubject());
     }
 

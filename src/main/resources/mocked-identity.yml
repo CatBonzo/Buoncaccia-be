@@ -49,6 +49,40 @@ mocked-identity:
           - agesci:entitlement:iscrizione:gestione
           - agesci:entitlement:pagamento:registrazione
 
+    - agesciUUID: 7c1e2a2e-0002-4a6b-9a01-0000000000013
+      buonaCacciaUUID: user-002
+      label: "Segreteria Lazio"
+      username: segreteria
+      firstName: "Maria"
+      lastName: "Segretaria"
+      email: segreteria@buonacaccia.local
+      authentication:
+        # Regione gestita: sigla tra "agesci:" e ":segreteria" (FR-010, Q11).
+        isMemberOf: agesci:LAZ:segreteria
+        role:
+          - agesci:regione:segreteria
+        entitlement:
+          - agesci:entitlement:evento:gestione
+          - agesci:entitlement:iscrizione:gestione
+          - agesci:entitlement:pagamento:registrazione
+
+    - agesciUUID: 7c1e2a2e-0002-4a6b-9a01-0000000000014
+      buonaCacciaUUID: user-002
+      label: "Segreteria Abruzzo"
+      username: segreteria
+      firstName: "Marco"
+      lastName: "Segretario"
+      email: segreteria@buonacaccia.local
+      authentication:
+        # Regione gestita: sigla tra "agesci:" e ":segreteria" (FR-010, Q11).
+        isMemberOf: agesci:ABR:segreteria
+        role:
+          - agesci:regione:segreteria
+        entitlement:
+          - agesci:entitlement:evento:gestione
+          - agesci:entitlement:iscrizione:gestione
+          - agesci:entitlement:pagamento:registrazione
+
     - agesciUUID: 7c1e2a2e-0003-4a6b-9a01-000000000003
       buonaCacciaUUID: user-003
       label: "Socio censito in regola"
