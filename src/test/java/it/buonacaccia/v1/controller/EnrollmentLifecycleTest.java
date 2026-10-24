@@ -40,7 +40,8 @@ class EnrollmentLifecycleTest extends EnrollmentTestSupport {
         String id = enrolled("rover", publishOpen()).get("id").asString();
 
         assertThat(actions(enrollment("rover", id))).containsExactly("WITHDRAW");
-        assertThat(actions(enrollment("capogruppo", id))).containsExactly("APPROVE_UNIT_LEADER", "REJECT_UNIT_LEADER");
+        // Il capogruppo e' anche capo dell'unita' del rover: puo' ritirarlo e autorizzarlo (24/10).
+        assertThat(actions(enrollment("capogruppo", id))).containsExactly("WITHDRAW", "APPROVE_UNIT_LEADER", "REJECT_UNIT_LEADER");
         assertThat(actions(enrollment("segreteria", id))).containsExactly("SATISFY");
     }
 

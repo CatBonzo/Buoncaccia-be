@@ -65,7 +65,7 @@ class DocumentAccessTest extends EnrollmentTestSupport {
         String[] ids = new String[2];
         JsonNode enrollment = enrollmentWithTwoUploads(ids);
 
-        for (String user : List.of("scolta", "segreteria-lig", "capogruppo")) {
+        for (String user : List.of("scolta", "segreteria-lig")) {
             assertThat(get(ENROLLMENTS + "/" + id(enrollment) + "/documents", tokenOf(user)).status()).as(user).isEqualTo(404);
             assertThat(getBytes("/api/v1/documents/" + ids[1] + "/content", tokenOf(user)).status()).as(user).isEqualTo(404);
         }

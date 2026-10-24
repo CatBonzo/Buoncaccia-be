@@ -56,6 +56,8 @@ public class Enrollment {
     private String participantName;
     private String participantGroupId;
     private String participantUnitId;
+    /** Branca alla registrazione: per L/C ed E/G l'iscrizione la gestisce solo il capo unità. */
+    private Branch participantBranch;
 
     @Indexed
     private String presenterId;

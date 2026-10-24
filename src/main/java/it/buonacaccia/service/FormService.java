@@ -25,6 +25,7 @@ import it.buonacaccia.repository.EnrollmentRepository;
 import it.buonacaccia.repository.EventRepository;
 import it.buonacaccia.repository.FormSubmissionRepository;
 import it.buonacaccia.service.guard.CallerContext;
+import it.buonacaccia.service.guard.EnrollmentAccessPolicy;
 import it.buonacaccia.service.guard.EventAccessPolicy;
 import it.buonacaccia.v1.dto.FormDTO;
 import it.buonacaccia.v1.mapper.FormMapper;
@@ -50,6 +51,7 @@ public class FormService {
     private final EnrollmentRepository enrollmentRepository;
     private final EventRepository eventRepository;
     private final EventAccessPolicy eventAccessPolicy;
+    private final EnrollmentAccessPolicy enrollmentAccessPolicy;
     private final DomainEventRecorder domainEvents;
     private final CircuitBreakerService circuitBreakerService;
     private final TransactionRunner transactions;
@@ -63,7 +65,7 @@ public class FormService {
         Enrollment enrollment = find(enrollmentId);
         obligationOf(enrollment);
         FormSubmission stored = mongo(() -> submissionRepository.findByEnrollmentId(enrollmentId)).orElse(null);
-        if (isParticipant(caller, enrollment)) {
+        if (enrollmentAccessPolicy.canSee(caller, enrollment)) {
             return toDto(enrollment, stored != null ? stored : draftOf(enrollment));
         }
         if (stored != null && stored.getStatus() == FormStatus.SUBMITTED && canManage(caller, enrollment)) {
@@ -194,7 +196,10 @@ public class FormService {
     private Enrollment writableByParticipant(CallerContext caller, String enrollmentId) {
         Enrollment enrollment = find(enrollmentId);
         obligationOf(enrollment);
-        if (!isParticipant(caller, enrollment)) {
+        if (!enrollmentAccessPolicy.canAct(caller, enrollment)) {
+            if (enrollmentAccessPolicy.canSee(caller, enrollment)) {
+                enrollmentAccessPolicy.requireAct(caller, enrollment);
+            }
             if (canManage(caller, enrollment) && mongo(() -> submissionRepository.findByEnrollmentId(enrollmentId))
                     .filter(s -> s.getStatus() == FormStatus.SUBMITTED).isPresent()) {
                 throw new BuonaCacciaException(ErrorCode.FORBIDDEN, "La scheda la compila il partecipante.");
@@ -250,10 +255,6 @@ public class FormService {
         return mongo(() -> eventRepository.findById(enrollment.getEventId()))
                 .map(Event::getTypeCode)
                 .orElseThrow(() -> notFound());
-    }
-
-    private boolean isParticipant(CallerContext caller, Enrollment enrollment) {
-        return caller.getSubject() != null && caller.getSubject().equals(enrollment.getParticipantId());
     }
 
     private boolean canManage(CallerContext caller, Enrollment enrollment) {
