@@ -9,6 +9,7 @@ import it.buonacaccia.model.Entitlements;
 import it.buonacaccia.service.PaymentService;
 import it.buonacaccia.service.guard.CallerContext;
 import it.buonacaccia.v1.dto.ApiResponse;
+import it.buonacaccia.v1.dto.CardPaymentRequestDTO;
 import it.buonacaccia.v1.dto.PaymentDTO;
 import it.buonacaccia.v1.dto.PaymentRequestDTO;
 import it.buonacaccia.v1.dto.ReasonDTO;
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "payments", description = "Pagamenti registrati dalla segreteria")
+@Tag(name = "payments", description = "Pagamenti: bonifici registrati dalla segreteria e carta del socio (simulata)")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -41,6 +42,15 @@ public class PaymentController {
     public ApiResponse<PaymentDTO> register(@PathVariable String id, @Valid @RequestBody PaymentRequestDTO request,
                                             @AuthenticationPrincipal Jwt jwt) {
         return ApiResponse.ok(PaymentMapper.INSTANCE.toDto(paymentService.register(CallerContext.from(jwt), id, request)));
+    }
+
+    @PostMapping("/api/v1/enrollments/{id}/card-payment")
+    @ResponseStatus(HttpStatus.CREATED)
+    @SecurityAccess(entitlement = Entitlements.ISCRIZIONE_SELF)
+    @Operation(summary = "Il socio paga con la carta tutto il residuo (simulato, feature 018)")
+    public ApiResponse<PaymentDTO> payByCard(@PathVariable String id, @Valid @RequestBody CardPaymentRequestDTO request,
+                                             @AuthenticationPrincipal Jwt jwt) {
+        return ApiResponse.ok(PaymentMapper.INSTANCE.toDto(paymentService.payByCard(CallerContext.from(jwt), id, request.getCardLast4())));
     }
 
     @GetMapping("/api/v1/enrollments/{id}/payments")
