@@ -748,6 +748,7 @@ public class EnrollmentService {
             dto.setWaitingPosition((int) (long) mongo(() -> mongoTemplate.count(ahead, Enrollment.class)) + 1);
         }
         dto.setAvailableActions(accessPolicy.availableActions(caller, callerUser, enrollment, event, now));
+        dto.setCanFill(accessPolicy.canAct(caller, enrollment));
         setPayment(dto, enrollment, event);
         if (!enrollment.isActive() && enrollment.getPaidCents() > 0) {
             refundService.ofEnrollment(enrollment.getId()).ifPresent(r -> dto.setRefund(RefundMapper.INSTANCE.toSummary(r)));

@@ -26,6 +26,8 @@ class LeaderManagedEnrollmentTest extends FormTestBase {
         assertError(post(card, tokenOf("esploratore"), Map.of("cardLast4", "4242")), 403, 40300);
         assertError(post(ENROLLMENTS + "/" + id + "/withdraw", tokenOf("esploratore"), null), 403, 40300);
         assertThat(actions(enrollment("esploratore", id))).doesNotContain("WITHDRAW");
+        assertThat(enrollment("esploratore", id).get("canFill").asBoolean()).isFalse();
+        assertThat(enrollment("socio", id).get("canFill").asBoolean()).isTrue();
 
         assertThat(actions(enrollment("socio", id))).contains("WITHDRAW");
         assertThat(post(card, tokenOf("socio"), Map.of("cardLast4", "4242")).status()).isEqualTo(201);

@@ -63,5 +63,7 @@ public class EnrollmentDTO {
     @ArraySchema(schema = @Schema(allowableValues = {"WITHDRAW", "SATISFY", "APPROVE_UNIT_LEADER", "REJECT_UNIT_LEADER",
             "APPROVE_GROUP_LEADER", "REJECT_GROUP_LEADER"}))
     private List<String> availableActions;
+    /** Chi guarda può compilare scheda, documenti e pagamento: falso per il ragazzo L/C o E/G, che vede soltanto. */
+    private boolean canFill;
     private Long version;
 }
