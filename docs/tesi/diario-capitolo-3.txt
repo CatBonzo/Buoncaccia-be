@@ -912,3 +912,11 @@ Paradigma: AI-assisted; SDD (rami separati dalle domande della scheda per non to
 Artefatti: ramo 016-allegati-evento; EventAttachment, EventAttachmentService, EventAttachmentController, SecurityConfig, EventAttachmentTest, AGENTS.md.
 Problemi: i percorsi pubblici vanno elencati a mano nella configurazione di sicurezza, altrimenti lo scarico chiede il login.
 Spunto: riusare un meccanismo gia' provato (documenti) per un caso simile costa poco e tiene coerenti le regole.
+
+[2026-10-24] La verifica su GitHub tornata verde
+Cosa: la verifica `build` era rossa da giorni (44 test su 144 con `initializationError`); ora usa Ubuntu 24.04 e passa.
+Chi: Mahima ha segnalato che quasi tutti i test fallivano su GitHub; Claude ha letto il log, ha escluso il codice (in locale 355 test verdi) e ha provato a fissare il sistema del server.
+Paradigma: AI-assisted; code harness: la stessa suite e' il controllo, la prova e' averla vista passare sul server dopo il cambio.
+Artefatti: ramo 019-ci-ubuntu-2404; .github/workflows/build.yml.
+Problemi: all'inizio avevo detto "ambientale" senza provare a risolvere; la causa era il passaggio di `ubuntu-latest` a Ubuntu 26.04.
+Spunto: un'immagine "latest" del server di build cambia da sola: conviene fissare la versione.
