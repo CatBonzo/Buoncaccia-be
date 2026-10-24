@@ -927,3 +927,11 @@ Paradigma: AI-assisted; code harness: la stessa suite e' il controllo, la prova 
 Artefatti: ramo 019-ci-ubuntu-2404; .github/workflows/build.yml.
 Problemi: all'inizio avevo detto "ambientale" senza provare a risolvere; la causa era il passaggio di `ubuntu-latest` a Ubuntu 26.04.
 Spunto: un'immagine "latest" del server di build cambia da sola: conviene fissare la versione.
+
+[2026-10-24] Il capo unita' gestisce i ragazzi, il capo gruppo autorizza tutto
+Cosa: per pagare basta l'autorizzazione del capo unita' o del capo gruppo; scheda, documenti, pagamento e ritiro dei lupetti/coccinelle e degli esploratori/guide li fa solo il capo unita' (il ragazzo vede e basta).
+Chi: Mahima ha spiegato le due regole a voce; Claude ha cercato dove il codice usava "partecipante o presentatore" e le ha riunite in `canAct`/`canSee` di `EnrollmentAccessPolicy`.
+Paradigma: AI-assisted; SDD (regola nuova scritta in AGENTS.md con il motivo); code harness: 5 test nuovi (3 sull'API, 2 sulle regole) piu' tutta la suite.
+Artefatti: ramo 020-gestione-capo-unita; EnrollmentAccessPolicy, PaymentRules, PaymentService, DocumentService, FormService, EnrollmentService, Enrollment, LeaderManagedEnrollmentTest, EnrollmentAuthorizationRulesTest, AGENTS.md.
+Problemi: la scheda era solo del partecipante, quindi nemmeno il presentatore poteva compilarla; la branca non era salvata nell'iscrizione e ora lo e'.
+Spunto: una regola di accesso sparsa in cinque servizi diventa una sola funzione: cambiarla dopo costa una riga.

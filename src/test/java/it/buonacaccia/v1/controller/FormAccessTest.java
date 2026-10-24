@@ -31,20 +31,22 @@ class FormAccessTest extends FormTestBase {
         save("rover", id(enrollment), COMPLETE);
         submit("rover", id(enrollment));
 
-        for (String user : new String[] {"scolta", "segreteria-lig", "capogruppo", "socio"}) {
+        for (String user : new String[] {"scolta", "segreteria-lig", "socio"}) {
             assertThat(get(form(id(enrollment)), tokenOf(user)).status()).as(user).isEqualTo(404);
         }
         assertThat(get(form(id(enrollment)), null).status()).isEqualTo(401);
     }
 
     @Test
-    void il_presentatore_non_vede_la_scheda_del_ragazzo() {
+    void il_presentatore_compila_la_scheda_del_ragazzo_e_il_ragazzo_la_vede_soltanto() {
         String eventId = publish(scoutEvent("obligations", FORM_ONLY, "fee", 0)).get("id").asString();
         JsonNode enrollment = enrollFor("socio", "100006", eventId).body().get("payload");
 
-        assertThat(get(form(id(enrollment)), tokenOf("socio")).status()).isEqualTo(404);
-        assertThat(save("socio", id(enrollment), COMPLETE).status()).isEqualTo(404);
+        assertThat(get(form(id(enrollment)), tokenOf("socio")).status()).isEqualTo(200);
+        assertThat(save("socio", id(enrollment), COMPLETE).status()).isEqualTo(200);
+        // 24/10: le iscrizioni di L/C ed E/G le gestisce solo il capo unita'.
         assertThat(get(form(id(enrollment)), tokenOf("esploratore")).status()).isEqualTo(200);
+        assertThat(save("esploratore", id(enrollment), COMPLETE).status()).isEqualTo(403);
     }
 
     @Test

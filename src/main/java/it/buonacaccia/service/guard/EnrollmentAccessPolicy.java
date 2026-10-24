@@ -4,6 +4,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.buonacaccia.config.error.BuonaCacciaException;
+import it.buonacaccia.config.error.ErrorCode;
+import it.buonacaccia.model.Branch;
 import it.buonacaccia.model.Census;
 import it.buonacaccia.model.Enrollment;
 import it.buonacaccia.model.EnrollmentObligation;
@@ -13,6 +16,7 @@ import it.buonacaccia.model.MemberType;
 import it.buonacaccia.model.ObligationStatus;
 import it.buonacaccia.model.ObligationType;
 import it.buonacaccia.model.User;
+import it.buonacaccia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +34,7 @@ public class EnrollmentAccessPolicy {
     public static final String SATISFY = "SATISFY";
 
     private final EventAccessPolicy eventAccessPolicy;
+    private final UserRepository userRepository;
 
     public boolean canManage(CallerContext caller, Enrollment enrollment) {
         return caller.hasEntitlement(Entitlements.ISCRIZIONE_GESTIONE)
@@ -41,6 +46,49 @@ public class EnrollmentAccessPolicy {
         return subject != null && (subject.equals(enrollment.getParticipantId()) || subject.equals(enrollment.getPresenterId()));
     }
 
+    /**
+     * Chi compila scheda, documenti e pagamento e chi si ritira (decisione di Mahima, 24/10): il presentatore, il capo
+     * unità del partecipante e, se non è un lupetto/coccinella o un esploratore/guida, il partecipante stesso.
+     * Le iscrizioni di L/C ed E/G le gestisce solo il capo unità.
+     */
+    public boolean canAct(CallerContext caller, Enrollment enrollment) {
+        String subject = caller.getSubject();
+        if (subject == null) {
+            return false;
+        }
+        return subject.equals(enrollment.getPresenterId()) || isUnitLeaderOf(subject, enrollment)
+                || (subject.equals(enrollment.getParticipantId()) && !managedByLeader(enrollment));
+    }
+
+    /** Chi può vedere l'iscrizione come "suo": chi agisce più il partecipante, anche se L/C o E/G. */
+    public boolean canSee(CallerContext caller, Enrollment enrollment) {
+        return canAct(caller, enrollment) || isParticipantOrPresenter(caller, enrollment);
+    }
+
+    /** 404 per chi non la vede, 403 per chi la vede ma non la può gestire (il ragazzo L/C o E/G). */
+    public void requireAct(CallerContext caller, Enrollment enrollment) {
+        if (canAct(caller, enrollment)) {
+            return;
+        }
+        throw canSee(caller, enrollment)
+                ? new BuonaCacciaException(ErrorCode.FORBIDDEN, "L'iscrizione di lupetti, coccinelle, esploratori e guide la gestisce il capo unità.")
+                : new BuonaCacciaException(ErrorCode.NOT_FOUND, "Iscrizione non trovata.");
+    }
+
+    private static boolean managedByLeader(Enrollment enrollment) {
+        return enrollment.getParticipantBranch() == Branch.LC || enrollment.getParticipantBranch() == Branch.EG;
+    }
+
+    private boolean isUnitLeaderOf(String subject, Enrollment enrollment) {
+        if (enrollment.getParticipantUnitId() == null || subject.equals(enrollment.getParticipantId())) {
+            return false;
+        }
+        return userRepository.findById(subject)
+                .map(User::getCensus)
+                .filter(c -> c.getMemberType() == MemberType.LEADER && enrollment.getParticipantUnitId().equals(c.getUnitId()))
+                .isPresent();
+    }
+
     /** Il chiamante è il capo unità (o il capo gruppo) del partecipante, e non il partecipante stesso. */
     public boolean canAuthorize(User caller, Enrollment enrollment, ObligationType type) {
         if (caller == null || caller.getCensus() == null || caller.getId().equals(enrollment.getParticipantId())) {
@@ -48,17 +96,22 @@ public class EnrollmentAccessPolicy {
         }
         Census census = caller.getCensus();
         return switch (type) {
-            case UNIT_LEADER_AUTHORIZATION -> census.getMemberType() == MemberType.LEADER
-                    && census.getUnitId() != null && census.getUnitId().equals(enrollment.getParticipantUnitId());
-            case GROUP_LEADER_AUTHORIZATION -> census.isGroupLeader()
-                    && census.getGroupId() != null && census.getGroupId().equals(enrollment.getParticipantGroupId());
+            case UNIT_LEADER_AUTHORIZATION -> (census.getMemberType() == MemberType.LEADER
+                    && census.getUnitId() != null && census.getUnitId().equals(enrollment.getParticipantUnitId()))
+                    || isGroupLeaderOf(census, enrollment);
+            case GROUP_LEADER_AUTHORIZATION -> isGroupLeaderOf(census, enrollment);
             default -> false;
         };
     }
 
+    /** Il capo gruppo autorizza tutte le iscrizioni dei soci del suo gruppo (decisione di Mahima, 24/10). */
+    private static boolean isGroupLeaderOf(Census census, Enrollment enrollment) {
+        return census.isGroupLeader() && census.getGroupId() != null && census.getGroupId().equals(enrollment.getParticipantGroupId());
+    }
+
     /** Per tutti gli altri l'iscrizione non esiste (404). */
     public boolean canView(CallerContext caller, User callerUser, Enrollment enrollment) {
-        return isParticipantOrPresenter(caller, enrollment)
+        return canSee(caller, enrollment)
                 || canManage(caller, enrollment)
                 || enrollment.getObligations().stream()
                         .anyMatch(o -> canAuthorize(callerUser, enrollment, o.getType()));
@@ -71,7 +124,7 @@ public class EnrollmentAccessPolicy {
         if (!enrollment.isActive()) {
             return actions;
         }
-        if (isParticipantOrPresenter(caller, enrollment) && event != null && event.getStartsAt() != null
+        if (canAct(caller, enrollment) && event != null && event.getStartsAt() != null
                 && now.isBefore(event.getStartsAt())) {
             actions.add(WITHDRAW);
         }

@@ -82,7 +82,7 @@ public class PaymentService {
     /** Pagamenti di un'iscrizione, per chi la vede come partecipante o presentatore e per chi la gestisce. */
     public List<Payment> list(CallerContext caller, String enrollmentId) {
         Enrollment enrollment = find(enrollmentId);
-        boolean allowed = enrollmentAccessPolicy.isParticipantOrPresenter(caller, enrollment)
+        boolean allowed = enrollmentAccessPolicy.canSee(caller, enrollment)
                 || eventAccessPolicy.canManage(caller, enrollment.getEventLevel(), enrollment.getEventRegion());
         if (!allowed) {
             throw new BuonaCacciaException(ErrorCode.NOT_FOUND, "Iscrizione non trovata.");
@@ -126,9 +126,7 @@ public class PaymentService {
 
     private Payment payByCardOnce(CallerContext caller, String enrollmentId, String cardLast4) {
         Enrollment enrollment = find(enrollmentId);
-        if (!enrollmentAccessPolicy.isParticipantOrPresenter(caller, enrollment)) {
-            throw new BuonaCacciaException(ErrorCode.NOT_FOUND, "Iscrizione non trovata.");
-        }
+        enrollmentAccessPolicy.requireAct(caller, enrollment);
         Instant now = clock.instant();
         EnrollmentObligation obligation = paymentToDo(enrollment);
         long amount = feeOf(enrollment) - enrollment.getPaidCents();

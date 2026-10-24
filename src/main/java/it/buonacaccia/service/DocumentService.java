@@ -92,9 +92,7 @@ public class DocumentService {
 
     private Document uploadOnce(CallerContext caller, String enrollmentId, String code, MultipartFile file, byte[] content) {
         Enrollment enrollment = find(enrollmentId);
-        if (!enrollmentAccessPolicy.isParticipantOrPresenter(caller, enrollment)) {
-            throw notFound("Iscrizione non trovata.");
-        }
+        enrollmentAccessPolicy.requireAct(caller, enrollment);
         EnrollmentObligation obligation = documentObligation(enrollment, code);
         if (!enrollment.isActive()) {
             throw conflict("L'iscrizione non è attiva: non si caricano più documenti.");
@@ -279,7 +277,7 @@ public class DocumentService {
     }
 
     private void checkCanSee(CallerContext caller, Enrollment enrollment) {
-        boolean allowed = enrollmentAccessPolicy.isParticipantOrPresenter(caller, enrollment)
+        boolean allowed = enrollmentAccessPolicy.canSee(caller, enrollment)
                 || eventAccessPolicy.canManage(caller, enrollment.getEventLevel(), enrollment.getEventRegion());
         if (!allowed) {
             throw notFound("Documento non trovato.");

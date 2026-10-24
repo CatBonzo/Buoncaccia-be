@@ -149,6 +149,7 @@ public class EnrollmentService {
                 .participantName(fullName(participant))
                 .participantGroupId(participant.getCensus().getGroupId())
                 .participantUnitId(participant.getCensus().getUnitId())
+                .participantBranch(participant.getCensus().getBranch())
                 .presenterId(presenterId)
                 .presenterName(presenter == null ? null : fullName(presenter))
                 .status(status)
@@ -344,9 +345,9 @@ public class EnrollmentService {
     public EnrollmentDTO withdraw(CallerContext caller, String id) {
         Enrollment enrollment = find(id);
         User callerUser = callerUser(caller);
-        if (!accessPolicy.isParticipantOrPresenter(caller, enrollment)) {
+        if (!accessPolicy.canAct(caller, enrollment)) {
             throw accessPolicy.canView(caller, callerUser, enrollment)
-                    ? new BuonaCacciaException(ErrorCode.FORBIDDEN, "Si ritira solo il partecipante o il suo presentatore.")
+                    ? new BuonaCacciaException(ErrorCode.FORBIDDEN, "Si ritira solo chi gestisce l'iscrizione: il partecipante (R/S e capi), il presentatore o il capo unità.")
                     : notFound();
         }
         if (!enrollment.isActive()) {
