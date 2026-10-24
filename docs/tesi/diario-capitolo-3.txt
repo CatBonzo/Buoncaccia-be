@@ -912,3 +912,11 @@ Paradigma: AI-assisted; SDD (rami separati dalle domande della scheda per non to
 Artefatti: ramo 016-allegati-evento; EventAttachment, EventAttachmentService, EventAttachmentController, SecurityConfig, EventAttachmentTest, AGENTS.md.
 Problemi: i percorsi pubblici vanno elencati a mano nella configurazione di sicurezza, altrimenti lo scarico chiede il login.
 Spunto: riusare un meccanismo gia' provato (documenti) per un caso simile costa poco e tiene coerenti le regole.
+
+[2026-10-24] Pagamento con carta del socio (simulato)
+Cosa: nuova operazione `POST /api/v1/enrollments/{id}/card-payment`: il socio paga tutto il residuo con la carta e il pagamento si registra come `CARD`; arrivano solo le ultime quattro cifre.
+Chi: Mahima ha scelto (carta "Con backend" sulla scheda decisioni) che Paga registri davvero il pagamento; Claude ha estratto la registrazione comune dal bonifico e aggiunto la via del socio.
+Paradigma: AI-assisted; SDD (decisione su una regola della spec: oltre al bonifico, la carta simulata); code harness: 4 test nuovi e i 10 dei bonifici ancora verdi.
+Artefatti: ramo 018-pagamento-carta; PaymentService, PaymentController, CardPaymentRequestDTO, PaymentMethod, CardPaymentTest, AGENTS.md.
+Problemi: la spec dice "solo bonifico": la regola e' stata cambiata in modo esplicito e annotata. Il numero di carta non va mai al server, anche in una prova.
+Spunto: una simulazione utile non finge di salvare dati sensibili: tiene solo cio' che serve a mostrare il risultato.

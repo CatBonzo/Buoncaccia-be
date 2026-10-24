@@ -68,6 +68,17 @@ public class PaymentService {
         return transactions.retryOnConflict(() -> registerOnce(caller, enrollmentId, request));
     }
 
+    /**
+     * Il socio (o il presentatore) paga con la carta tutto il residuo (feature 018). Simulato: non c'è nessuna banca,
+     * dalla carta arrivano solo le ultime quattro cifre, che restano nel riferimento del pagamento.
+     *
+     * @throws BuonaCacciaException {@code NOT_FOUND} se l'iscrizione non è sua, {@code ENROLLMENT_STATE_CONFLICT}
+     *                              se non è nei posti con un pagamento da fare o manca l'autorizzazione del capo unità
+     */
+    public Payment payByCard(CallerContext caller, String enrollmentId, String cardLast4) {
+        return transactions.retryOnConflict(() -> payByCardOnce(caller, enrollmentId, cardLast4));
+    }
+
     /** Pagamenti di un'iscrizione, per chi la vede come partecipante o presentatore e per chi la gestisce. */
     public List<Payment> list(CallerContext caller, String enrollmentId) {
         Enrollment enrollment = find(enrollmentId);
@@ -94,6 +105,9 @@ public class PaymentService {
     private Payment registerOnce(CallerContext caller, String enrollmentId, PaymentRequestDTO request) {
         Enrollment enrollment = find(enrollmentId);
         eventAccessPolicy.checkCanManage(caller, enrollment.getEventLevel(), enrollment.getEventRegion());
+        if (request.getMethod() == PaymentMethod.CARD) {
+            throw invalid("method", "Il pagamento con carta lo fa il socio dalla sua pagina: la segreteria registra i bonifici.");
+        }
         Instant now = clock.instant();
         EnrollmentObligation obligation = paymentToDo(enrollment);
         long amount = amountOf(request);
@@ -106,6 +120,25 @@ public class PaymentService {
         if (reference != null && isDuplicate(enrollmentId, amount, reference)) {
             throw new BuonaCacciaException(ErrorCode.PAYMENT_DUPLICATE);
         }
+        return book(caller, enrollment, obligation, amount, PaymentMethod.BANK_TRANSFER, request.getReceivedOn(), reference,
+                "Pagamento registrato dalla segreteria", now);
+    }
+
+    private Payment payByCardOnce(CallerContext caller, String enrollmentId, String cardLast4) {
+        Enrollment enrollment = find(enrollmentId);
+        if (!enrollmentAccessPolicy.isParticipantOrPresenter(caller, enrollment)) {
+            throw new BuonaCacciaException(ErrorCode.NOT_FOUND, "Iscrizione non trovata.");
+        }
+        Instant now = clock.instant();
+        EnrollmentObligation obligation = paymentToDo(enrollment);
+        long amount = feeOf(enrollment) - enrollment.getPaidCents();
+        return book(caller, enrollment, obligation, amount, PaymentMethod.CARD, now.atZone(ClockConfig.ROME).toLocalDate(),
+                "Carta •••• " + cardLast4, "Pagamento con carta (simulato)", now);
+    }
+
+    /** Scrive il pagamento valido, aggiorna l'iscrizione e registra l'evento di dominio nella stessa transazione. */
+    private Payment book(CallerContext caller, Enrollment enrollment, EnrollmentObligation obligation, long amount,
+                         PaymentMethod method, LocalDate receivedOn, String reference, String note, Instant now) {
         Event event = mongo(() -> eventRepository.findById(enrollment.getEventId())).orElse(null);
         Payment payment = Payment.builder()
                 .id(UUID.randomUUID().toString())
@@ -117,8 +150,8 @@ public class PaymentService {
                 .eventRegion(enrollment.getEventRegion())
                 .participantId(enrollment.getParticipantId())
                 .amountCents(amount)
-                .method(request.getMethod() == null ? PaymentMethod.BANK_TRANSFER : request.getMethod())
-                .receivedOn(request.getReceivedOn())
+                .method(method)
+                .receivedOn(receivedOn)
                 .reference(reference)
                 .status(PaymentStatus.VALID)
                 .registeredBy(caller.getSubject())
@@ -129,7 +162,7 @@ public class PaymentService {
             obligation.setStatus(ObligationStatus.SATISFIED);
             obligation.setSatisfiedBy(caller.getSubject());
             obligation.setSatisfiedAt(now);
-            obligation.setNote("Pagamento registrato dalla segreteria");
+            obligation.setNote(note);
         }
         EnrollmentService.completeIfDone(enrollment, now);
         enrollment.setUpdatedAt(now);
@@ -137,11 +170,11 @@ public class PaymentService {
             paymentRepository.insert(payment);
             Enrollment saved = enrollmentRepository.save(enrollment);
             if (event != null) {
-                domainEvents.payment(saved, event, amount, request.getReceivedOn(), reference);
+                domainEvents.payment(saved, event, amount, receivedOn, reference);
             }
             return saved;
         });
-        log.info("Iscrizione {}: pagamento di {} centesimi registrato da {}", enrollment.getNumber(), amount, caller.getSubject());
+        log.info("Iscrizione {}: pagamento di {} centesimi ({}) registrato da {}", enrollment.getNumber(), amount, method, caller.getSubject());
         return payment;
     }
 
